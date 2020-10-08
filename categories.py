@@ -1,58 +1,58 @@
 import bpy
 
 
-def get_child_cats(categories, category):
+def get_child_cats(categories, category_slug):
     """Return children of category.
 
     Args:
         categories (list[categories]): categories
-        category (string): category
+        category_slug (string): category
 
     Returns:
         list[categories]: categories
     """
-    if category == '':
+    if category_slug == '':
         return categories
     children = []
     for cat in categories:
-        if cat['Slug'] == category:
+        if cat['Slug'] == category_slug:
             return cat['Children']
         else:
-            children = get_child_cats(cat['Children'], category)
+            children = get_child_cats(cat['Children'], category_slug)
         if children:
             return children
     return children
 
 
-def get_parent_cat_name(categories, category):
-    """Return parent of category.
+def get_parent_cat_slug(categories, category_slug):
+    """Return parent slug of category.
 
     Args:
         categories (list[categories]): categories
-        category (string): category
+        category_slug (string): category slug
 
     Returns:
-        string: category
+        string: slug
     """
-    if category == "":
+    if category_slug == "":
         return ""
     parent = ""
     for cat in categories:
-        if cat['Slug'] == category:
+        if cat['Slug'] == category_slug:
             return cat['Parent']
         else:
-            parent = get_parent_cat_name(cat['Children'], category)
+            parent = get_parent_cat_slug(cat['Children'], category_slug)
         if parent:
             return parent
     return parent
 
 
-def get_category(categories, category):
+def get_category(categories, category_slug):
     """Return the category.
 
     Args:
         categories (list[categories]): categories
-        category (string): category name
+        category_slug (string): category slug
 
     Returns:
         dict{Name,
@@ -60,16 +60,14 @@ def get_category(categories, category):
             Parent,
             Children[list[categories]]}: category
     """
-    props = context.scene.mt_am_props
-
-    if category == "":
-        return props['categories']
+    if category_slug == "":
+        return ""
     ret_cat = ""
     for cat in categories:
-        if cat['Slug'] == category:
+        if cat['Slug'] == category_slug:
             return cat
         else:
-            ret_cat = get_category(cat['Children'], category)
+            ret_cat = get_category(cat['Children'], category_slug)
         if ret_cat:
             return ret_cat
-    return props['categories']
+    return ret_cat
