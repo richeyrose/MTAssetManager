@@ -1,0 +1,5 @@
+# ignore blend files
+*.blend
+*.blend[0-9]
+*.pyc
+*.code-workspace

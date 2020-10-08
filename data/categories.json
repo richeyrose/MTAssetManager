@@ -1,0 +1,163 @@
+[
+    {
+        "Name": "Collections",
+        "Slug": "collections",
+        "Parent": "",
+        "Children": [
+            {
+                "Name": "Tiles",
+                "Slug": "collections\\tiles",
+                "Parent": "collections",
+                "Children": [
+                    {
+                        "Name": "Walls",
+                        "Slug": "collections\\tiles\\walls",
+                        "Parent": "collections\\tiles",
+                        "Children": [
+                            {
+                                "Name": "Straight",
+                                "Slug": "collections\\tiles\\walls\\straight",
+                                "Parent": "collections\\tiles\\walls",
+                                "Children": [
+                                    {
+                                        "Name": "Wibble",
+                                        "Slug": "collections\\tiles\\walls\\straight",
+                                        "Parent": "collections\\tiles\\walls",
+                                        "Children": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "Name": "Floors",
+                        "Slug": "collections\\tiles\\floors",
+                        "Parent": "collections\\tiles",
+                        "Children": []
+                    },
+                    {
+                        "Name": "Columns",
+                        "Slug": "collections\\tiles\\columns",
+                        "Parent": "collections\\tiles",
+                        "Children": []
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "Name": "Objects",
+        "Slug": "objects",
+        "Parent": "",
+        "Children": [
+            {
+                "Name": "Booleans",
+                "Slug": "objects\\booleans",
+                "Parent": "objects",
+                "Children": [
+                    {
+                        "Name": "Cutters",
+                        "Slug": "objects\\booleans\\cutters",
+                        "Parent": "objects\\booleans",
+                        "Children": []
+                    },
+                    {
+                        "Name": "Top Pegs",
+                        "Slug": "objects\\booleans\\top_pegs",
+                        "Parent": "objects\\booleans",
+                        "Children": []
+                    }
+                ]
+            },
+            {
+                "Name": "Props",
+                "Slug": "objects\\props",
+                "Parent": "objects",
+                "Children": [
+                    {
+                        "Name": "Tavern",
+                        "Slug": "objects\\props\\tavern",
+                        "Parent": "objects\\props",
+                        "Children":[
+                            {
+                                "Name": "Seats",
+                                "Slug": "objects\\props\\tavern\\seats",
+                                "Parent": "objects\\props\\tavern",
+                                "Children": []
+                            },
+                            {
+                                "Name": "Tables",
+                                "Slug": "objects\\props\\tavern\\tables",
+                                "Parent": "objects\\props\\tavern",
+                                "Children": []
+                            }
+                        ]
+                    },
+                    {
+                        "Name": "Dungeon",
+                        "Slug": "objects\\props\\dungeon",
+                        "Parent": "objects\\props",
+                        "Children": []
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "Name": "Materials",
+        "Slug": "materials",
+        "Parent": "",
+        "Children": [
+            {
+                "Name": "Wall",
+                "Slug": "materials\\wall",
+                "Parent": "materials",
+                "Children": [
+                    {
+                        "Name": "Stone",
+                        "Slug": "materials\\wall\\stone",
+                        "Parent": "materials\\wall",
+                        "Children": []
+                    },
+                    {
+                        "Name": "Brick",
+                        "Slug": "materials\\wall\\brick",
+                        "Parent": "materials\\wall",
+                        "Children": []
+                    }
+                ]
+            },
+            {
+                "Name": "Floor",
+                "Slug": "materials\\floor",
+                "Parent": "materials",
+                "Children": [
+                    {
+                        "Name": "Stone",
+                        "Slug": "materials\\floor\\stone",
+                        "Parent": "materials\\floor",
+                        "Children": []
+                    },
+                    {
+                        "Name": "Wood",
+                        "Slug": "materials\\floor\\wood",
+                        "Parent": "materials\\floor",
+                        "Children": []
+                    },
+                    {
+                        "Name": "Brick",
+                        "Slug": "materials\\floor\\brick",
+                        "Parent": "materials\\floor",
+                        "Children": []
+                    }
+                ]
+            },
+            {
+                "Name": "Special",
+                "Slug": "materials\\special",
+                "Parent": "materials",
+                "Children": []
+            }
+        ]
+    }
+]
