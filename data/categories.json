@@ -3,26 +3,31 @@
         "Name": "Collections",
         "Slug": "collections",
         "Parent": "",
+        "Contains": "COLLECTIONS",
         "Children": [
             {
                 "Name": "Tiles",
                 "Slug": "collections\\tiles",
                 "Parent": "collections",
+                "Contains": "COLLECTIONS",
                 "Children": [
                     {
                         "Name": "Walls",
                         "Slug": "collections\\tiles\\walls",
                         "Parent": "collections\\tiles",
+                        "Contains": "COLLECTIONS",
                         "Children": [
                             {
                                 "Name": "Straight",
                                 "Slug": "collections\\tiles\\walls\\straight",
                                 "Parent": "collections\\tiles\\walls",
+                                "Contains": "COLLECTIONS",
                                 "Children": [
                                     {
                                         "Name": "Wibble",
                                         "Slug": "collections\\tiles\\walls\\straight",
                                         "Parent": "collections\\tiles\\walls",
+                                        "Contains": "COLLECTIONS",
                                         "Children": []
                                     }
                                 ]
@@ -33,12 +38,14 @@
                         "Name": "Floors",
                         "Slug": "collections\\tiles\\floors",
                         "Parent": "collections\\tiles",
+                        "Contains": "COLLECTIONS",
                         "Children": []
                     },
                     {
                         "Name": "Columns",
                         "Slug": "collections\\tiles\\columns",
                         "Parent": "collections\\tiles",
+                        "Contains": "COLLECTIONS",
                         "Children": []
                     }
                 ]
@@ -49,22 +56,26 @@
         "Name": "Objects",
         "Slug": "objects",
         "Parent": "",
+        "Contains": "OBJECTS",
         "Children": [
             {
                 "Name": "Booleans",
                 "Slug": "objects\\booleans",
                 "Parent": "objects",
+                "Contains": "OBJECTS",
                 "Children": [
                     {
                         "Name": "Cutters",
                         "Slug": "objects\\booleans\\cutters",
                         "Parent": "objects\\booleans",
+                        "Contains": "OBJECTS",
                         "Children": []
                     },
                     {
                         "Name": "Top Pegs",
                         "Slug": "objects\\booleans\\top_pegs",
                         "Parent": "objects\\booleans",
+                        "Contains": "OBJECTS",
                         "Children": []
                     }
                 ]
@@ -73,22 +84,26 @@
                 "Name": "Props",
                 "Slug": "objects\\props",
                 "Parent": "objects",
+                "Contains": "OBJECTS",
                 "Children": [
                     {
                         "Name": "Tavern",
                         "Slug": "objects\\props\\tavern",
                         "Parent": "objects\\props",
+                        "Contains": "OBJECTS",
                         "Children":[
                             {
                                 "Name": "Seats",
                                 "Slug": "objects\\props\\tavern\\seats",
                                 "Parent": "objects\\props\\tavern",
+                                "Contains": "OBJECTS",
                                 "Children": []
                             },
                             {
                                 "Name": "Tables",
                                 "Slug": "objects\\props\\tavern\\tables",
                                 "Parent": "objects\\props\\tavern",
+                                "Contains": "OBJECTS",
                                 "Children": []
                             }
                         ]
@@ -97,6 +112,7 @@
                         "Name": "Dungeon",
                         "Slug": "objects\\props\\dungeon",
                         "Parent": "objects\\props",
+                        "Contains": "OBJECTS",
                         "Children": []
                     }
                 ]
@@ -107,22 +123,26 @@
         "Name": "Materials",
         "Slug": "materials",
         "Parent": "",
+        "Contains": "MATERIALS",
         "Children": [
             {
                 "Name": "Wall",
                 "Slug": "materials\\wall",
                 "Parent": "materials",
+                "Contains": "MATERIALS",
                 "Children": [
                     {
                         "Name": "Stone",
                         "Slug": "materials\\wall\\stone",
                         "Parent": "materials\\wall",
+                        "Contains": "MATERIALS",
                         "Children": []
                     },
                     {
                         "Name": "Brick",
                         "Slug": "materials\\wall\\brick",
                         "Parent": "materials\\wall",
+                        "Contains": "MATERIALS",
                         "Children": []
                     }
                 ]
@@ -131,23 +151,27 @@
                 "Name": "Floor",
                 "Slug": "materials\\floor",
                 "Parent": "materials",
+                "Contains": "MATERIALS",
                 "Children": [
                     {
                         "Name": "Stone",
                         "Slug": "materials\\floor\\stone",
                         "Parent": "materials\\floor",
+                        "Contains": "MATERIALS",
                         "Children": []
                     },
                     {
                         "Name": "Wood",
                         "Slug": "materials\\floor\\wood",
                         "Parent": "materials\\floor",
+                        "Contains": "MATERIALS",
                         "Children": []
                     },
                     {
                         "Name": "Brick",
                         "Slug": "materials\\floor\\brick",
                         "Parent": "materials\\floor",
+                        "Contains": "MATERIALS",
                         "Children": []
                     }
                 ]
@@ -156,6 +180,7 @@
                 "Name": "Special",
                 "Slug": "materials\\special",
                 "Parent": "materials",
+                "Contains": "MATERIALS",
                 "Children": []
             }
         ]

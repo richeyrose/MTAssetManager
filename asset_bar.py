@@ -1,7 +1,9 @@
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty
-from .categories import get_child_cats, get_parent_cat
+from .categories import get_child_cats, get_parent_cat_name
+from .assets import get_assets_by_cat
+
 
 class MT_OT_AM_Asset_Bar(Operator):
     bl_idname = "view3d.mt_asset_bar"
@@ -29,7 +31,7 @@ class MT_OT_AM_Asset_Bar(Operator):
         return {'PASS_THROUGH'}
 
     def invoke(self, context, event):
-        """Handle operator button being clicked on
+        """Called when category button in side bar is clicked on.
 
         Args:
             context (bpy.context): context
@@ -37,15 +39,19 @@ class MT_OT_AM_Asset_Bar(Operator):
         """
 
         props = context.scene.mt_am_props
-        context.scene.mt_am_props.parent_category = props.active_category
-        context.scene.mt_am_props.active_category = self.category_slug  # the category that has just been clicked on
 
-        props = context.scene.mt_am_props
+        # update properties
+        context.scene.mt_am_props.parent_category = props.active_category
+        context.scene.mt_am_props.active_category = self.category_slug
+
         for cat in props['child_cats']:
             if cat['Slug'] == props.active_category:
                 props['child_cats'] = cat['Children']
                 break
 
+        # get assets in active_category
+        active_category = props.active_category
+        props['current_assets'] = get_assets_by_cat(active_category)
         return {'FINISHED'}
 
 
@@ -61,5 +67,5 @@ class MT_OT_AM_Return_To_Parent(Operator):
         props['child_cats'] = get_child_cats(props['categories'], props.parent_category)
 
         context.scene.mt_am_props.active_category = props.parent_category
-        context.scene.mt_am_props.parent_category = get_parent_cat(props['categories'], props.parent_category)
+        context.scene.mt_am_props.parent_category = get_parent_cat_name(props['categories'], props.parent_category)
         return {'FINISHED'}

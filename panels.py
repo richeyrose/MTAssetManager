@@ -15,7 +15,7 @@ class MT_PT_AM_Main_Panel(Panel):
     def draw(self, context):
         scene = context.scene
         props = context.scene.mt_am_props
-        active_category = props.active_category
+        active_category = props['active_category']
         child_cats = props['child_cats']
 
         layout = self.layout

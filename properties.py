@@ -16,6 +16,7 @@ class MT_PT_AM_Props(PropertyGroup):
     )
 
 
+
 def register():
     bpy.types.Scene.mt_am_props = bpy.props.PointerProperty(
         type=MT_PT_AM_Props
