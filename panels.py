@@ -1,5 +1,6 @@
 import bpy
-from bpy.types import Panel
+from bpy.types import Panel, Operator
+from .categories import get_category, get_child_cats, get_parent_cat_slug
 
 
 class MT_PT_AM_Main_Panel(Panel):
@@ -28,9 +29,6 @@ class MT_PT_AM_Main_Panel(Panel):
             cat_text = cat["Name"]
             op = layout.operator("view3d.mt_asset_bar", text=cat_text, icon="FILE_FOLDER")
             op.category_slug = cat["Slug"]
-
-
-
 
 
 

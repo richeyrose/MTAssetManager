@@ -39,4 +39,4 @@ def get_addon_path():
 
 def get_addon_name():
     """return file path name of calling file."""
-    return os.path.basename(get_path())
+    return os.path.basename(get_addon_path())

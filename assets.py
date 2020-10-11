@@ -1,16 +1,7 @@
+import os
 import bpy
 from bpy.props import StringProperty, EnumProperty
 from .categories import get_category
-
-mt_types = [
-    ("OBJECT", "Object", ""),
-    ("COLLECTION", "Collection", ""),
-    ("MATERIAL", "Material", "")]
-
-
-mt_licenses = [
-    ("ARR", "All RIghts Reserved", ""),
-    ("CC0", "CC0", "")]
 
 
 def get_assets_by_cat(cat_slug):
@@ -26,9 +17,24 @@ def get_assets_by_cat(cat_slug):
     category = get_category(props['categories'], cat_slug)
     if "Contains" in category:
         if category['Contains'] == 'OBJECTS':
-            return [obj for obj in props['objects'] if obj['Category'] == category['Slug']]
+            obs = [obj for obj in props['objects'] if obj['Category'] == category['Slug']]
+            return obs
         elif category['Contains'] == 'COLLECTIONS':
-            return [coll for coll in props['collections'] if coll['Category'] == category['Slug']]
+            colls = [coll for coll in props['collections'] if coll['Category'] == category['Slug']]
+            return colls
         elif category['Contains'] == 'MATERIALS':
-            return [mat for mat in props['materials'] if mat['Category'] == category['Slug']]
+            mats = [mat for mat in props['materials'] if mat['Category'] == category['Slug']]
+            return mats
     return []
+
+
+def append_preview_images(assets):
+    """Append preview images to the scene.
+
+    Args:
+        assets (list): asset descriptions
+    """
+    for asset in assets:
+        image_path = asset['PreviewImagePath']
+        if os.path.exists(image_path) and os.path.isfile(image_path):
+            bpy.data.images.load(image_path, check_existing=True)
