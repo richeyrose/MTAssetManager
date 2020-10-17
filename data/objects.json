@@ -2,7 +2,7 @@
     {
         "Name": "OpenLOCK base socket cutter unsupported",
         "Slug": "openlock_base_socket_cutter_unsupported",
-        "Category": "objects\\booleans\\cutters",
+        "Category": "objects",
         "FilePath": "E:\\MTAssetManager\\assets\\objects\\openlock.blend",
         "PreviewImagePath": "E:\\MTAssetManager\\assets\\objects\\openlock_base_socket_cutter_unsupported.png",
         "Description": "Unsupported version of the clip socket cutter for OpenLOCK tile bases",
@@ -15,7 +15,7 @@
     {
         "Name": "OpenLOCK base socket cutter supported",
         "Slug": "openlock_base_socket_cutter_supported",
-        "Category": "objects\\booleans\\cutters",
+        "Category": "objects",
         "FilePath": "E:\\MTAssetManager\\assets\\objects\\openlock.blend",
         "PreviewImagePath":  "E:\\MTAssetManager\\assets\\objects\\openlock_base_socket_cutter_supported.png",
         "Description": "Supported version of the clip socket cutter for OpenLOCK tile bases",

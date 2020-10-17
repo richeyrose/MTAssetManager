@@ -1,134 +1,97 @@
 import bpy
 from math import floor
 from bpy.types import Operator
-from bpy.props import StringProperty
+from bpy.props import StringProperty, BoolProperty
 from .preferences import get_prefs
 from .categories import get_child_cats, get_parent_cat_slug, get_category
 from .assets import get_assets_by_cat, append_preview_images
 from .ui_bgl import draw_rect, draw_image
+from .draw_operator import MT_OT_AM_Draw_Operator
+from .ui_bar import MT_UI_AM_Asset_Bar, MT_AM_UI_Asset_Thumb
 
-
-class MT_OT_AM_Asset_Bar(Operator):
+class MT_OT_AM_Asset_Bar(MT_OT_AM_Draw_Operator, Operator):
     bl_idname = "view3d.mt_asset_bar"
     bl_label = "MakeTile Asset Bar UI"
-    bl_options = {'INTERNAL'}
+    bl_options = {'REGISTER'}
 
     category_slug: StringProperty(
         name="Category",
         default="None",
     )
 
-    def modal(self, context, event):
-        """Handle user input.
-
-        Args:
-            context (bpy.context): context
-            event (event): mouse or keyboard event
-        """
-        # redraw if we are drawing asset bar
-        if context.area:
-            context.area.tag_redraw()
-
-        am_props = context.scene.mt_am_props
-        bar_props = context.scene.mt_bar_props
-
-        # close asset bar if Esc is pressed and end modal
-        if event.type == 'ESC':
-            bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
-            bar_props.visible = False
-            context.view_layer.update()
-            return {'CANCELLED'}
-
-        return {'PASS_THROUGH'}
+    asset_bar = None
 
     def invoke(self, context, event):
-        """Called when category button in side bar is clicked on.
-
-        Args:
-            context (bpy.context): context
-            event (event): mouse or keyboard event
-        """
-
-        props = context.scene.mt_am_props
-
+        prefs = get_prefs()
+        am_props = context.scene.mt_am_props
+        bar_props = context.scene.mt_bar_props
         # update properties
-        context.scene.mt_am_props.parent_category = props.active_category
+        context.scene.mt_am_props.parent_category = am_props.active_category
         context.scene.mt_am_props.active_category = self.category_slug
 
         # set child_cats
-        for cat in props['child_cats']:
-            if cat['Slug'] == props.active_category:
-                props['child_cats'] = cat['Children']
+        for cat in am_props['child_cats']:
+            if cat['Slug'] == am_props.active_category:
+                am_props['child_cats'] = cat['Children']
                 break
 
         # get assets in active_category
-        active_category = props.active_category
+        active_category = am_props.active_category
+
         if active_category:
-            props['current_assets'] = get_assets_by_cat(active_category)
-            # append preview images
-            append_preview_images(props['current_assets'])
+            current_assets = get_assets_by_cat(active_category)
+            append_preview_images(current_assets)
 
-        bar_props = context.scene.mt_bar_props
+        if MT_OT_AM_Asset_Bar.asset_bar:
+            # set asset bar assets to current assets
+            MT_OT_AM_Asset_Bar.asset_bar.current_assets = current_assets
+            MT_OT_AM_Asset_Bar.asset_bar.first_asset_index = 0
 
-        # reset asset index
-        bar_props.first_visible_asset = 0
-        # draw asset bar
-        if bar_props.visible is False:
-            return (draw_asset_bar(self, context))
-        context.view_layer.update()
-        return {'FINISHED'}
-
-
-def draw_asset_bar(self, context):
-    bar_props = context.scene.mt_bar_props
-    if context.area.type == 'VIEW_3D':
-        self.window = context.window
-        self.area = context.area
-        self.scene = bpy.context.scene
-
-        for r in self.area.regions:
-            if r.type == 'WINDOW':
-                self.region = r
-
-        # add draw handler
+        # Check if we are already drawing asset bar and add it if not
         args = (self, context)
-        self._handle = bpy.types.SpaceView3D.draw_handler_add(
-            draw_callback_asset_bar,
-            args,
-            'WINDOW',
-            'POST_PIXEL')
+        if not MT_OT_AM_Asset_Bar.asset_bar:
+            # initialise bar
+            asset_bar = MT_OT_AM_Asset_Bar.asset_bar = MT_UI_AM_Asset_Bar(50, 50, 300, 200)  # The main asset bar
+            asset_bar.current_assets = current_assets
+            widgets = []
+            for asset in current_assets:
+                widget = MT_AM_UI_Asset_Thumb(50, 50, prefs.asset_item_dimensions, prefs.asset_item_dimensions, asset)
+                widgets.append(widget)
+            widgets.append(asset_bar)
+            self.init_widgets(context, widgets)
+            self.register_handlers(args, context)
+            context.window_manager.modal_handler_add(self)
 
-        # add modal
-        bar_props.visible = True
-        context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
-    else:
-        self.report({'WARNING'}, "View3D not found, cannot run operator")
-        return {'CANCELLED'}
+
+    def unregister_handlers(self, context):
+        super().unregister_handlers(context)
+        MT_OT_AM_Asset_Bar.asset_bar = None
 
 
-def draw_callback_asset_bar(self, context):
-    """Draw the asset bar.
+    def draw_callback_asset_bar(self, context):
+        """Draw the asset bar.
 
-    Args:
-        context (bpy.types.context): context
-    """
-    prefs = get_prefs()
-    area = context.area  # the 3d viewport
+        Args:
+            context (bpy.types.context): context
+        """
+        prefs = get_prefs()
+        area = context.area  # the 3d viewport
 
-    if area.type == 'VIEW_3D':
-        # Get dimensions of entire bar
-        vis_props = get_asset_bar_dimensions(context, prefs)
-        # get color of outer rectangle
-        vis_props['color'] = prefs.asset_bar_bg_color
-        # draw outer rectangle
-        draw_rect(vis_props)
-        # draw asset bar items
-        draw_asset_bar_items(context, prefs, vis_props)
-        # draw asset bar header bar
-        draw_asset_bar_header(prefs, vis_props)
+        if area.type == 'VIEW_3D':
+            # Get dimensions of entire bar
+            vis_props = get_asset_bar_dimensions(context, prefs)
+            # get color of outer rectangle
+            vis_props['color'] = prefs.asset_bar_bg_color
+            # draw outer rectangle
+            draw_rect(vis_props)
+            # draw asset bar items
+            draw_asset_bar_items(context, prefs, vis_props)
+            # draw asset bar header bar
+            draw_asset_bar_header(prefs, vis_props)
 
-        # draw forward and back scroll buttons
+            # draw forward and back scroll buttons
+
 
 def draw_asset_bar_header(prefs, vis_props):
     """Draw the header for the asset bar.
