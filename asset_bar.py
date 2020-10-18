@@ -9,9 +9,10 @@ from .ui_bgl import draw_rect, draw_image
 from .draw_operator import MT_OT_AM_Draw_Operator
 from .ui_bar import MT_UI_AM_Asset_Bar, MT_AM_UI_Asset_Thumb
 
-class MT_OT_AM_Asset_Bar(MT_OT_AM_Draw_Operator, Operator):
+
+class MT_OT_AM_Asset_Bar(Operator):
     bl_idname = "view3d.mt_asset_bar"
-    bl_label = "MakeTile Asset Bar UI"
+    bl_label = "MakeTile ui Widget Operator"
     bl_options = {'REGISTER'}
 
     category_slug: StringProperty(
@@ -19,78 +20,137 @@ class MT_OT_AM_Asset_Bar(MT_OT_AM_Draw_Operator, Operator):
         default="None",
     )
 
+    draw_handle = None
+    thumbs_handler = None
     asset_bar = None
+    thumbs = []
+
+    def __init__(self):
+        self.draw_handle = MT_OT_AM_Asset_Bar.draw_handle
+        self.current_assets = []
+
+    def init_thumbs(self, context, thumbs):
+        for thumb in self.thumbs:
+            del thumb
+        MT_OT_AM_Asset_Bar.thumbs = thumbs
+        for thumb in thumbs:
+            thumb.init(context)
+
+    def init_asset_bar(self, context, asset_bar):
+        asset_bar.init(context)
 
     def invoke(self, context, event):
-        prefs = get_prefs()
-        am_props = context.scene.mt_am_props
-        bar_props = context.scene.mt_bar_props
-        # update properties
-        context.scene.mt_am_props.parent_category = am_props.active_category
-        context.scene.mt_am_props.active_category = self.category_slug
+        # Check to see if we are already displaying asset bar and add asset bar draw handler
+        # and modal handler if not
+        if not MT_OT_AM_Asset_Bar.asset_bar:
+            MT_OT_AM_Asset_Bar.asset_bar = MT_UI_AM_Asset_Bar(50, 50, 300, 200)
+            self.init_asset_bar(context, self.asset_bar)
+            args = (self, context)
+            self.register_asset_bar_draw_handler(args, context)
+            context.window_manager.modal_handler_add(self)
 
-        # set child_cats
+        # update parent and active categories based on passed in category_slug
+        am_props = context.scene.mt_am_props
+        context.scene.mt_am_props.parent_category = am_props.active_category
+        active_category = context.scene.mt_am_props.active_category = self.category_slug
+
+        # set child_cats and update side bar
         for cat in am_props['child_cats']:
             if cat['Slug'] == am_props.active_category:
                 am_props['child_cats'] = cat['Children']
                 break
 
-        # get assets in active_category
-        active_category = am_props.active_category
+        # get current assets based on active category
+        self.current_assets = get_assets_by_cat(active_category)
+        # make sure preview images are appended
+        append_preview_images(self.current_assets)
 
-        if active_category:
-            current_assets = get_assets_by_cat(active_category)
-            append_preview_images(current_assets)
+        # instantiate a thumbnail for each asset in current assets
+        prefs = get_prefs()
+        thumbs = []
+        for asset in self.current_assets:
+            asset_thumb = MT_AM_UI_Asset_Thumb(
+                50,
+                50,
+                prefs.asset_item_dimensions,
+                prefs.asset_item_dimensions,
+                asset, MT_OT_AM_Asset_Bar.asset_bar,
+                self.current_assets.index(asset))
+            thumbs.append(asset_thumb)
 
-        if MT_OT_AM_Asset_Bar.asset_bar:
-            # set asset bar assets to current assets
-            MT_OT_AM_Asset_Bar.asset_bar.current_assets = current_assets
-            MT_OT_AM_Asset_Bar.asset_bar.first_asset_index = 0
+        self.init_thumbs(context, thumbs)
 
-        # Check if we are already drawing asset bar and add it if not
+        # register the thumbnail draw handler
         args = (self, context)
-        if not MT_OT_AM_Asset_Bar.asset_bar:
-            # initialise bar
-            asset_bar = MT_OT_AM_Asset_Bar.asset_bar = MT_UI_AM_Asset_Bar(50, 50, 300, 200)  # The main asset bar
-            asset_bar.current_assets = current_assets
-            widgets = []
-            for asset in current_assets:
-                widget = MT_AM_UI_Asset_Thumb(50, 50, prefs.asset_item_dimensions, prefs.asset_item_dimensions, asset)
-                widgets.append(widget)
-            widgets.append(asset_bar)
-            self.init_widgets(context, widgets)
-            self.register_handlers(args, context)
-            context.window_manager.modal_handler_add(self)
+        self.register_thumbs_draw_handler(args, context)
 
         return {'RUNNING_MODAL'}
 
-    def unregister_handlers(self, context):
-        super().unregister_handlers(context)
-        MT_OT_AM_Asset_Bar.asset_bar = None
+    def on_invoke(self, context, event):
+        pass
 
-
-    def draw_callback_asset_bar(self, context):
-        """Draw the asset bar.
+    def modal(self, context, event):
+        """Handle user input.
 
         Args:
-            context (bpy.types.context): context
+            context (bpy.context): context
+            event (event): mouse or keyboard event
         """
-        prefs = get_prefs()
-        area = context.area  # the 3d viewport
+        # make sure we always redraw 3d view if we are drawing
+        if context.area:
+            context.area.tag_redraw()
 
-        if area.type == 'VIEW_3D':
-            # Get dimensions of entire bar
-            vis_props = get_asset_bar_dimensions(context, prefs)
-            # get color of outer rectangle
-            vis_props['color'] = prefs.asset_bar_bg_color
-            # draw outer rectangle
-            draw_rect(vis_props)
-            # draw asset bar items
-            draw_asset_bar_items(context, prefs, vis_props)
-            # draw asset bar header bar
-            draw_asset_bar_header(prefs, vis_props)
+        # handle events in thumbnails
+        if self.handle_thumb_events(event):
+            return {'RUNNING_MODAL'}
 
-            # draw forward and back scroll buttons
+        # close asset bar if Esc is pressed and end modal
+        if event.type == 'ESC':
+            self.unregister_handlers(context)
+            return {'CANCELLED'}
+
+        return {'PASS_THROUGH'}
+
+    def register_asset_bar_draw_handler(self, args, context):
+        MT_OT_AM_Asset_Bar.draw_handle = bpy.types.SpaceView3D.draw_handler_add(self.draw_callback_asset_bar, args, "WINDOW", "POST_PIXEL")
+
+    def register_thumbs_draw_handler(self, args, context):
+        if MT_OT_AM_Asset_Bar.thumbs_handler:
+            bpy.types.SpaceView3D.draw_handler_remove(MT_OT_AM_Asset_Bar.thumbs_handler, "WINDOW")
+            MT_OT_AM_Asset_Bar.thumbs_handler = None
+        MT_OT_AM_Asset_Bar.thumbs_handler = bpy.types.SpaceView3D.draw_handler_add(self.draw_callback_thumbs, args, "WINDOW", "POST_PIXEL")
+
+    def unregister_handlers(self, context):
+        """Unregister the draw handler
+
+        Args:
+            context (bpy.context): context
+        """
+        if MT_OT_AM_Asset_Bar.draw_handle:
+            bpy.types.SpaceView3D.draw_handler_remove(MT_OT_AM_Asset_Bar.draw_handle, "WINDOW")
+            MT_OT_AM_Asset_Bar.draw_handle = None
+            MT_OT_AM_Asset_Bar.asset_bar = None
+        if MT_OT_AM_Asset_Bar.thumbs_handler:
+            bpy.types.SpaceView3D.draw_handler_remove(MT_OT_AM_Asset_Bar.thumbs_handler, "WINDOW")
+            MT_OT_AM_Asset_Bar.thumbs_handler = None
+
+    def handle_thumb_events(self, event):
+        result = False
+        for thumb in self.thumbs:
+            if thumb.handle_event(event):
+                result = True
+        return result
+
+    def finish(self, context):
+        self.unregister_handlers(context)
+        return {"FINISHED"}
+
+    def draw_callback_asset_bar(self, op, context):
+        MT_OT_AM_Asset_Bar.asset_bar.draw()
+
+    def draw_callback_thumbs(self, op, context):
+        for thumb in self.thumbs:
+            thumb.draw()
 
 
 def draw_asset_bar_header(prefs, vis_props):

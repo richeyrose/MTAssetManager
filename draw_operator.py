@@ -36,7 +36,7 @@ class MT_OT_AM_Draw_Operator(Operator):
         if context.area:
             context.area.tag_redraw()
 
-        # handle events in wdigets
+        # handle events in widgets
         if self.handle_widget_events(event):
             return {'RUNNING_MODAL'}
 

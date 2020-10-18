@@ -140,10 +140,11 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
     def __init__(self, x, y, width, height):
         super().__init__(x, y, width, height)
         self.prefs = get_prefs()
+        self._show_assets = False
         self._first_asset_index = 0  # the first asset to show
         self._last_asset_index = 0  # the last asset to show
         self._current_assets = None
-        self.thumbnails = []
+        self.widgets = []
 
     def init(self, context):
         self.context = context
@@ -164,13 +165,13 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
     def last_asset_index(self):
         return self._last_asset_index
 
+    @property
+    def show_assets(self):
+        return self._show_assets
+
     @first_asset_index.setter
     def first_asset_index(self, value):
         self._first_asset_index = value
-        # calculate how many assets will fit in asset bar and set _last_asset_index accordingly
-        bar_width = self.width
-        asset_width = self.height
-        self._last_asset_index = self._first_asset_index + (math.floor(bar_width / asset_width))
 
     @property
     def current_assets(self):
@@ -197,18 +198,18 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
                 hud = region
 
         # set the width of the asset bar to the width of the 3d viewport - 10px
-        self.width = area.width - 10
+        self.width = abs(area.width - 10)
 
         # set the height of the asset bar to the height of each asset item
         self.height = self.prefs.asset_item_dimensions
 
         # if N panel is showing resize asset bar so it doesn't overlap
         if ui.height >= area.height - self.height:
-            self.width = self.width - ui.width
+            self.width = abs(self.width - ui.width)
 
         # if left toolbar is showing resize asset bar so it doesn't overlap
         if toolbar.height >= area.height - self.height:
-            self.width = self.width - toolbar.width
+            self.width = abs(self.width - toolbar.width)
 
         self.x = 5
         self.y = 5
@@ -216,16 +217,29 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
         # if HUD is showing resize bar and set origin
         if hud is not None:
             if hud.x > 0:
-                self.width = self.width - hud.width - 5
+                self.width = abs(self.width - hud.width - 5)
                 self.x = self.x + hud.width + 5
 
         # if left toolbar is showing set origin
         if toolbar.height >= area.height - self.height:
             self.x = self.x + toolbar.width
 
+        # if asset bar width is greater than width of single asset show assets
+        if self.width >= self.prefs.asset_item_dimensions:
+            self._show_assets = True
+        else:
+            self._show_assets = False
+
+        # set index of last asset to show based on bar width
+        last_asset_index = self._first_asset_index + (math.floor(self.width / self.prefs.asset_item_dimensions)) -1
+        if last_asset_index < 0:
+            self._last_asset_index = 0
+        else:
+            self._last_asset_index = last_asset_index
+
 
 class MT_AM_UI_Asset_Thumb(MT_UI_AM_Widget):
-    def __init__(self, x, y, width, height, asset):
+    def __init__(self, x, y, width, height, asset, bar, index):
         super().__init__(x, y, width, height)
         self._name = asset["Name"]
         self._slug = asset["Slug"]
@@ -238,10 +252,13 @@ class MT_AM_UI_Asset_Thumb(MT_UI_AM_Widget):
         self._license = asset["License"]
         self._type = asset["Type"]
         self._tags = asset["Tags"]
+        self._bar = bar
+        self._index = index  # index number in bar.current_assets
+        self._draw = False
 
         context = bpy.context
         self._preview_image = self.get_preview_image(context)
-        print(self._name)
+
 
     def get_preview_image(self, context):
         bar_props = context.scene.mt_bar_props
@@ -283,19 +300,37 @@ class MT_AM_UI_Asset_Thumb(MT_UI_AM_Widget):
             raise Exception()
 
     def draw(self):
-        self.update(self.x, self.y)
+        # Check if there is space to draw asset in asset bar
+        if self._bar.show_assets and self._index >= self._bar.first_asset_index and self._index <= self._bar.last_asset_index:
+            self._draw = True
+            # batch shader
+            self.update(self.x, self.y)
 
-        # texture identifier on gpu
-        texture_id = self._preview_image.bindcode
+            # texture identifier on gpu
+            texture_id = self._preview_image.bindcode
 
-        bgl.glEnable(bgl.GL_BLEND)
-        # bind texture to image unit 0
-        bgl.glActiveTexture(bgl.GL_TEXTURE0)
-        bgl.glBindTexture(bgl.GL_TEXTURE_2D, texture_id)
+            bgl.glEnable(bgl.GL_BLEND)
+            # bind texture to image unit 0
+            bgl.glActiveTexture(bgl.GL_TEXTURE0)
+            bgl.glBindTexture(bgl.GL_TEXTURE_2D, texture_id)
 
-        self.shader.bind()
-        # tell shader to use the image that is bound to image unit 0
-        self.shader.uniform_int("image", 0)
-        self.batch_panel.draw(self.shader)
-        bgl.glDisable(bgl.GL_BLEND)
+            self.shader.bind()
+            # tell shader to use the image that is bound to image unit 0
+            self.shader.uniform_int("image", 0)
+            self.batch_panel.draw(self.shader)
+            bgl.glDisable(bgl.GL_BLEND)
+        else:
+            self._draw = False
 
+    def init(self, context):
+        self.x = self._bar.x
+        self.y = self._bar.y
+        # set x origin of asset
+        self.x = self.x + (self.width * (self._index + self._bar.first_asset_index))
+
+    def mouse_down(self, x, y):
+        # only handle events if we are drawing thumbnail
+        if self._draw:
+            if self._hovered:
+                print(self._name)
+        return False
