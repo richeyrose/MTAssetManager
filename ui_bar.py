@@ -238,7 +238,7 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
             self._last_asset_index = last_asset_index
 
 
-class MT_AM_UI_Asset_Thumb(MT_UI_AM_Widget):
+class MT_AM_UI_Asset(MT_UI_AM_Widget):
     def __init__(self, x, y, width, height, asset, bar, index):
         super().__init__(x, y, width, height)
         self._name = asset["Name"]
@@ -302,6 +302,20 @@ class MT_AM_UI_Asset_Thumb(MT_UI_AM_Widget):
         if self._preview_image.gl_load():
             raise Exception()
 
+    def update_hover(self, x, y):
+        self.x = x
+        self.y = y
+        # bottom left, top left, top right, bottom right
+        indices = ((0, 1, 2), (0, 2, 3))
+        verts = (
+            (self.x, self.y),
+            (self.x, self.y + self.height),
+            (self.x + self.width, self.y + self.height),
+            (self.x + self.width, self.y))
+
+        self.hover_shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
+        self.hover_panel = batch_for_shader(self.shader, 'TRIS', {"pos": verts}, indices=indices)
+
     def draw(self):
         # Check if there is space to draw asset in asset bar
         if self._bar.show_assets and self._index >= self._bar.first_asset_index and self._index <= self._bar.last_asset_index:
@@ -348,20 +362,6 @@ class MT_AM_UI_Asset_Thumb(MT_UI_AM_Widget):
             if self._hovered:
                 print(self._name)
         return False
-
-    def update_hover(self, x, y):
-        self.x = x
-        self.y = y
-        # bottom left, top left, top right, bottom right
-        indices = ((0, 1, 2), (0, 2, 3))
-        verts = (
-            (self.x, self.y),
-            (self.x, self.y + self.height),
-            (self.x + self.width, self.y + self.height),
-            (self.x + self.width, self.y))
-
-        self.hover_shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
-        self.hover_panel = batch_for_shader(self.shader, 'TRIS', {"pos": verts}, indices=indices)
 
     def mouse_enter(self, event, x, y):
         pass
