@@ -50,14 +50,12 @@ class MT_OT_AM_Asset_Bar(Operator):
 
         # update parent and active categories based on passed in category_slug
         am_props = context.scene.mt_am_props
-        context.scene.mt_am_props.parent_category = am_props.active_category
+
+        context.scene.mt_am_props.parent_category = get_parent_cat_slug(am_props['categories'], self.category_slug)
         active_category = context.scene.mt_am_props.active_category = self.category_slug
 
-        # set child_cats and update side bar
-        for cat in am_props['child_cats']:
-            if cat['Slug'] == am_props.active_category:
-                am_props['child_cats'] = cat['Children']
-                break
+        # get child categories and update side bar
+        am_props['child_cats'] = get_child_cats(am_props['categories'], active_category)
 
         # get current assets based on active category
         self.current_assets = get_assets_by_cat(active_category)
@@ -160,22 +158,5 @@ class MT_OT_AM_Return_To_Parent(Operator):
 
     def execute(self, context):
         props = context.scene.mt_am_props
-        # get new parent category from current parent category
-        new_parent_category = get_category(props['categories'], props.parent_category)
-
-        # set child_cats to children of new_parent_category
-        if new_parent_category:
-            props['child_cats'] = new_parent_category['Children']
-        else:
-            props['child_cats'] = get_child_cats(props['categories'], new_parent_category)
-
-        # set mt_am_props.active_category to old parent category
-        context.scene.mt_am_props.active_category = props.parent_category
-        # set mt_am_props.parent_category to new parent category
-        context.scene.mt_am_props.parent_category = get_parent_cat_slug(props['categories'], props.parent_category)
-
-        # reset asset index
-        bar_props = context.scene.mt_bar_props
-        bar_props.first_visible_asset = 0
-
+        bpy.ops.view3d.mt_asset_bar('INVOKE_DEFAULT', category_slug=props.parent_category)
         return {'FINISHED'}
