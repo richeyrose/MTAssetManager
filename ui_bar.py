@@ -252,12 +252,15 @@ class MT_AM_UI_Asset_Thumb(MT_UI_AM_Widget):
         self._license = asset["License"]
         self._type = asset["Type"]
         self._tags = asset["Tags"]
+
         self._bar = bar
         self._index = index  # index number in bar.current_assets
         self._draw = False
 
-        context = bpy.context
-        self._preview_image = self.get_preview_image(context)
+        self.context = bpy.context
+        self._preview_image = self.get_preview_image(self.context)
+
+        self.prefs = get_prefs()
 
 
     def get_preview_image(self, context):
@@ -303,6 +306,8 @@ class MT_AM_UI_Asset_Thumb(MT_UI_AM_Widget):
         # Check if there is space to draw asset in asset bar
         if self._bar.show_assets and self._index >= self._bar.first_asset_index and self._index <= self._bar.last_asset_index:
             self._draw = True
+
+            # draw thumbnail image
             # batch shader
             self.update(self.x, self.y)
 
@@ -319,6 +324,15 @@ class MT_AM_UI_Asset_Thumb(MT_UI_AM_Widget):
             self.shader.uniform_int("image", 0)
             self.batch_panel.draw(self.shader)
             bgl.glDisable(bgl.GL_BLEND)
+
+            # draw hovered transparency
+            if self._hovered:
+                self.update_hover(self.x, self.y)
+                self.hover_shader.bind()
+                self.hover_shader.uniform_float("color", self.prefs.asset_bar_item_hover_color)
+                bgl.glEnable(bgl.GL_BLEND)
+                self.hover_panel.draw(self.hover_shader)
+                bgl.glDisable(bgl.GL_BLEND)
         else:
             self._draw = False
 
@@ -334,3 +348,23 @@ class MT_AM_UI_Asset_Thumb(MT_UI_AM_Widget):
             if self._hovered:
                 print(self._name)
         return False
+
+    def update_hover(self, x, y):
+        self.x = x
+        self.y = y
+        # bottom left, top left, top right, bottom right
+        indices = ((0, 1, 2), (0, 2, 3))
+        verts = (
+            (self.x, self.y),
+            (self.x, self.y + self.height),
+            (self.x + self.width, self.y + self.height),
+            (self.x + self.width, self.y))
+
+        self.hover_shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
+        self.hover_panel = batch_for_shader(self.shader, 'TRIS', {"pos": verts}, indices=indices)
+
+    def mouse_enter(self, event, x, y):
+        pass
+
+    def mouse_leave(self, event, x, y):
+        pass
