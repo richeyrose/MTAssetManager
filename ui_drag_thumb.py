@@ -56,7 +56,7 @@ class MT_AM_UI_Drag_Thumb(MT_UI_AM_Widget):
     def mouse_up(self, x, y):
         if self._dragging:
             self._dragging = False
-            self.asset._asset_bar.op.assets.remove(self)
+            self.asset._asset_bar.assets.remove(self)
         return False
 
     def _set_origin(self, x, y):

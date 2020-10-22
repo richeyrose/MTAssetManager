@@ -21,86 +21,30 @@ class MT_OT_AM_Asset_Bar(Operator):
     )
 
     bar_draw_handler = None
-    assets_draw_handler = None
     asset_bar = None
-    nav_arrows = []
-    assets = []
 
     def __init__(self):
-        self.bar_draw_handler = MT_OT_AM_Asset_Bar.bar_draw_handler
-        self.current_assets = []
-
-    def init_assets(self, context, assets):
-        for asset in self.assets:
-            del asset
-        MT_OT_AM_Asset_Bar.assets = assets
-        for asset in assets:
-            asset.init(context)
-            self.asset_bar.widgets.append(asset)
-
-    def init_asset_bar(self, context, asset_bar):
-        asset_bar.init(context)
-        for arrow in self.nav_arrows:
-            arrow.init(context)
-            self.asset_bar.widgets.append(arrow)
+        self.active_category = None
 
     def invoke(self, context, event):
         # Check to see if we are already displaying asset bar
         # and add asset bar draw handler and modal handler if not
         if not MT_OT_AM_Asset_Bar.asset_bar:
             # initialise asset bar
-            MT_OT_AM_Asset_Bar.asset_bar = MT_UI_AM_Asset_Bar(50, 50, 300, 200, self)
-            # initialise nav arrows
-            left_nav = MT_UI_AM_Left_Nav_Arrow(50, 50, 300, 200, self.asset_bar)
-            right_nav = MT_UI_AM_Right_Nav_Arrow(50, 50, 300, 200, self.asset_bar)
-            MT_OT_AM_Asset_Bar.nav_arrows = [left_nav, right_nav]
-            self.init_asset_bar(context, self.asset_bar)
+            self.init_asset_bar(context)
             # register asset bar draw handler
             args = (self, context)
             self.register_asset_bar_draw_handler(args, context)
             # add the modal handler that handles events
             context.window_manager.modal_handler_add(self)
 
-        # update parent and active categories based on passed in category_slug
-        am_props = context.scene.mt_am_props
+        # update categories
+        self.update_categories(context)
 
-        context.scene.mt_am_props.parent_category = get_parent_cat_slug(am_props['categories'], self.category_slug)
-        active_category = context.scene.mt_am_props.active_category = self.category_slug
-
-        # get child categories and update side bar
-        am_props['child_cats'] = get_child_cats(am_props['categories'], active_category)
-
-        # get current assets based on active category
-        self.current_assets = get_assets_by_cat(active_category)
-        # make sure preview images are appended
-        append_preview_images(self.current_assets)
-
-        # instantiate a thumbnail for each asset in current assets
-        prefs = get_prefs()
-        assets = []
-        for asset in self.current_assets:
-            new_asset = MT_AM_UI_Asset(
-                50,
-                50,
-                prefs.asset_item_dimensions,
-                prefs.asset_item_dimensions,
-                asset, MT_OT_AM_Asset_Bar.asset_bar,
-                self.current_assets.index(asset))
-            assets.append(new_asset)
-
-        # reset asset indexes
-        self.asset_bar.first_asset_index = 0
-
-        self.init_assets(context, assets)
-
-        # register the asset draw handler
-        args = (self, context)
-        self.register_assets_draw_handler(args, context)
+        # initialise assets
+        self.init_assets(context)
 
         return {'RUNNING_MODAL'}
-
-    def on_invoke(self, context, event):
-        pass
 
     def modal(self, context, event):
         """Handle user input.
@@ -113,10 +57,9 @@ class MT_OT_AM_Asset_Bar(Operator):
         if context.area:
             context.area.tag_redraw()
 
-        # handle events in thumbnails
+        # handle events
         if self.handle_events(event):
             return {'RUNNING_MODAL'}
-
 
         # close asset bar if Esc is pressed and end modal
         if event.type == 'ESC':
@@ -125,14 +68,62 @@ class MT_OT_AM_Asset_Bar(Operator):
 
         return {'PASS_THROUGH'}
 
-    def register_asset_bar_draw_handler(self, args, context):
-        MT_OT_AM_Asset_Bar.bar_draw_handler = bpy.types.SpaceView3D.draw_handler_add(self.draw_callback_asset_bar, args, "WINDOW", "POST_PIXEL")
+    def init_assets(self, context):
+        # get current assets based on active category
+        current_assets = get_assets_by_cat(self.active_category)
+        # make sure preview images are appended
+        append_preview_images(current_assets)
 
-    def register_assets_draw_handler(self, args, context):
-        if MT_OT_AM_Asset_Bar.assets_draw_handler:
-            bpy.types.SpaceView3D.draw_handler_remove(MT_OT_AM_Asset_Bar.assets_draw_handler, "WINDOW")
-            MT_OT_AM_Asset_Bar.assets_draw_handler = None
-        MT_OT_AM_Asset_Bar.assets_draw_handler = bpy.types.SpaceView3D.draw_handler_add(self.draw_callback_assets, args, "WINDOW", "POST_PIXEL")
+        # instantiate a thumbnail for each asset in current assets
+        prefs = get_prefs()
+        assets = []
+        for asset in current_assets:
+            new_asset = MT_AM_UI_Asset(
+                50,
+                50,
+                prefs.asset_item_dimensions,
+                prefs.asset_item_dimensions,
+                asset,
+                MT_OT_AM_Asset_Bar.asset_bar,
+                current_assets.index(asset))
+            assets.append(new_asset)
+
+        # reset asset indexes
+        self.asset_bar.first_asset_index = 0
+
+        # register assets in asset bar
+        self.asset_bar.assets = assets
+
+        # initialise assets
+        for asset in assets:
+            asset.init(context)
+
+    def init_asset_bar(self, context):
+        MT_OT_AM_Asset_Bar.asset_bar = MT_UI_AM_Asset_Bar(50, 50, 300, 200, self)
+        self.asset_bar.init(context)
+
+    def update_categories(self, context):
+        # update parent and active categories based on passed in category_slug
+        am_props = context.scene.mt_am_props
+
+        context.scene.mt_am_props.parent_category = get_parent_cat_slug(
+            am_props['categories'],
+            self.category_slug)
+        self.active_category = context.scene.mt_am_props.active_category = self.category_slug
+
+        # get child categories and update side bar
+        am_props['child_cats'] = get_child_cats(
+            am_props['categories'],
+            self.active_category)
+
+
+
+    def register_asset_bar_draw_handler(self, args, context):
+        MT_OT_AM_Asset_Bar.bar_draw_handler = bpy.types.SpaceView3D.draw_handler_add(
+            self.draw_callback_asset_bar,
+            args,
+            "WINDOW",
+            "POST_PIXEL")
 
     def unregister_handlers(self, context):
         """Unregister the draw handlers
@@ -141,25 +132,17 @@ class MT_OT_AM_Asset_Bar(Operator):
             context (bpy.context): context
         """
         if MT_OT_AM_Asset_Bar.bar_draw_handler:
-            bpy.types.SpaceView3D.draw_handler_remove(MT_OT_AM_Asset_Bar.bar_draw_handler, "WINDOW")
+            bpy.types.SpaceView3D.draw_handler_remove(
+                MT_OT_AM_Asset_Bar.bar_draw_handler,
+                "WINDOW")
             MT_OT_AM_Asset_Bar.bar_draw_handler = None
             MT_OT_AM_Asset_Bar.asset_bar = None
-            MT_OT_AM_Asset_Bar.nav_arrows = []
-
-        if MT_OT_AM_Asset_Bar.assets_draw_handler:
-            bpy.types.SpaceView3D.draw_handler_remove(MT_OT_AM_Asset_Bar.assets_draw_handler, "WINDOW")
-            MT_OT_AM_Asset_Bar.assets_draw_handler = None
 
     def handle_events(self, event):
         result = False
         if self.asset_bar.handle_event(event):
             result = True
-        for asset in self.assets:
-            if asset.handle_event(event):
-                result = True
-        for arrow in self.nav_arrows:
-            if arrow.handle_event(event):
-                result = True
+
         return result
 
     def finish(self, context):
@@ -168,12 +151,6 @@ class MT_OT_AM_Asset_Bar(Operator):
 
     def draw_callback_asset_bar(self, op, context):
         MT_OT_AM_Asset_Bar.asset_bar.draw()
-        for nav_arrow in self.nav_arrows:
-            nav_arrow.draw()
-
-    def draw_callback_assets(self, op, context):
-        for asset in self.assets:
-            asset.draw()
 
 
 class MT_OT_AM_Return_To_Parent(Operator):
@@ -184,5 +161,7 @@ class MT_OT_AM_Return_To_Parent(Operator):
 
     def execute(self, context):
         props = context.scene.mt_am_props
-        bpy.ops.view3d.mt_asset_bar('INVOKE_DEFAULT', category_slug=props.parent_category)
+        bpy.ops.view3d.mt_asset_bar(
+            'INVOKE_DEFAULT',
+            category_slug=props.parent_category)
         return {'FINISHED'}

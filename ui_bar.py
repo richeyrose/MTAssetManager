@@ -1,7 +1,7 @@
 import math
 from .preferences import get_prefs
 from .ui_widget import MT_UI_AM_Widget
-
+from .ui_nav_arrow import MT_UI_AM_Left_Nav_Arrow, MT_UI_AM_Right_Nav_Arrow
 
 class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
     def __init__(self, x, y, width, height, op):
@@ -11,27 +11,44 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
         self._first_asset_index = 0  # the first asset to show
         self._last_asset_index = 0  # the last asset to show
         self.offset = 0
-        self._current_assets = None
-        self.widgets = []
+        self.nav_arrows = []
+        self.assets = []
         self.op = op
 
     def init(self, context):
-        """Initialise the asset bar
+        """Initialise the asset bar.
 
         Args:
             context (bpy.context): context
         """
+        # initialise the asset bar
         self.context = context
         self.set_asset_bar_dimensions()
         self.bg_color = self.prefs.asset_bar_bg_color
         self.update(self.x, self.y)
 
+        # initialise the nav arrows
+        left_nav = MT_UI_AM_Left_Nav_Arrow(50, 50, 300, 200, self)
+        right_nav = MT_UI_AM_Right_Nav_Arrow(50, 50, 300, 200, self)
+        self.nav_arrows = [left_nav, right_nav]
+        for arrow in self.nav_arrows:
+            arrow.init(context)
+
+
     def draw(self):
         """Draw the asset bar
         """
+        # draw asset bar
         self.set_asset_bar_dimensions()
         self.update(self.x, self.y)
         super().draw()
+
+        # draw nav arrow
+        for arrow in self.nav_arrows:
+            arrow.draw()
+
+        for asset in self.assets:
+            asset.draw()
 
     @property
     def first_asset_index(self):
@@ -53,14 +70,6 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
     def first_asset_index(self, value):
         self._first_asset_index = value
 
-    @property
-    def current_assets(self):
-        return self._current_assets
-
-    @current_assets.setter
-    def current_assets(self, value):
-        self._current_assets = value
-
     def increment_asset_index(self, value):
         """Increment the index of the first and last asset to display in bar.
 
@@ -79,14 +88,26 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
         Returns:
             Bool: True if no more event processing should be done by other elements, otherwise False.
         """
-        super().handle_event(event)
+        result = False
 
+        # handle scrolling
+        super().handle_event(event)
         if event.type == 'WHEELUPMOUSE':
             return self.wheel_up()
         if event.type == 'WHEELDOWNMOUSE':
             return self.wheel_down()
 
-        return False
+        # handle nav arrow events
+        for arrow in self.nav_arrows:
+            if arrow.handle_event(event):
+                result = True
+
+        # handle asset events
+        for asset in self.assets:
+            if asset.handle_event(event):
+                result = True
+
+        return result
 
     def wheel_up(self):
         """Handle wheel up event.
@@ -99,8 +120,8 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
         if self._hovered:
             self.increment_asset_index(1)
             # make sure we set any other widgets hovered state to false
-            for widget in self.widgets:
-                widget.hovered = False
+            for asset in self.assets:
+                asset.hovered = False
             return True
         return False
 
@@ -115,9 +136,9 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
         if self._hovered:
             if self.first_asset_index > 0:
                 self.increment_asset_index(-1)
-            for widget in self.widgets:
+            for asset in self.assets:
                 # make sure we set any other widgets hovered state to false
-                widget.hovered = False
+                asset.hovered = False
             return True
         return False
 

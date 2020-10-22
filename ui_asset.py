@@ -135,7 +135,7 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
         if self._draw and self._hovered:
             self._drag_thumb = MT_AM_UI_Drag_Thumb(x, y, self.width, self.height, self)
             self._drag_thumb.init(bpy.context)
-            self._asset_bar.op.assets.append(self._drag_thumb)
+            self._asset_bar.assets.append(self._drag_thumb)
             return True
 
         return False

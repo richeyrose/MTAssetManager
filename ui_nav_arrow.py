@@ -47,7 +47,7 @@ class MT_UI_AM_Left_Nav_Arrow(MT_UI_AM_Nav_Arrow):
     def mouse_down(self, x, y):
         if self._hovered:
             if self._asset_bar.first_asset_index > 0:
-                self._asset_bar.increment_asset(-1)
+                self._asset_bar.increment_asset_index(-1)
         return False
 
 class MT_UI_AM_Right_Nav_Arrow(MT_UI_AM_Nav_Arrow):
@@ -57,5 +57,5 @@ class MT_UI_AM_Right_Nav_Arrow(MT_UI_AM_Nav_Arrow):
 
     def mouse_down(self, x, y):
         if self._hovered:
-            self._asset_bar.increment_asset(1)
+            self._asset_bar.increment_asset_index(1)
         return False
