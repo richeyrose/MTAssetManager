@@ -181,10 +181,16 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
         default=bpy.context.preferences.themes['Default'].user_interface.wcol_regular.outline
     )
 
-    asset_bar_button_color: FloatVectorProperty(
-        name="Asset Bar Button Color",
+    asset_bar_nav_button_color: FloatVectorProperty(
+        name="Asset Bar Nav Button Color",
         size=4,
         default=bpy.context.preferences.themes['Default'].user_interface.wcol_regular.item
+    )
+
+    asset_bar_nav_button_width: IntProperty(
+        name="Asset Bar Nav Button Width",
+        default=50,
+        min=10
     )
 
     asset_bar_rows: IntProperty(
@@ -206,6 +212,8 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
         min=32,
         max=512
     )
+
+
 
     preview_scene: StringProperty(
         name="Preview Scene",

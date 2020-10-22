@@ -5,8 +5,9 @@ from bpy.props import StringProperty
 from .preferences import get_prefs
 from .categories import get_child_cats, get_parent_cat_slug, get_category
 from .assets import get_assets_by_cat, append_preview_images
-from .ui_bar import MT_UI_AM_Asset_Bar, MT_AM_UI_Asset
-
+from .ui_bar import MT_UI_AM_Asset_Bar
+from .ui_asset import MT_AM_UI_Asset
+from .ui_nav_arrow import MT_UI_AM_Left_Nav_Arrow, MT_UI_AM_Right_Nav_Arrow
 
 class MT_OT_AM_Asset_Bar(Operator):
     bl_idname = "view3d.mt_asset_bar"
@@ -22,6 +23,7 @@ class MT_OT_AM_Asset_Bar(Operator):
     bar_draw_handler = None
     assets_draw_handler = None
     asset_bar = None
+    nav_arrows = []
     assets = []
 
     def __init__(self):
@@ -34,18 +36,29 @@ class MT_OT_AM_Asset_Bar(Operator):
         MT_OT_AM_Asset_Bar.assets = assets
         for asset in assets:
             asset.init(context)
+            self.asset_bar.widgets.append(asset)
 
     def init_asset_bar(self, context, asset_bar):
         asset_bar.init(context)
+        for arrow in self.nav_arrows:
+            arrow.init(context)
+            self.asset_bar.widgets.append(arrow)
 
     def invoke(self, context, event):
-        # Check to see if we are already displaying asset bar and add asset bar draw handler
-        # and modal handler if not
+        # Check to see if we are already displaying asset bar
+        # and add asset bar draw handler and modal handler if not
         if not MT_OT_AM_Asset_Bar.asset_bar:
-            MT_OT_AM_Asset_Bar.asset_bar = MT_UI_AM_Asset_Bar(50, 50, 300, 200)
+            # initialise asset bar
+            MT_OT_AM_Asset_Bar.asset_bar = MT_UI_AM_Asset_Bar(50, 50, 300, 200, self)
+            # initialise nav arrows
+            left_nav = MT_UI_AM_Left_Nav_Arrow(50, 50, 300, 200, self.asset_bar)
+            right_nav = MT_UI_AM_Right_Nav_Arrow(50, 50, 300, 200, self.asset_bar)
+            MT_OT_AM_Asset_Bar.nav_arrows = [left_nav, right_nav]
             self.init_asset_bar(context, self.asset_bar)
+            # register asset bar draw handler
             args = (self, context)
             self.register_asset_bar_draw_handler(args, context)
+            # add the modal handler that handles events
             context.window_manager.modal_handler_add(self)
 
         # update parent and active categories based on passed in category_slug
@@ -75,6 +88,9 @@ class MT_OT_AM_Asset_Bar(Operator):
                 self.current_assets.index(asset))
             assets.append(new_asset)
 
+        # reset asset indexes
+        self.asset_bar.first_asset_index = 0
+
         self.init_assets(context, assets)
 
         # register the asset draw handler
@@ -98,8 +114,9 @@ class MT_OT_AM_Asset_Bar(Operator):
             context.area.tag_redraw()
 
         # handle events in thumbnails
-        if self.handle_asset_events(event):
+        if self.handle_events(event):
             return {'RUNNING_MODAL'}
+
 
         # close asset bar if Esc is pressed and end modal
         if event.type == 'ESC':
@@ -118,7 +135,7 @@ class MT_OT_AM_Asset_Bar(Operator):
         MT_OT_AM_Asset_Bar.assets_draw_handler = bpy.types.SpaceView3D.draw_handler_add(self.draw_callback_assets, args, "WINDOW", "POST_PIXEL")
 
     def unregister_handlers(self, context):
-        """Unregister the draw handler
+        """Unregister the draw handlers
 
         Args:
             context (bpy.context): context
@@ -127,14 +144,21 @@ class MT_OT_AM_Asset_Bar(Operator):
             bpy.types.SpaceView3D.draw_handler_remove(MT_OT_AM_Asset_Bar.bar_draw_handler, "WINDOW")
             MT_OT_AM_Asset_Bar.bar_draw_handler = None
             MT_OT_AM_Asset_Bar.asset_bar = None
+            MT_OT_AM_Asset_Bar.nav_arrows = []
+
         if MT_OT_AM_Asset_Bar.assets_draw_handler:
             bpy.types.SpaceView3D.draw_handler_remove(MT_OT_AM_Asset_Bar.assets_draw_handler, "WINDOW")
             MT_OT_AM_Asset_Bar.assets_draw_handler = None
 
-    def handle_asset_events(self, event):
+    def handle_events(self, event):
         result = False
+        if self.asset_bar.handle_event(event):
+            result = True
         for asset in self.assets:
             if asset.handle_event(event):
+                result = True
+        for arrow in self.nav_arrows:
+            if arrow.handle_event(event):
                 result = True
         return result
 
@@ -144,6 +168,8 @@ class MT_OT_AM_Asset_Bar(Operator):
 
     def draw_callback_asset_bar(self, op, context):
         MT_OT_AM_Asset_Bar.asset_bar.draw()
+        for nav_arrow in self.nav_arrows:
+            nav_arrow.draw()
 
     def draw_callback_assets(self, op, context):
         for asset in self.assets:
