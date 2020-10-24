@@ -5,7 +5,7 @@ import bpy
 from gpu_extras.batch import batch_for_shader
 from .ui_widget import MT_UI_AM_Widget
 from .preferences import get_prefs
-
+from .spawn_object import spawn_object
 
 class MT_AM_UI_Drag_Thumb(MT_UI_AM_Widget):
     """Draggable thumbnail of asset used for spawning into scene."""
@@ -67,6 +67,7 @@ class MT_AM_UI_Drag_Thumb(MT_UI_AM_Widget):
     def mouse_up(self, x, y):
         if self._dragging:
             self._dragging = False
+            spawn_object(self, self.context, x, y)
             self.asset.remove_drag_thumb(self)
         return False
 

@@ -1,3 +1,4 @@
+import math
 import bpy
 from bpy.types import PropertyGroup
 
@@ -73,6 +74,36 @@ class MT_PT_AM_Bar_Props(PropertyGroup):
     )
 
 
+class MT_PT_AM_Object_Spawn_Props(PropertyGroup):
+    randomize_rotation: bpy.props.BoolProperty(
+        name='Randomize Rotation',
+        description="randomize rotation at placement",
+        default=False)
+
+    randomize_rotation_amount: bpy.props.FloatProperty(
+        name="Randomization Max Angle",
+        description="maximum angle for random rotation",
+        default=math.pi / 36,
+        min=0,
+        max=2 * math.pi,
+        subtype='ANGLE')
+
+    offset_rotation_amount: bpy.props.FloatProperty(
+        name="Offset Rotation",
+        description="offset rotation, hidden prop",
+        default=0,
+        min=0,
+        max=360,
+        subtype='ANGLE')
+
+    offset_rotation_step: bpy.props.FloatProperty(
+        name="Offset Rotation Step",
+        description="offset rotation, hidden prop",
+        default=math.pi / 2,
+        min=0,
+        max=180,
+        subtype='ANGLE')
+
 def register():
     bpy.types.Scene.mt_am_props = bpy.props.PointerProperty(
         type=MT_PT_AM_Props
@@ -82,7 +113,11 @@ def register():
         type=MT_PT_AM_Bar_Props
     )
 
+    bpy.types.Scene.mt_am_spawn_props = bpy.props.PointerProperty(
+        type=MT_PT_AM_Object_Spawn_Props
+    )
 
 def unregister():
+    del bpy.types.Scene.mt_am_spawn_props
     del bpy.types.Scene.mt_bar_props
     del bpy.types.Scene.mt_am_props
