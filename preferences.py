@@ -189,7 +189,7 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
 
     asset_bar_nav_button_width: IntProperty(
         name="Asset Bar Nav Button Width",
-        default=50,
+        default=25,
         min=10
     )
 
