@@ -116,8 +116,6 @@ class MT_OT_AM_Asset_Bar(Operator):
             am_props['categories'],
             self.active_category)
 
-
-
     def register_asset_bar_draw_handler(self, args, context):
         MT_OT_AM_Asset_Bar.bar_draw_handler = bpy.types.SpaceView3D.draw_handler_add(
             self.draw_callback_asset_bar,
