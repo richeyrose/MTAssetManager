@@ -131,11 +131,12 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
         self._hovered = value
 
     def mouse_down(self, x, y):
-        # only handle events if we are drawing thumbnail
+        # only handle events if we are drawing asset
         if self._draw and self._hovered:
+            # spawn a draggable thumb nail we can place in the scene
             self._drag_thumb = MT_AM_UI_Drag_Thumb(x, y, self.width, self.height, self)
             self._drag_thumb.init(bpy.context)
-            self._asset_bar.assets.append(self._drag_thumb)
+            self._asset_bar.drag_thumbs.append(self._drag_thumb)
             return True
 
         return False
@@ -147,7 +148,19 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
         pass
 
     def _set_origin(self):
+        """Set origin of asset.
+
+        Takes into account asset index, nav button width, asset bar width, and
+        asset bar first_asset_index
+        """
         self.x = self._asset_bar.x + self.prefs.asset_bar_nav_button_width + (
             self.width * (self._index)) - (self._asset_bar.first_asset_index * self.width)
-
         self.y = self._asset_bar.y
+
+    def remove_drag_thumb(self, thumb):
+        """Remove the draggable thumbnail from asset bar.
+
+        Args:
+            thumb (MT_AM_UI_Drag_Thumb): thumbnail
+        """
+        self._asset_bar.drag_thumbs.remove(thumb)

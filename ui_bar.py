@@ -13,6 +13,7 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
         self.offset = 0
         self.nav_arrows = []
         self.assets = []
+        self.drag_thumbs = []
         self.op = op
 
     def init(self, context):
@@ -34,7 +35,6 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
         for arrow in self.nav_arrows:
             arrow.init(context)
 
-
     def draw(self):
         """Draw the asset bar
         """
@@ -43,12 +43,17 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
         self.update(self.x, self.y)
         super().draw()
 
-        # draw nav arrow
+        # draw nav arrows
         for arrow in self.nav_arrows:
             arrow.draw()
 
+        # draw assets
         for asset in self.assets:
             asset.draw()
+
+        # draw draggable thumbnail
+        for thumb in self.drag_thumbs:
+            thumb.draw()
 
     @property
     def first_asset_index(self):
@@ -107,6 +112,11 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
             if asset.handle_event(event):
                 result = True
 
+        # handle draggable thumb events
+        for thumb in self.drag_thumbs:
+            if thumb.handle_event(event):
+                result = True
+
         return result
 
     def wheel_up(self):
@@ -118,7 +128,8 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
             Bool: Return True if hovered
         """
         if self._hovered:
-            self.increment_asset_index(1)
+            if self.first_asset_index > 0:
+                self.increment_asset_index(-1)
             # make sure we set any other widgets hovered state to false
             for asset in self.assets:
                 asset.hovered = False
@@ -134,8 +145,7 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
             Bool: Return True if hovered.
         """
         if self._hovered:
-            if self.first_asset_index > 0:
-                self.increment_asset_index(-1)
+            self.increment_asset_index(1)
             for asset in self.assets:
                 # make sure we set any other widgets hovered state to false
                 asset.hovered = False
