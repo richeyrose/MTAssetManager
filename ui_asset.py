@@ -9,7 +9,7 @@ from .preferences import get_prefs
 
 
 class MT_AM_UI_Asset(MT_UI_AM_Widget):
-    def __init__(self, x, y, width, height, asset, asset_bar, index):
+    def __init__(self, x, y, width, height, asset, asset_bar, index, op):
         super().__init__(x, y, width, height)
         self._asset_desc = asset
         self._name = asset["Name"]
@@ -25,6 +25,7 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
         self._tags = asset["Tags"]
 
         self._asset_bar = asset_bar
+        self.op = op
         self._index = index  # index number in bar.current_assets
 
         self._drag_offset_x = 0
@@ -119,6 +120,10 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
         self._set_origin()
 
     @property
+    def asset_desc(self):
+        return self._asset_desc
+
+    @property
     def preview_image(self):
         return self._preview_image
 
@@ -134,7 +139,7 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
         # only handle events if we are drawing asset
         if self._draw and self._hovered:
             # spawn a draggable thumb nail we can place in the scene
-            self._drag_thumb = MT_AM_UI_Drag_Thumb(x, y, self.width, self.height, self)
+            self._drag_thumb = MT_AM_UI_Drag_Thumb(x, y, self.width, self.height, self, self.op)
             self._drag_thumb.init(bpy.context)
             self._asset_bar.drag_thumbs.append(self._drag_thumb)
             return True

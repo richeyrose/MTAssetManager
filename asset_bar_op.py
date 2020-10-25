@@ -85,7 +85,8 @@ class MT_OT_AM_Asset_Bar(Operator):
                 prefs.asset_item_dimensions,
                 asset,
                 MT_OT_AM_Asset_Bar.asset_bar,
-                current_assets.index(asset))
+                current_assets.index(asset),
+                self)
             assets.append(new_asset)
 
         # reset asset indexes

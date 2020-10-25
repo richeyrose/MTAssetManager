@@ -5,16 +5,17 @@ import bpy
 from gpu_extras.batch import batch_for_shader
 from .ui_widget import MT_UI_AM_Widget
 from .preferences import get_prefs
-from .spawn_object import spawn_object
+from .spawn import spawn_object, spawn_collection, spawn_material
 
 class MT_AM_UI_Drag_Thumb(MT_UI_AM_Widget):
     """Draggable thumbnail of asset used for spawning into scene."""
-    def __init__(self, x, y, width, height, asset):
+    def __init__(self, x, y, width, height, asset, op):
         self.x = x
         self.y = y
         self.width = asset.width
         self.height = asset.height
         self.asset = asset
+        self.op = op
 
         super().__init__(x, y, self.width, self.height)
 
@@ -67,7 +68,7 @@ class MT_AM_UI_Drag_Thumb(MT_UI_AM_Widget):
     def mouse_up(self, x, y):
         if self._dragging:
             self._dragging = False
-            spawn_object(self, self.context, x, y)
+            self.spawn_at_cursor(x, y)
             self.asset.remove_drag_thumb(self)
         return False
 
@@ -121,3 +122,12 @@ class MT_AM_UI_Drag_Thumb(MT_UI_AM_Widget):
         self.shader.uniform_int("image", 0)
         self.batch_panel.draw(self.shader)
         bgl.glDisable(bgl.GL_BLEND)
+
+    def spawn_at_cursor(self, x, y):
+        asset_desc = self.asset.asset_desc
+        if asset_desc['Type'] == 'OBJECT':
+            spawn_object(self, self.context, self.asset.asset_desc, x, y, self.op)
+        elif asset_desc['Type'] == 'COLLECTION':
+            spawn_collection(self, self.context, self.asset.asset_desc, x, y, self.op)
+        elif asset_desc['Type'] == 'MATERIAL':
+            spawn_material(self, self.context, self.asset.asset_desc, x, y, self.op)
