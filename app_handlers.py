@@ -107,6 +107,7 @@ def load_material_descriptions():
         with open(json_path) as json_file:
             default_materials = json.load(json_file)
 
+    # TODO load default maketile materials if MT is installed
     # TODO load user materials
     props['materials'] = default_materials
 

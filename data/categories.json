@@ -173,6 +173,13 @@
                         "Parent": "materials\\floor",
                         "Contains": "MATERIALS",
                         "Children": []
+                    },
+                    {
+                        "Name": "Other",
+                        "Slug": "materials\\floor\\other",
+                        "Parent": "materials\\floor",
+                        "Contains": "MATERIALS",
+                        "Children": []
                     }
                 ]
             },

@@ -56,3 +56,50 @@ def material_is_unique(material, materials):
             return False, mat
 
     return True, None
+
+
+def find_vertex_group_of_face(face, obj):
+    """Return the vertex group face belongs to.
+
+    If the face belongs to more than 1 group return vertex group most verts in face are in (mode)
+
+    Parameters
+    face : bpy.types.MeshPolygon
+    obj : bpy.types.Object
+
+    Returns
+    mode_group : bpy.types.VertexGroup
+    """
+    # get all vertex groups polygon belongs to
+    all_groups = [g.group for v in face.vertices for g in obj.data.vertices[v].groups]
+
+    if len(all_groups) is 0:
+        return None
+
+    # find the most frequent (mode) of all vertex groups verts in this face is in
+    counts = [all_groups.count(index) for index in all_groups]
+    mode_index = counts.index(max(counts))
+    mode_group = all_groups[mode_index]
+
+    return mode_group
+
+def get_material_index(obj, material):
+    """Return the material index of the passed in material."""
+    material_index = list(obj.material_slots.keys()).index(material.name)
+    return material_index
+
+
+def assign_mat_to_vert_group(vert_group, obj, material):
+    """Assign material to vertex group."""
+    vg_index = obj.vertex_groups[vert_group].index
+    vert_group = [v.index for v in obj.data.vertices if vg_index in [vg.group for vg in v.groups]]
+    material_index = get_material_index(obj, material)
+
+    for poly in obj.data.polygons:
+        count = 0
+        for vert in poly.vertices:
+            if vert in vert_group:
+                count += 1
+        if count == len(poly.vertices):
+            poly.material_index = material_index
+

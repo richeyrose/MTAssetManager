@@ -1,1 +1,55 @@
-[]
+[
+    {
+        "Name": "Floor Tiles",
+        "Slug": "floor_tiles",
+        "Category": "materials",
+        "FilePath": "E:\\MTAssetManager\\assets\\materials\\default_material_library.blend",
+        "PreviewImagePath": "E:\\MTAssetManager\\assets\\materials\\floor_tiles.png",
+        "Description": "1 x 1 Stone Floor Tile Texture",
+        "URI": "",
+        "Author": "Richard Rose",
+        "License": "All Rights Reserved",
+        "Type": "MATERIAL",
+        "Tags": ["Procedural", "Default"]
+    },
+    {
+        "Name": "Basic Stone 1",
+        "Slug": "basic_stone_1",
+        "Category": "materials\\wall\\stone",
+        "FilePath": "E:\\MTAssetManager\\assets\\materials\\default_material_library.blend",
+        "PreviewImagePath": "E:\\MTAssetManager\\assets\\materials\\basic_stone_1.png",
+        "Description": "Basic rough stone texture",
+        "URI": "",
+        "Author": "Richard Rose",
+        "License": "All Rights Reserved",
+        "Type": "MATERIAL",
+        "Tags": ["Procedural", "Default"]
+    },
+    {
+        "Name": "Cobbles",
+        "Slug": "cobbles",
+        "Category": "materials\\floor\\other",
+        "FilePath": "E:\\MTAssetManager\\assets\\materials\\default_material_library.blend",
+        "PreviewImagePath": "E:\\MTAssetManager\\assets\\materials\\cobbles.png",
+        "Description": "Cobbled Floor Texture",
+        "URI": "",
+        "Author": "Richard Rose",
+        "License": "All Rights Reserved",
+        "Type": "MATERIAL",
+        "Tags": ["Procedural", "Default"]
+    },
+    {
+        "Name": "Custom Image",
+        "Slug": "custom_image",
+        "Category": "materials\\special",
+        "FilePath": "E:\\MTAssetManager\\assets\\materials\\default_material_library.blend",
+        "PreviewImagePath": "E:\\MTAssetManager\\assets\\materials\\custom_image.png",
+        "Description": "Custom Image Texture",
+        "URI": "",
+        "Author": "Richard Rose",
+        "License": "All Rights Reserved",
+        "Type": "MATERIAL",
+        "Tags": ["Procedural", "Default"]
+    }
+
+]

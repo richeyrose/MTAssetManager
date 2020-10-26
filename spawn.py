@@ -1,12 +1,13 @@
 import os
 import bpy
+from mathutils import kdtree
 from .raycast import mouse_raycast, floor_raycast
-from .utils import material_is_unique
+from .utils import material_is_unique, find_vertex_group_of_face, assign_mat_to_vert_group, get_material_index
 
 
 def spawn_object(self, context, asset, x, y, op):
     coords = (x, y)
-    obj = append_object(context, asset)
+    obj = append_object(context, asset, op)
     if not obj:
         op.report({'WARNING'}, "Asset not found!")
         return False
@@ -34,9 +35,91 @@ def spawn_collection(self, context, asset, x, y, op):
     pass
 
 def spawn_material(self, context, asset, x, y, op):
-    pass
+    coords = (x, y)
+    mat = append_material(context, asset, op)
 
-def append_object(context, asset, link=False):
+    if not mat:
+        op.report({'WARNING'}, "Asset not found!")
+        return False
+
+    # check if there is an object under the mouse.
+    hit, location, normal, rotation, face_index, hit_obj, matrix = mouse_raycast(context, coords)
+
+    if hit:
+        # face_index returned by mouse_raycast is the index of the face of the evaluated object (i.e. object after all modifiers etc. have been applied)
+        # so we need to use KDTree to get the face of the original object whose center is closest to the hit location
+        mesh = hit_obj.data
+        size = len(mesh.polygons)
+        kd = kdtree.KDTree(size)
+        for i, p in enumerate(mesh.polygons):
+            kd.insert(p.center, i)
+        kd.balance()
+
+        # find the closest face to the hit location
+        co_find = (location)
+        co, index, dist = kd.find(co_find)
+        face = hit_obj.data.polygons[index]
+
+        # find vertex group that face belongs to
+        vertex_group = find_vertex_group_of_face(face, hit_obj)
+
+        if vertex_group:
+            # ensure object already has at least one material slot so appended material
+            # is only added to vertex group
+            if len(hit_obj.material_slots) == 0:
+                hit_obj.data.materials.append(None)
+            # append material
+            hit_obj.data.materials.append(mat)
+            # assign material to vertex group
+            assign_mat_to_vert_group(vertex_group, hit_obj, mat)
+        else:
+            # append material
+            hit_obj.data.materials.append(mat)
+            material_index = get_material_index(hit_obj, mat)
+
+            # assign material to entire object
+            for poly in mesh.polygons:
+                poly.material_index = material_index
+
+def append_material(context, asset, op, link=False):
+    """Append material to scene.
+    Checks if material is unique before appending and if not returns original material
+
+    Args:
+        context (bpy.context): context
+        asset (dict): asset description
+        link (bool, optional): Link or append material. Defaults to False.
+
+    Returns:
+        bpy.types.Material: Material
+    """
+    filepath = asset['FilePath']
+
+    if os.path.exists(filepath) and os.path.isfile(filepath):
+        asset_found = False
+        # load asset
+        with bpy.data.libraries.load(filepath) as (data_from, data_to):
+            if asset['Name'] in data_from.materials:
+                data_to.materials = [asset['Name']]
+                asset_found = True
+
+        if asset_found:
+            # check if material is unique
+            materials = [material for material in bpy.data.materials if material != data_to.materials[0]]
+            unique, matched_material = material_is_unique(data_to.materials[0], materials)
+
+            # if not unique remove newly added material and return original material
+            if not unique:
+                bpy.data.materials.remove(data_to.materials[0])
+                op.report({'INFO'}, 'Already exists. Nothing added.')
+                return matched_material
+
+            op.report({'INFO'}, data_to.materials[0].name + ' added to scene.')
+            return data_to.materials[0]
+
+    return False
+
+def append_object(context, asset, op, link=False):
     filepath = asset["FilePath"]
 
     # used to ensure we only add unique materials
@@ -88,6 +171,9 @@ def append_object(context, asset, link=False):
 
                     # remove duplicate material
                     bpy.data.materials.remove(bpy.data.materials[mat])
+
+            op.report({'INFO'}, obj.name + ' added to scene.')
+
             return obj
 
     return False

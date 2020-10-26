@@ -9,6 +9,7 @@ from .ui_bar import MT_UI_AM_Asset_Bar
 from .ui_asset import MT_AM_UI_Asset
 from .ui_nav_arrow import MT_UI_AM_Left_Nav_Arrow, MT_UI_AM_Right_Nav_Arrow
 
+#TODO see if we can get self.report to work properly
 class MT_OT_AM_Asset_Bar(Operator):
     bl_idname = "view3d.mt_asset_bar"
     bl_label = "Show Asset Bar"
