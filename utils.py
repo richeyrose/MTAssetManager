@@ -57,7 +57,33 @@ def material_is_unique(material, materials):
 
     return True, None
 
+def find_vertex_group_of_face(face, mesh, excluded_vert_groups):
+    """Return the vertex group face belongs to.
 
+    If the face belongs to more than 1 group return vertex group most verts in face are in (mode)
+
+    Parameters
+    face : bpy.types.MeshPolygon
+    mesh : bpy.types.Mesh
+
+    Returns
+    mode_group : bpy.types.VertexGroup
+    """
+
+    # get all vertex groups polygon belongs to
+    all_groups = [g.group for v in face.vertices for g in mesh.vertices[v].groups if g.group not in excluded_vert_groups]
+
+    if len(all_groups) is 0:
+        return None
+
+    # find the most frequent (mode) of all vertex groups verts in this face is in
+    counts = [all_groups.count(index) for index in all_groups]
+    mode_index = counts.index(max(counts))
+    mode_group = all_groups[mode_index]
+
+    return mode_group
+
+'''
 def find_vertex_group_of_face(face, obj):
     """Return the vertex group face belongs to.
 
@@ -82,6 +108,7 @@ def find_vertex_group_of_face(face, obj):
     mode_group = all_groups[mode_index]
 
     return mode_group
+'''
 
 def get_material_index(obj, material):
     """Return the material index of the passed in material."""

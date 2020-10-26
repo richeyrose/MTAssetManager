@@ -46,22 +46,19 @@ def spawn_material(self, context, asset, x, y, op):
     hit, location, normal, rotation, face_index, hit_obj, matrix = mouse_raycast(context, coords)
 
     if hit:
-        # face_index returned by mouse_raycast is the index of the face of the evaluated object (i.e. object after all modifiers etc. have been applied)
-        # so we need to use KDTree to get the face of the original object whose center is closest to the hit location
-        mesh = hit_obj.data
-        size = len(mesh.polygons)
-        kd = kdtree.KDTree(size)
-        for i, p in enumerate(mesh.polygons):
-            kd.insert(p.center, i)
-        kd.balance()
+        # face_index returned by mouse_raycast is the index of the face of the evaluated object
+        depsgraph = context.evaluated_depsgraph_get()
+        # get evaluated object
+        object_eval = hit_obj.evaluated_get(depsgraph)
+        mesh_from_eval = object_eval.to_mesh(preserve_all_data_layers=True, depsgraph=depsgraph)
+        face = mesh_from_eval.polygons[face_index]
+        # exclude displacement mod vert group
+        try:
+            excluded = hit_obj.vertex_groups['disp_mod_vert_group'].index
+        except KeyError:
+            excluded = None
 
-        # find the closest face to the hit location
-        co_find = (location)
-        co, index, dist = kd.find(co_find)
-        face = hit_obj.data.polygons[index]
-
-        # find vertex group that face belongs to
-        vertex_group = find_vertex_group_of_face(face, hit_obj)
+        vertex_group = find_vertex_group_of_face(face, mesh_from_eval, [excluded])
 
         if vertex_group:
             # ensure object already has at least one material slot so appended material
@@ -76,10 +73,12 @@ def spawn_material(self, context, asset, x, y, op):
             # append material
             hit_obj.data.materials.append(mat)
             material_index = get_material_index(hit_obj, mat)
-
+            '''
             # assign material to entire object
-            for poly in mesh.polygons:
+            for poly in hit_obj.data.polygons:
                 poly.material_index = material_index
+            '''
+
 
 def append_material(context, asset, op, link=False):
     """Append material to scene.
@@ -111,10 +110,8 @@ def append_material(context, asset, op, link=False):
             # if not unique remove newly added material and return original material
             if not unique:
                 bpy.data.materials.remove(data_to.materials[0])
-                op.report({'INFO'}, 'Already exists. Nothing added.')
                 return matched_material
 
-            op.report({'INFO'}, data_to.materials[0].name + ' added to scene.')
             return data_to.materials[0]
 
     return False
