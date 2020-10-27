@@ -3,11 +3,12 @@ from math import floor
 from bpy.types import Operator
 from bpy.props import StringProperty
 from .preferences import get_prefs
-from .categories import get_child_cats, get_parent_cat_slug, get_category
+from .categories import get_child_cats, get_parent_cat_slug, get_category, load_categories
 from .assets import get_assets_by_cat, append_preview_images
 from .ui_bar import MT_UI_AM_Asset_Bar
 from .ui_asset import MT_AM_UI_Asset
 from .ui_nav_arrow import MT_UI_AM_Left_Nav_Arrow, MT_UI_AM_Right_Nav_Arrow
+from .app_handlers import create_propertes
 
 #TODO see if we can get self.report to work properly
 class MT_OT_AM_Asset_Bar(Operator):
@@ -58,6 +59,16 @@ class MT_OT_AM_Asset_Bar(Operator):
         if context.area:
             context.area.tag_redraw()
 
+        # undo seems to remove the custom properties we add on initialisation / load
+        # so we check here to see if one of these custom properties still exists and
+        # reinitialise them all if not. This means we also need to reinitialise our
+        # assets as all the images etc. will have been removed
+        try:
+            context.scene.mt_am_props['categories']
+        except KeyError:
+            create_propertes()
+            self.init_assets(context)
+
         # handle events
         if self.handle_events(event):
             return {'RUNNING_MODAL'}
@@ -107,15 +118,19 @@ class MT_OT_AM_Asset_Bar(Operator):
     def update_categories(self, context):
         # update parent and active categories based on passed in category_slug
         am_props = context.scene.mt_am_props
+        try:
+            categories = am_props['categories']
+        except KeyError:
+            categories = context.scene.mt_am_props['categories'] = context.scene.mt_am_props['child_cats'] = load_categories()
 
         context.scene.mt_am_props.parent_category = get_parent_cat_slug(
-            am_props['categories'],
+            categories,
             self.category_slug)
         self.active_category = context.scene.mt_am_props.active_category = self.category_slug
 
         # get child categories and update side bar
         am_props['child_cats'] = get_child_cats(
-            am_props['categories'],
+            categories,
             self.active_category)
 
     def register_asset_bar_draw_handler(self, args, context):

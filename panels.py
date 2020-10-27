@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import Panel, Operator
-from .categories import get_category, get_child_cats, get_parent_cat_slug
+from .categories import get_category, get_child_cats, get_parent_cat_slug, load_categories
 
 
 class MT_PT_AM_Main_Panel(Panel):
@@ -16,8 +16,11 @@ class MT_PT_AM_Main_Panel(Panel):
     def draw(self, context):
         scene = context.scene
         props = context.scene.mt_am_props
-        active_category = props['active_category']
-        child_cats = props['child_cats']
+        active_category = props.active_category
+        try:
+            child_cats = props['child_cats']
+        except KeyError:
+            child_cats = load_categories()
 
         layout = self.layout
 

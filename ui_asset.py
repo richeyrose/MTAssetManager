@@ -6,7 +6,7 @@ from gpu_extras.batch import batch_for_shader
 from .ui_widget import MT_UI_AM_Widget
 from .ui_drag_thumb import MT_AM_UI_Drag_Thumb
 from .preferences import get_prefs
-
+from .app_handlers import load_missing_preview_image
 
 class MT_AM_UI_Asset(MT_UI_AM_Widget):
     def __init__(self, x, y, width, height, asset, asset_bar, index, op):
@@ -43,12 +43,16 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
     def get_preview_image(self, context):
         bar_props = context.scene.mt_bar_props
         filename = self._preview_image_path.rsplit('\\', 1)[1]
-        if filename in bpy.data.images.keys():
+        try:
             return bpy.data.images[filename]
-        else:
-            return bar_props['missing_preview_image']
+        except KeyError:
+            try:
+                return bar_props['missing_preview_image']
+            except KeyError:
+                missing_image = context.scene.mt_bar_props['missing_preview_image'] = load_missing_preview_image()
+                return missing_image
 
-    def update(self, x, y):
+    def update(self, context, x, y):
         self._set_origin()
 
         indices = ((0, 1, 2), (2, 1, 3))
@@ -75,8 +79,11 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
             indices=indices)
 
         # send image to gpu if it isn't there already
-        if self._preview_image.gl_load():
-            raise Exception()
+        try:
+            if self._preview_image.gl_load():
+                raise Exception()
+        except ReferenceError:
+            self._preview_image = self.get_preview_image(context)
 
     def draw(self):
         # Check if there is space to draw asset in asset bar
@@ -88,7 +95,7 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
 
             # draw thumbnail image
             # batch shader
-            self.update(self.x, self.y)
+            self.update(self.context, self.x, self.y )
 
             # texture identifier on gpu
             texture_id = self._preview_image.bindcode

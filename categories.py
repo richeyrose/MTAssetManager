@@ -1,5 +1,7 @@
 import bpy
-
+import os
+import json
+from .system import get_addon_path
 
 def get_child_cats(categories, category_slug):
     """Return children of category.
@@ -71,3 +73,20 @@ def get_category(categories, category_slug):
         if ret_cat:
             return ret_cat
     return ret_cat
+
+def load_categories():
+    """Load categories from .json file."""
+    addon_path = get_addon_path()
+    json_path = os.path.join(
+        addon_path,
+        "data",
+        "categories.json"
+    )
+
+    if os.path.exists(json_path):
+        with open(json_path) as json_file:
+            categories = json.load(json_file)
+
+    return categories
+
+

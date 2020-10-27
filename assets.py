@@ -2,7 +2,7 @@ import os
 import bpy
 from bpy.props import StringProperty, EnumProperty
 from .categories import get_category
-
+from .app_handlers import load_collection_descriptions, load_material_descriptions, load_object_descriptions
 
 def get_assets_by_cat(cat_slug):
     """Return a list of asset descriptions belonging to the category.
@@ -17,13 +17,25 @@ def get_assets_by_cat(cat_slug):
     category = get_category(props['categories'], cat_slug)
     if "Contains" in category:
         if category['Contains'] == 'OBJECTS':
-            obs = [obj for obj in props['objects'] if obj['Category'] == category['Slug']]
+            try:
+                obj_descs = props['objects']
+            except KeyError:
+                obj_descs = bpy.context.scene.mt_am_props['objects'] = load_object_descriptions()
+            obs = [obj for obj in obj_descs if obj['Category'] == category['Slug']]
             return obs
         elif category['Contains'] == 'COLLECTIONS':
-            colls = [coll for coll in props['collections'] if coll['Category'] == category['Slug']]
+            try:
+                coll_descs = props['collections']
+            except KeyError:
+                coll_descs = bpy.context.scene.mt_am_props['collections'] = load_collection_descriptions()
+            colls = [coll for coll in coll_descs if coll['Category'] == category['Slug']]
             return colls
         elif category['Contains'] == 'MATERIALS':
-            mats = [mat for mat in props['materials'] if mat['Category'] == category['Slug']]
+            try:
+                mat_descs = props['materials']
+            except KeyError:
+                mat_descs = bpy.context.scene.mt_am_props['materials'] = load_material_descriptions()
+            mats = [mat for mat in mat_descs if mat['Category'] == category['Slug']]
             return mats
     return []
 
