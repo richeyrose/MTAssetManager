@@ -4,6 +4,7 @@ from bpy.props import StringProperty, EnumProperty
 from .categories import get_category
 from .app_handlers import load_collection_descriptions, load_material_descriptions, load_object_descriptions
 
+
 def get_assets_by_cat(cat_slug):
     """Return a list of asset descriptions belonging to the category.
 
@@ -15,29 +16,31 @@ def get_assets_by_cat(cat_slug):
     """
     props = bpy.context.scene.mt_am_props
     category = get_category(props['categories'], cat_slug)
+    assets = []
     if "Contains" in category:
         if category['Contains'] == 'OBJECTS':
             try:
                 obj_descs = props['objects']
             except KeyError:
                 obj_descs = bpy.context.scene.mt_am_props['objects'] = load_object_descriptions()
-            obs = [obj for obj in obj_descs if obj['Category'] == category['Slug']]
-            return obs
-        elif category['Contains'] == 'COLLECTIONS':
+            assets = [obj for obj in obj_descs if obj['Category'] == category['Slug']]
+            return assets
+        if category['Contains'] == 'COLLECTIONS':
             try:
                 coll_descs = props['collections']
             except KeyError:
                 coll_descs = bpy.context.scene.mt_am_props['collections'] = load_collection_descriptions()
-            colls = [coll for coll in coll_descs if coll['Category'] == category['Slug']]
-            return colls
-        elif category['Contains'] == 'MATERIALS':
+            assets = [coll for coll in coll_descs if coll['Category'] == category['Slug']]
+            return assets
+        if category['Contains'] == 'MATERIALS':
             try:
                 mat_descs = props['materials']
             except KeyError:
                 mat_descs = bpy.context.scene.mt_am_props['materials'] = load_material_descriptions()
-            mats = [mat for mat in mat_descs if mat['Category'] == category['Slug']]
-            return mats
-    return []
+            assets = [mat for mat in mat_descs if mat['Category'] == category['Slug']]
+            return assets
+        return assets
+    return assets
 
 
 def append_preview_images(assets):

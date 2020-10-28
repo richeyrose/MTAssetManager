@@ -29,22 +29,28 @@ class MT_OT_AM_Asset_Bar(Operator):
         self.active_category = None
 
     def invoke(self, context, event):
-        # Check to see if we are already displaying asset bar
-        # and add asset bar draw handler and modal handler if not
-        if not MT_OT_AM_Asset_Bar.asset_bar:
-            # initialise asset bar
-            self.init_asset_bar(context)
-            # register asset bar draw handler
-            args = (self, context)
-            self.register_asset_bar_draw_handler(args, context)
-            # add the modal handler that handles events
-            context.window_manager.modal_handler_add(self)
-
         # update categories
         self.update_categories(context)
 
-        # initialise assets
-        self.init_assets(context)
+        # check to see if current category contains any assets. We only display asset bar if it does
+        current_assets = get_assets_by_cat(self.active_category)
+
+        if len(current_assets) > 0:
+            # Check to see if we are already displaying asset bar
+            # and add asset bar draw handler and modal handler if not
+            if not MT_OT_AM_Asset_Bar.asset_bar:
+                # initialise asset bar
+                self.init_asset_bar(context)
+                # register asset bar draw handler
+                args = (self, context)
+                self.register_asset_bar_draw_handler(args, context)
+                # add the modal handler that handles events
+                context.window_manager.modal_handler_add(self)
+            # initialise assets
+            self.init_assets(context)
+        else:
+            self.unregister_handlers(context)
+            return {'FINISHED'}
 
         return {'RUNNING_MODAL'}
 
@@ -155,8 +161,11 @@ class MT_OT_AM_Asset_Bar(Operator):
 
     def handle_events(self, event):
         result = False
-        if self.asset_bar.handle_event(event):
-            result = True
+        try:
+            if self.asset_bar.handle_event(event):
+                result = True
+        except AttributeError:
+            return result
 
         return result
 

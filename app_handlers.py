@@ -6,6 +6,8 @@ from .system import get_addon_path
 from .preferences import get_prefs
 from .categories import load_categories
 
+
+
 def mt_am_initialise_on_activation(dummy):
     bpy.app.handlers.depsgraph_update_pre.remove(mt_am_initialise_on_activation)
     create_propertes()
