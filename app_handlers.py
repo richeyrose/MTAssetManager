@@ -15,13 +15,14 @@ def mt_am_initialise_on_activation(dummy):
     create_properties()
     asset_types = ['objects', 'collections', 'materials']
     set_asset_desc_filepaths(prefs.default_assets_path, asset_types)
-    load_asset_descriptions(props)
+    load_asset_descriptions(props, asset_types)
 
 @persistent
 def mt_am_initialise_on_load(dummy):
     props = bpy.context.scene.mt_am_props
     create_properties()
-    load_asset_descriptions(props)
+    asset_types = ['objects', 'collections', 'materials']
+    load_asset_descriptions(props, asset_types)
 
 def set_asset_desc_filepaths(assets_path, asset_types):
     """Stores the path to the associated asset type in asset description .json file
@@ -85,91 +86,40 @@ def load_missing_preview_image():
     return None
 
 
-def load_asset_descriptions(props):
-    """Load asset descriptions from .json file."""
-    props.objects = load_object_descriptions()
-    props.collections = load_collection_descriptions()
-    props.materials = load_material_descriptions()
+def load_asset_descriptions(props, asset_types):
+    """Load asset descriptions from .json file.
 
-
-def load_collection_descriptions():
-    """Load Collection descriptions from .json file.
-
-    Returns:
-        [list]: List of Collection asset descriptions
+    Args:
+        props (mt_am_props): asset manager props
+        asset_types (list[str]): list of asset types
     """
+
     prefs = get_prefs()
-    default_collections = []
+    descs = []
+    for a_type in asset_types:
+        # load default assets bundled with asset manager
+        json_path = os.path.join(
+            prefs.default_assets_path,
+            "data",
+            a_type + ".json")
 
-    # load default collections bundled with asset manager
-    json_path = os.path.join(
-        prefs.default_assets_path,
-        "data",
-        "collections.json")
+        if os.path.exists(json_path):
+            with open(json_path) as json_file:
+                descs = json.load(json_file)
 
-    if os.path.exists(json_path):
-        with open(json_path) as json_file:
-            default_collections = json.load(json_file)
+        # load user objects
+        json_path = os.path.join(
+            prefs.user_assets_path,
+            "data",
+            a_type + ".json")
 
-    # TODO load user collections
-    return default_collections
+        if os.path.exists(json_path):
+            with open(json_path) as json_file:
+                descs.extend(json.load(json_file))
+            #deduplicate list
+            descs = list(dedupe(descs, key=lambda d: d['Slug']))
 
-
-def load_material_descriptions():
-    """Load Material descriptions from .json file.
-
-    Returns:
-        [list]: list of Material asset descriptions
-    """
-    prefs = get_prefs()
-    default_materials = []
-
-    # load materials bundled with asset manager
-    json_path = os.path.join(
-        prefs.default_assets_path,
-        "data",
-        "materials.json")
-
-    if os.path.exists(json_path):
-        with open(json_path) as json_file:
-            default_materials = json.load(json_file)
-
-    # TODO load default maketile materials if MT is installed
-    # TODO load user materials
-    return default_materials
-
-
-def load_object_descriptions():
-    """Load Object descriptions from .json file.
-
-    Returns:
-        [list]: list of Object asset descriptions
-    """
-    prefs = get_prefs()
-    ob_descs = []
-
-    # load default objects bundled with asset manager
-    json_path = os.path.join(
-        prefs.default_assets_path,
-        "data",
-        "objects.json")
-
-    if os.path.exists(json_path):
-        with open(json_path) as json_file:
-            ob_descs = json.load(json_file)
-
-    # load user objects
-    json_path = os.path.join(
-        prefs.user_assets_path,
-        "data",
-        "objects.json")
-
-    if os.path.exists(json_path):
-        with open(json_path) as json_file:
-            ob_descs.extend(json.load(json_file))
-
-    return list(dedupe(ob_descs, key=lambda d: d['Slug']))
-
+        setattr(props, a_type, descs)
 
 
 bpy.app.handlers.depsgraph_update_pre.append(mt_am_initialise_on_activation)
