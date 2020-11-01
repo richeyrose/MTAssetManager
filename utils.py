@@ -1,5 +1,5 @@
+import re
 import bpy
-
 
 def material_is_unique(material, materials):
     """Check whether the passed in material already exists.
@@ -121,3 +121,17 @@ def assign_mat_to_vert_group(vert_group, obj, material):
         if count == len(poly.vertices):
             poly.material_index = material_index
 
+def slugify(slug):
+    """Return passed in string as a slug suitable for transmission.
+
+    Normalize string, convert to lowercase, remove non-alpha numeric characters,
+    and convert spaces to hyphens.
+    """
+    slug = slug.lower()
+    slug = slug.replace('.', '_')
+    slug = slug.replace('"', '')
+    slug = slug.replace(' ', '_')
+    slug = re.sub(r'[^a-z0-9]+.- ', '-', slug).strip('-')
+    slug = re.sub(r'[-]+', '-', slug)
+    slug = re.sub(r'/', '_', slug)
+    return slug

@@ -1,8 +1,10 @@
 import bpy
 import os
 import json
+from.utils import slugify
 from .system import get_addon_path
 from .preferences import get_prefs
+from bpy.props import StringProperty
 
 
 def get_child_cats(categories, category_slug):
@@ -92,4 +94,72 @@ def load_categories():
 
     return categories
 
+
+def add_category(parent_slug, name):
+    """Add a new category.
+
+    Args:
+        parent_slug (str): parent slug
+        name (str): name
+    """
+    props = bpy.context.scene.mt_am_props
+    categories = props.categories
+    parent_cat = get_category(categories, parent_slug)
+
+    new_cat = {
+        "Name": name,
+        "Slug": parent_slug + "\\" + slugify(name),
+        "Parent": parent_slug,
+        "Contains": parent_cat["Contains"],
+        "Children": []}
+
+    append_category(categories, parent_slug, new_cat)
+
+    # update sidebar
+    props['child_cats'] = get_child_cats(
+        categories,
+        parent_slug)
+
+    # TODO Write to categories.json file
+
+
+def append_category(categories, parent_slug, new_cat):
+    found = False
+    for cat in categories:
+        if cat['Slug'] == parent_slug:
+            cat['Children'].append(new_cat)
+            return True
+        else:
+            found = append_category(cat['Children'], parent_slug, new_cat)
+        if found:
+            return found
+    return found
+
+
+class MT_OT_Add_Category(bpy.types.Operator):
+    bl_idname = "scene.mt_am_add_category"
+    bl_label = "Add Category"
+    bl_description = "Add a new Category"
+    bl_options = {"REGISTER"}
+
+    new_cat_name: StringProperty(
+        name="Name",
+        default=""
+    )
+
+    def execute(self, context):
+        "Add a new category."
+        props = context.scene.mt_am_props
+        add_category(props.active_category, self.new_cat_name)
+        print(self.new_cat_name)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        """Call when user accesses operator via menu."""
+        return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context):
+        """Draw modal pop up."""
+        layout = self.layout
+        layout.prop(self, 'new_cat_name')
 
