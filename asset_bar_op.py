@@ -8,7 +8,7 @@ from .assets import get_assets_by_cat, append_preview_images
 from .ui_bar import MT_UI_AM_Asset_Bar
 from .ui_asset import MT_AM_UI_Asset
 from .ui_nav_arrow import MT_UI_AM_Left_Nav_Arrow, MT_UI_AM_Right_Nav_Arrow
-from .app_handlers import create_propertes
+from .app_handlers import create_properties
 
 #TODO see if we can get self.report to work properly
 class MT_OT_AM_Asset_Bar(Operator):
@@ -34,7 +34,8 @@ class MT_OT_AM_Asset_Bar(Operator):
         # update categories
         self.update_categories(context)
 
-        # check to see if current category contains any assets. We only display asset bar if it does
+        # check to see if current category contains any assets.
+        # We only display asset bar if it does
         current_assets = get_assets_by_cat(props.active_category)
 
         if len(current_assets) > 0:
