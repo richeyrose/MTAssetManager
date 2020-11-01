@@ -92,7 +92,7 @@
     {
         "Name": "OpenLOCK base socket cutter supported 5",
         "Slug": "openlock_base_socket_cutter_supported_5",
-        "Category": "objects",
+        "Category": "objects\\booleans\\cutters",
         "FileName": "openlock.blend",
         "FilePath": "C:\\Users\\riche\\AppData\\Roaming\\Blender Foundation\\Blender\\2.90\\scripts\\addons\\MTAssetManager\\assets\\objects\\openlock.blend",
         "PreviewImagePath": "C:\\Users\\riche\\AppData\\Roaming\\Blender Foundation\\Blender\\2.90\\scripts\\addons\\MTAssetManager\\assets\\objects\\openlock_base_socket_cutter_supported_5.png",
