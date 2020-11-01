@@ -31,6 +31,9 @@ def spawn_object(self, context, asset, x, y, op):
     bpy.context.view_layer.objects.active = obj
     obj.select_set(True)
 
+    # push an undo action to the stack
+    bpy.ops.ed.undo_push()
+
 def spawn_collection(self, context, asset, x, y, op):
     pass
 
@@ -73,11 +76,10 @@ def spawn_material(self, context, asset, x, y, op):
             # append material
             hit_obj.data.materials.append(mat)
             material_index = get_material_index(hit_obj, mat)
-            '''
-            # assign material to entire object
-            for poly in hit_obj.data.polygons:
-                poly.material_index = material_index
-            '''
+
+        # push an undo action to the stack
+        bpy.ops.ed.undo_push()
+
 
 
 def append_material(context, asset, op, link=False):

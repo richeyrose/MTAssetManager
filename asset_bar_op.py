@@ -26,14 +26,16 @@ class MT_OT_AM_Asset_Bar(Operator):
     asset_bar = None
 
     def __init__(self):
-        self.active_category = None
+        self.previous_category = ""
 
     def invoke(self, context, event):
+
+        props = context.scene.mt_am_props
         # update categories
         self.update_categories(context)
 
         # check to see if current category contains any assets. We only display asset bar if it does
-        current_assets = get_assets_by_cat(self.active_category)
+        current_assets = get_assets_by_cat(props.active_category)
 
         if len(current_assets) > 0:
             # Check to see if we are already displaying asset bar
@@ -48,11 +50,10 @@ class MT_OT_AM_Asset_Bar(Operator):
                 context.window_manager.modal_handler_add(self)
             # initialise assets
             self.init_assets(context)
-        else:
-            self.unregister_handlers(context)
-            return {'FINISHED'}
+            return {'RUNNING_MODAL'}
 
-        return {'RUNNING_MODAL'}
+        self.unregister_handlers(context)
+        return {'FINISHED'}
 
     def modal(self, context, event):
         """Handle user input.
@@ -65,57 +66,61 @@ class MT_OT_AM_Asset_Bar(Operator):
         if context.area:
             context.area.tag_redraw()
 
-        # undo seems to remove the custom properties we add on initialisation / load
-        # so we check here to see if one of these custom properties still exists and
-        # reinitialise them all if not. This means we also need to reinitialise our
-        # assets as all the images etc. will have been removed
-        try:
-            context.scene.mt_am_props['categories']
-        except KeyError:
-            create_propertes()
-            self.init_assets(context)
-
         # handle events
         if self.handle_events(event):
             return {'RUNNING_MODAL'}
 
         # close asset bar if Esc is pressed and end modal
-        if event.type == 'ESC':
+        elif event.type == 'ESC':
             self.unregister_handlers(context)
             return {'CANCELLED'}
+
+        # Undo really screws up the operator as it removes images and fucks up custom properties so we
+        # remove the asset bar when an undo event is detected
+        elif event.type == 'Z' and event.value == 'PRESS':
+            if event.ctrl:
+                self.unregister_handlers(context)
+                return {'CANCELLED'}
 
         return {'PASS_THROUGH'}
 
     def init_assets(self, context):
+        props = context.scene.mt_am_props
         # get current assets based on active category
-        current_assets = get_assets_by_cat(self.active_category)
-        # make sure preview images are appended
-        append_preview_images(current_assets)
+        current_assets = get_assets_by_cat(props.active_category)
 
-        # instantiate a thumbnail for each asset in current assets
-        prefs = get_prefs()
-        assets = []
-        for asset in current_assets:
-            new_asset = MT_AM_UI_Asset(
-                50,
-                50,
-                prefs.asset_item_dimensions,
-                prefs.asset_item_dimensions,
-                asset,
-                MT_OT_AM_Asset_Bar.asset_bar,
-                current_assets.index(asset),
-                self)
-            assets.append(new_asset)
+        if len(current_assets) > 0:
+            # make sure preview images are appended
+            append_preview_images(current_assets)
 
-        # reset asset indexes
-        self.asset_bar.first_asset_index = 0
+            # instantiate a thumbnail for each asset in current assets
+            prefs = get_prefs()
+            assets = []
+            for asset in current_assets:
+                new_asset = MT_AM_UI_Asset(
+                    50,
+                    50,
+                    prefs.asset_item_dimensions,
+                    prefs.asset_item_dimensions,
+                    asset,
+                    MT_OT_AM_Asset_Bar.asset_bar,
+                    current_assets.index(asset),
+                    self)
+                assets.append(new_asset)
 
-        # register assets in asset bar
-        self.asset_bar.assets = assets
+            try:
+                # reset asset indexes
+                self.asset_bar.first_asset_index = 0
+            except AttributeError:
+                self.init_asset_bar(context)
+                self.asset_bar.first_asset_index = 0
 
-        # initialise assets
-        for asset in assets:
-            asset.init(context)
+            # register assets in asset bar
+            self.asset_bar.assets = assets
+
+            # initialise assets
+            for asset in assets:
+                asset.init(context)
 
     def init_asset_bar(self, context):
         MT_OT_AM_Asset_Bar.asset_bar = MT_UI_AM_Asset_Bar(50, 50, 300, 200, self)
@@ -124,20 +129,24 @@ class MT_OT_AM_Asset_Bar(Operator):
     def update_categories(self, context):
         # update parent and active categories based on passed in category_slug
         am_props = context.scene.mt_am_props
+        '''
         try:
             categories = am_props['categories']
         except KeyError:
             categories = context.scene.mt_am_props['categories'] = context.scene.mt_am_props['child_cats'] = load_categories()
+        '''
+        categories = am_props.categories
 
         context.scene.mt_am_props.parent_category = get_parent_cat_slug(
             categories,
             self.category_slug)
-        self.active_category = context.scene.mt_am_props.active_category = self.category_slug
+
+        active_category = context.scene.mt_am_props.active_category = self.category_slug
 
         # get child categories and update side bar
         am_props['child_cats'] = get_child_cats(
             categories,
-            self.active_category)
+            active_category)
 
     def register_asset_bar_draw_handler(self, args, context):
         MT_OT_AM_Asset_Bar.bar_draw_handler = bpy.types.SpaceView3D.draw_handler_add(
