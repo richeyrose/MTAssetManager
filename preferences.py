@@ -32,7 +32,7 @@ from bpy.props import (
 class MT_AM_Prefs(bpy.types.AddonPreferences):
     bl_idname = __package__
 
-    path = get_addon_path()
+    addon_path = get_addon_path()
     user_path = os.path.expanduser('~')
     export_path = os.path.join(user_path, 'MakeTile')
     user_assets_path = os.path.join(user_path, 'MakeTile', 'UserAssets')
@@ -40,7 +40,6 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
     # asset libraries
     def update_assetspath(self, context):
         '''method to update the asset path'''
-        ''''Based on DECALMachine'''
 
         new_path = makedir(abspath(self.assets_path))
         old_path = abspath(self.old_path)
@@ -66,7 +65,6 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
 
     def update_user_assetspath(self, context):
         '''method to update the user asset path'''
-        ''''Based on DECALMachine'''
 
         new_path = makedir(abspath(self.user_assets_path))
         old_path = abspath(self.old_path)
@@ -90,11 +88,11 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
             # reload assets
             reload_asset_libraries()
 
-    assets_path: StringProperty(
+    default_assets_path: StringProperty(
         name="Default Asset Libraries",
         description="Path to Default Asset Libraries",
         subtype='DIR_PATH',
-        default=os.path.join(path, "assets"),
+        default=os.path.join(addon_path, "assets"),
         update=update_assetspath
     )
 
@@ -109,7 +107,7 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
     old_path: StringProperty(
         name="Old Path",
         subtype='DIR_PATH',
-        default=os.path.join(path, "assets")
+        default=os.path.join(addon_path, "assets")
     )
 
     asset_bar_bg_color: FloatVectorProperty(
@@ -212,8 +210,6 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
         min=32,
         max=512
     )
-
-
 
     preview_scene: StringProperty(
         name="Preview Scene",

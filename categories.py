@@ -2,6 +2,8 @@ import bpy
 import os
 import json
 from .system import get_addon_path
+from .preferences import get_prefs
+
 
 def get_child_cats(categories, category_slug):
     """Return children of category.
@@ -76,9 +78,10 @@ def get_category(categories, category_slug):
 
 def load_categories():
     """Load categories from .json file."""
-    addon_path = get_addon_path()
+    prefs = get_prefs()
+    categories = []
     json_path = os.path.join(
-        addon_path,
+        prefs.default_assets_path,
         "data",
         "categories.json"
     )
