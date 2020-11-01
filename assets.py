@@ -15,7 +15,8 @@ def get_assets_by_cat(cat_slug):
         list: asset descriptions
     """
     props = bpy.context.scene.mt_am_props
-    category = get_category(props['categories'], cat_slug)
+
+    category = get_category(props.categories, cat_slug)
     assets = []
     if "Contains" in category:
         if category['Contains'] == 'OBJECTS':

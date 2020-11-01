@@ -42,6 +42,52 @@ class MT_PT_AM_Props(PropertyGroup):
         description="The parent of the current active category."
     )
 
+    _categories = []
+    _child_cats = []
+    _objects = []
+    _materials = []
+    _collections = []
+
+    @property
+    def categories(self):
+        return MT_PT_AM_Props._categories
+
+    @categories.setter
+    def categories(self, value):
+        MT_PT_AM_Props._categories = value
+
+    @property
+    def child_cats(self):
+        return MT_PT_AM_Props._child_cats
+
+    @child_cats.setter
+    def child_cats(self, value):
+        MT_PT_AM_Props._child_cats = value
+
+    @property
+    def objects(self):
+        return MT_PT_AM_Props._objects
+
+    @objects.setter
+    def objects(self, value):
+        MT_PT_AM_Props._objects = value
+
+    @property
+    def materials(self):
+        return MT_PT_AM_Props._materials
+
+    @materials.setter
+    def materials(self, value):
+        MT_PT_AM_Props._materials = value
+
+    @property
+    def collections(self):
+        return MT_PT_AM_Props._collections
+
+    @collections.setter
+    def collections(self, value):
+        MT_PT_AM_Props._collections = value
+
 
 class MT_PT_AM_Bar_Props(PropertyGroup):
     visible: bpy.props.BoolProperty(

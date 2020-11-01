@@ -6,8 +6,6 @@ from .system import get_addon_path
 from .preferences import get_prefs
 from .categories import load_categories
 
-
-
 def mt_am_initialise_on_activation(dummy):
     bpy.app.handlers.depsgraph_update_pre.remove(mt_am_initialise_on_activation)
     create_propertes()
@@ -23,13 +21,6 @@ def create_propertes():
     props.active_category = ""
     props.parent_category = ""
 
-    props['categories'] = []  # all categories
-    props['child_cats'] = []  # children of active category
-    props['current_assets'] = []  # assets in current category
-    props['objects'] = []  # assets of type OBJECT
-    props['collections'] = []  # assets of type COLLECTION
-    props['materials'] = []  # assets of type MATERIAL
-
     bar_props = bpy.context.scene.mt_bar_props
     bar_props['hovered_asset'] = None
     bar_props['selected_asset'] = None
@@ -37,8 +28,8 @@ def create_propertes():
     bar_props['missing_preview_image'] = load_missing_preview_image()
 
     categories = load_categories()
-    props['categories'] = categories  # all categories
-    props['child_cats'] = categories  # current child categories of active category
+    props.categories = categories  # all categories
+    props.child_cats = categories  # child categories of active category
 
     load_asset_descriptions(props)
 
@@ -56,13 +47,9 @@ def load_missing_preview_image():
 
 def load_asset_descriptions(props):
     """Load asset descriptions from .json file."""
-    object_descs = load_object_descriptions()
-    collection_descs = load_collection_descriptions()
-    material_descs = load_material_descriptions()
-
-    props['objects'] = object_descs
-    props['collections'] = collection_descs
-    props['materials'] = material_descs
+    props.objects = load_object_descriptions()
+    props.collections = load_collection_descriptions()
+    props.materials = load_material_descriptions()
 
 def load_collection_descriptions():
     """Load Collection descriptions from .json file.
