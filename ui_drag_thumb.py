@@ -125,9 +125,9 @@ class MT_AM_UI_Drag_Thumb(MT_UI_AM_Widget):
 
     def spawn_at_cursor(self, x, y):
         asset_desc = self.asset.asset_desc
-        if asset_desc['Type'] == 'OBJECT':
+        if asset_desc['Type'] == 'OBJECTS':
             spawn_object(self, self.context, self.asset.asset_desc, x, y, self.op)
-        elif asset_desc['Type'] == 'COLLECTION':
+        elif asset_desc['Type'] == 'COLLECTIONS':
             spawn_collection(self, self.context, self.asset.asset_desc, x, y, self.op)
-        elif asset_desc['Type'] == 'MATERIAL':
+        elif asset_desc['Type'] == 'MATERIALS':
             spawn_material(self, self.context, self.asset.asset_desc, x, y, self.op)

@@ -184,3 +184,13 @@ def rchop(s, suffix):
     if suffix and s.endswith(suffix):
         return s[:-len(suffix)]
     return s
+
+
+def tagify(tag_string):
+    """Return passed in string as list of tags."""
+    tags = []
+    if len(tag_string) is not 0:
+        tags = tag_string.split(",")
+        tags = [tag.strip() for tag in tags]
+        tags = [tag.lower() for tag in tags]
+    return tags

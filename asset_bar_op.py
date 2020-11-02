@@ -85,7 +85,7 @@ class MT_OT_AM_Asset_Bar(Operator):
 
         return {'PASS_THROUGH'}
 
-    def init_assets(self, context):
+    def init_assets(self, context, reset_index=True):
         props = context.scene.mt_am_props
         # get current assets based on active category
         current_assets = get_assets_by_cat(props.active_category)
@@ -110,11 +110,16 @@ class MT_OT_AM_Asset_Bar(Operator):
                 assets.append(new_asset)
 
             try:
-                # reset asset indexes
-                self.asset_bar.first_asset_index = 0
+                # reset asset indexes.
+                # We don't want to do this if we are reinitialising
+                # assets after we've added, removed or updated one as we want the
+                # asset bar to ramin at its current index
+                if reset_index:
+                    self.asset_bar.first_asset_index = 0
             except AttributeError:
                 self.init_asset_bar(context)
-                self.asset_bar.first_asset_index = 0
+                if reset_index:
+                    self.asset_bar.first_asset_index = 0
 
             # register assets in asset bar
             self.asset_bar.assets = assets
@@ -184,6 +189,11 @@ class MT_OT_AM_Asset_Bar(Operator):
         return {"FINISHED"}
 
     def draw_callback_asset_bar(self, op, context):
+        # check to see if an asset has been added, removed or updated.
+        if context.scene.mt_am_props.assets_updated:
+            context.scene.mt_am_props.assets_updated = False
+            self.init_assets(context, reset_index=False)
+
         MT_OT_AM_Asset_Bar.asset_bar.draw()
 
 

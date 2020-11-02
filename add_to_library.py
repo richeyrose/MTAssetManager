@@ -3,8 +3,10 @@ import json
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty
-from .utils import slugify, find_and_rename
+from .utils import slugify, tagify, find_and_rename
 from .preferences import get_prefs
+from .previews import render_object_preview
+
 
 class MT_OT_AM_Add_Selected_Object_To_Library(Operator):
     """Operator that adds selected mesh object to the MakeTile Library."""
@@ -44,7 +46,28 @@ class MT_OT_AM_Add_Selected_Object_To_Library(Operator):
         props = context.scene.mt_am_props
         prefs = get_prefs()
         assets_path = prefs.user_assets_path
-        add_asset_to_library(self, context, props, obj, assets_path, "objects", self.Description, self.URI, self.Author, self.License)
+
+        asset_desc = add_asset_to_library(
+            self,
+            context,
+            props,
+            obj,
+            assets_path,
+            "objects",
+            self.Description,
+            self.URI,
+            self.Author,
+            self.License,
+            self.Tags)
+
+        scene_path = os.path.join(
+            prefs.default_assets_path,
+            "previews",
+            "preview_scenes.blend")
+
+        render_object_preview(self, context, asset_desc['PreviewImagePath'], scene_path, prefs.preview_scene, obj)
+        props.assets_updated = True
+
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -61,7 +84,7 @@ class MT_OT_AM_Add_Selected_Object_To_Library(Operator):
         layout.prop(self, 'Tags')
 
 
-def add_asset_to_library(self, context, props, asset, assets_path, asset_type, description="", URI="", Author="", License=""):
+def add_asset_to_library(self, context, props, asset, assets_path, asset_type, description="", URI="", author="", license="", tags=""):
     assets = getattr(props, asset_type)
 
     asset_save_path = os.path.join(
@@ -84,6 +107,16 @@ def add_asset_to_library(self, context, props, asset, assets_path, asset_type, d
     # root category for its type
     if props.active_category == "":
         category = asset_type
+    else:
+        category = props.active_category
+
+    filepath = os.path.join(
+        asset_save_path,
+        new_slug + '.blend')
+
+    imagepath = os.path.join(
+        asset_save_path,
+        new_slug + '.png')
 
     # construct dict for saving to users objects.json
     asset_desc = {
@@ -91,19 +124,18 @@ def add_asset_to_library(self, context, props, asset, assets_path, asset_type, d
         "Slug": new_slug,
         "Category": category,
         "FileName": new_slug + '.blend',
-        "FilePath": asset_save_path,
-        "PreviewImagePath": asset_save_path,
+        "FilePath": filepath,
+        "PreviewImagePath": imagepath,
         "PreviewImageName": new_slug + '.png',
         "Description": description,
         "URI": URI,
-        "Author": Author,
-        "License": License,
+        "Author": author,
+        "License": license,
         "Type": asset_type.upper(),
-        "Tags": []}
+        "Tags": tagify(tags)}
 
     # update current objects list
     assets = assets.append(asset_desc)
-
 
     if not os.path.exists(json_path):
         os.makedirs(json_path)
@@ -127,9 +159,12 @@ def add_asset_to_library(self, context, props, asset, assets_path, asset_type, d
         os.makedirs(asset_save_path)
 
     bpy.data.libraries.write(
-        os.path.join(asset_save_path, new_slug + '.blend'),
+        os.path.join(filepath),
         {asset},
         fake_user=True)
+
+    return asset_desc
+
 
 def draw_object_context_menu_items(self, context):
     """Add options to object right click context menu."""

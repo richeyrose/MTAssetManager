@@ -30,6 +30,12 @@ def get_type_enums():
 
 
 class MT_PT_AM_Props(PropertyGroup):
+    assets_updated: BoolProperty(
+        name="Assets Updated",
+        default=False,
+        description="Set to true when you add, remove or update an asset"
+    )
+
     active_category: bpy.props.StringProperty(
         name="Active Category",
         default="",
