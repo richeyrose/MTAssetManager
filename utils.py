@@ -1,6 +1,7 @@
 import re
 import bpy
 
+
 def material_is_unique(material, materials):
     """Check whether the passed in material already exists.
 
@@ -57,6 +58,7 @@ def material_is_unique(material, materials):
 
     return True, None
 
+
 def find_vertex_group_of_face(face, mesh, excluded_vert_groups):
     """Return the vertex group face belongs to.
 
@@ -101,6 +103,7 @@ def dedupe(items, key=None):
             yield item
             seen.add(val)
 
+
 def get_material_index(obj, material):
     """Return the material index of the passed in material."""
     material_index = list(obj.material_slots.keys()).index(material.name)
@@ -121,6 +124,7 @@ def assign_mat_to_vert_group(vert_group, obj, material):
         if count == len(poly.vertices):
             poly.material_index = material_index
 
+
 def slugify(slug):
     """Return passed in string as a slug suitable for transmission.
 
@@ -135,5 +139,3 @@ def slugify(slug):
     slug = re.sub(r'[-]+', '-', slug)
     slug = re.sub(r'/', '_', slug)
     return slug
-
-

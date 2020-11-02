@@ -12,7 +12,6 @@ class MT_PT_AM_Main_Panel(Panel):
     bl_region_type = "UI"
     bl_label = "Assets"
 
-
     def draw(self, context):
         scene = context.scene
         props = context.scene.mt_am_props

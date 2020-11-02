@@ -131,6 +131,20 @@
                         "Children": []
                     }
                 ]
+            },
+            {
+                "Name": "New Category",
+                "Slug": "objects\\new_category",
+                "Parent": "objects",
+                "Contains": "OBJECTS",
+                "Children": []
+            },
+            {
+                "Name": "Test",
+                "Slug": "objects\\test",
+                "Parent": "objects",
+                "Contains": "OBJECTS",
+                "Children": []
             }
         ]
     },

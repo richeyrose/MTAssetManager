@@ -96,44 +96,6 @@ def load_categories():
     return categories
 
 
-def add_category(parent_slug, name):
-    """Add a new category.
-
-    Args:
-        parent_slug (str): parent slug
-        name (str): name
-    """
-    prefs = get_prefs()
-    props = bpy.context.scene.mt_am_props
-    categories = props.categories
-    parent_cat = get_category(categories, parent_slug)
-    bpy.ops.rigidbody.world_add()
-
-    new_cat = {
-        "Name": name.strip(),
-        "Slug": parent_slug + "\\" + slugify(name),
-        "Parent": parent_slug,
-        "Contains": parent_cat["Contains"],
-        "Children": []}
-
-    append_category(categories, parent_slug, new_cat)
-
-    # update sidebar
-    props['child_cats'] = get_child_cats(
-        categories,
-        parent_slug)
-
-    # Write categories.json file
-    json_file = os.path.join(
-        prefs.default_assets_path,
-        "data",
-        "categories.json")
-
-    if os.path.exists(json_file):
-        with open(json_file, "w") as write_file:
-            json.dump(categories, write_file, indent=4)
-
-
 def append_category(categories, parent_slug, new_cat):
     found = False
     for cat in categories:
@@ -161,8 +123,7 @@ class MT_OT_Add_Category(bpy.types.Operator):
     def execute(self, context):
         """Add a new category."""
         props = context.scene.mt_am_props
-        add_category(props.active_category, self.new_cat_name)
-        return {'FINISHED'}
+        return self.add_category(context, props.active_category, self.new_cat_name)
 
     def invoke(self, context, event):
         """Call when user accesses operator via menu."""
@@ -172,4 +133,51 @@ class MT_OT_Add_Category(bpy.types.Operator):
         """Draw modal pop up."""
         layout = self.layout
         layout.prop(self, 'new_cat_name')
+
+    def add_category(self, context, parent_slug, name):
+        """Add a new category.
+
+        Args:
+            parent_slug (str): parent slug
+            name (str): name
+        """
+        prefs = get_prefs()
+        props = context.scene.mt_am_props
+        categories = props.categories
+        parent_cat = get_category(categories, parent_slug)
+        name = name.strip()
+
+        # check sub category doesn't already exist
+        found = False
+        for child in parent_cat["Children"]:
+            if name in child["Name"]:
+                found = True
+                self.report({'INFO'}, "Category already exists")
+                return {'CANCELLED'}
+
+        if not found:
+            new_cat = {
+                "Name": name,
+                "Slug": parent_slug + "\\" + slugify(name),
+                "Parent": parent_slug,
+                "Contains": parent_cat["Contains"],
+                "Children": []}
+
+            append_category(categories, parent_slug, new_cat)
+
+            # update sidebar
+            props['child_cats'] = get_child_cats(
+                categories,
+                parent_slug)
+
+            # Write categories.json file
+            json_file = os.path.join(
+                prefs.default_assets_path,
+                "data",
+                "categories.json")
+
+            if os.path.exists(json_file):
+                with open(json_file, "w") as write_file:
+                    json.dump(categories, write_file, indent=4)
+            return {'FINISHED'}
 
