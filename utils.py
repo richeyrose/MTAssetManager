@@ -139,3 +139,48 @@ def slugify(slug):
     slug = re.sub(r'[-]+', '-', slug)
     slug = re.sub(r'/', '_', slug)
     return slug
+
+def find_and_rename(self, obj, slug, current_slugs):
+    """Recursively search for and rename ID object based on slug.
+
+    Recursively searches for the passed in slug in current slugs and
+    appends and increments a number to the slug if found until slug is unique.
+
+    Parameters
+    obj : bpy.types.ID
+    slug : str
+    current_slugs : list of str
+
+    Returns
+    slug : str
+    """
+    if slug not in current_slugs:
+        current_slugs.append(slug)
+        return slug
+
+    match = re.search(r'\d+$', slug)
+    if match:
+        slug = rchop(slug, match.group())
+        slug = slug + str(int(match.group()) + 1).zfill(3)
+        obj.name = rchop(obj.name, match.group())
+        obj.name = obj.name + str(int(match.group()) + 1).zfill(3)
+        find_and_rename(self, obj, slug, current_slugs)
+    else:
+        slug = slug + '_001'
+        obj.name = obj.name + '.001'
+        find_and_rename(self, obj, slug, current_slugs)
+    return slug
+
+
+def rchop(s, suffix):
+    """Return right chopped string.
+
+    Parameters
+    s : str
+        string to chop
+    suffix : str
+        suffix to remove from string
+    """
+    if suffix and s.endswith(suffix):
+        return s[:-len(suffix)]
+    return s
