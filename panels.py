@@ -27,9 +27,12 @@ class MT_PT_AM_Main_Panel(Panel):
         if active_category != "":
             op = layout.operator('view3d.mt_ret_to_parent', text='...', icon='FILE_PARENT')
 
-        row = layout.row()
-        row.label(text='Categories')
-        row.operator('scene.mt_am_add_category', text="", icon='ADD')
+            row = layout.row()
+            row.label(text='Categories')
+            row.operator('scene.mt_am_add_category', text="", icon='ADD')
+        else:
+            layout.label(text='Categories')
+
         for cat in child_cats:
             cat_text = cat["Name"]
             op = layout.operator("view3d.mt_asset_bar", text=cat_text, icon="FILE_FOLDER")

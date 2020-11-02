@@ -91,7 +91,7 @@
                         "Slug": "objects\\props\\tavern",
                         "Parent": "objects\\props",
                         "Contains": "OBJECTS",
-                        "Children":[
+                        "Children": [
                             {
                                 "Name": "Seats",
                                 "Slug": "objects\\props\\tavern\\seats",
@@ -112,6 +112,21 @@
                         "Name": "Dungeon",
                         "Slug": "objects\\props\\dungeon",
                         "Parent": "objects\\props",
+                        "Contains": "OBJECTS",
+                        "Children": []
+                    }
+                ]
+            },
+            {
+                "Name": "New Category",
+                "Slug": "objects\\new_category",
+                "Parent": "objects",
+                "Contains": "OBJECTS",
+                "Children": [
+                    {
+                        "Name": "New Category",
+                        "Slug": "objects\\new_category\\new_category",
+                        "Parent": "objects\\new_category",
                         "Contains": "OBJECTS",
                         "Children": []
                     }

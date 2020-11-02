@@ -1,6 +1,7 @@
-import bpy
+import re
 import os
 import json
+import bpy
 from.utils import slugify
 from .system import get_addon_path
 from .preferences import get_prefs
@@ -102,12 +103,14 @@ def add_category(parent_slug, name):
         parent_slug (str): parent slug
         name (str): name
     """
+    prefs = get_prefs()
     props = bpy.context.scene.mt_am_props
     categories = props.categories
     parent_cat = get_category(categories, parent_slug)
+    bpy.ops.rigidbody.world_add()
 
     new_cat = {
-        "Name": name,
+        "Name": name.strip(),
         "Slug": parent_slug + "\\" + slugify(name),
         "Parent": parent_slug,
         "Contains": parent_cat["Contains"],
@@ -120,7 +123,15 @@ def add_category(parent_slug, name):
         categories,
         parent_slug)
 
-    # TODO Write to categories.json file
+    # Write categories.json file
+    json_file = os.path.join(
+        prefs.default_assets_path,
+        "data",
+        "categories.json")
+
+    if os.path.exists(json_file):
+        with open(json_file, "w") as write_file:
+            json.dump(categories, write_file, indent=4)
 
 
 def append_category(categories, parent_slug, new_cat):
@@ -148,10 +159,9 @@ class MT_OT_Add_Category(bpy.types.Operator):
     )
 
     def execute(self, context):
-        "Add a new category."
+        """Add a new category."""
         props = context.scene.mt_am_props
         add_category(props.active_category, self.new_cat_name)
-        print(self.new_cat_name)
         return {'FINISHED'}
 
     def invoke(self, context, event):
