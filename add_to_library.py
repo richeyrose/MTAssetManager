@@ -7,13 +7,57 @@ from .utils import slugify, tagify, find_and_rename
 from .preferences import get_prefs
 from .previews import render_object_preview
 
+class MT_OT_AM_Add_Multiple_Object_To_Library(Operator):
+    """Operator that adds all selected mesh objects to the MakeTile Library."""
+    bl_idname = "object.add_selected_objects_to_library"
+    bl_label = "Add selected objects to library"
+    bl_description = "Adds selected objects to the MakeTile Library"
 
-class MT_OT_AM_Add_Selected_Object_To_Library(Operator):
-    """Operator that adds selected mesh object to the MakeTile Library."""
-    bl_idname = "object.add_selected_to_library"
-    bl_label = "Add selected object to library"
+    @classmethod
+    def poll(cls, context):
+        if len(context.selected_editable_objects) > 0:
+            for obj in context.selected_editable_objects:
+                if obj.type == 'MESH':
+                    return True
+        return
+
+    def execute(self, context):
+        obs = context.selected_editable_objects
+        props = context.scene.mt_am_props
+        prefs = get_prefs()
+        assets_path = prefs.user_assets_path
+        scene_path = os.path.join(
+            prefs.default_assets_path,
+            "previews",
+            "preview_scenes.blend")
+
+        for obj in obs:
+            asset_desc = add_asset_to_library(
+                self,
+                context,
+                props,
+                obj,
+                assets_path,
+                "objects")
+
+            render_object_preview(
+                self,
+                context,
+                asset_desc['PreviewImagePath'],
+                scene_path,
+                prefs.preview_scene,
+                obj)
+
+        props.assets_updated = True
+        return {'FINISHED'}
+
+
+class MT_OT_AM_Add_Active_Object_To_Library(Operator):
+    """Operator that adds active mesh object to the MakeTile Library."""
+    bl_idname = "object.add_active_object_to_library"
+    bl_label = "Add active object to library"
     bl_options = {'REGISTER'}
-    bl_description = "Adds selected mesh object to the MakeTile Library"
+    bl_description = "Adds active object to the MakeTile Library"
 
     Description: StringProperty(
         name="Description",
@@ -40,6 +84,10 @@ class MT_OT_AM_Add_Selected_Object_To_Library(Operator):
         description="Comma seperated list",
         default=""
     )
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object and context.active_object.type == 'MESH'
 
     def execute(self, context):
         obj = context.active_object
@@ -163,6 +211,8 @@ def add_asset_to_library(self, context, props, asset, assets_path, asset_type, d
         {asset},
         fake_user=True)
 
+    self.report({'INFO'}, asset.name + " added to Library.")
+
     return asset_desc
 
 
@@ -173,9 +223,11 @@ def draw_object_context_menu_items(self, context):
         layout.separator()
         layout.operator_context = 'INVOKE_DEFAULT'
         layout.operator(
-            "object.add_selected_to_library",
-            text="Save active object to MakeTile Library"
-        )
+            "object.add_active_object_to_library",
+            text="Save active object to MakeTile Library")
+        layout.operator(
+            "object.add_selected_objects_to_library",
+            text="Save all selected objects to MakeTile Library")
 
 def register():
     """Register."""
