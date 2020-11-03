@@ -24,7 +24,7 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
         self._type = asset["Type"]
         self._tags = asset["Tags"]
 
-        self._asset_bar = asset_bar
+        self.asset_bar = asset_bar
         self.op = op
         self._index = index  # index number in bar.current_assets
 
@@ -87,9 +87,9 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
 
     def draw(self):
         # Check if there is space to draw asset in asset bar
-        if self._asset_bar.show_assets \
-            and self._index >= self._asset_bar.first_asset_index \
-                and self._index <= self._asset_bar.last_asset_index:
+        if self.asset_bar.show_assets \
+            and self._index >= self.asset_bar.first_asset_index \
+                and self._index <= self.asset_bar.last_asset_index:
 
             self._draw = True
 
@@ -112,7 +112,7 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
             bgl.glDisable(bgl.GL_BLEND)
 
             # draw hovered transparency
-            if self._hovered:
+            if self.hovered:
                 self.update_hover(self.x, self.y)
                 self.hover_shader.bind()
                 self.hover_shader.uniform_float("color", self.prefs.asset_bar_item_hover_color)
@@ -134,21 +134,13 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
     def preview_image(self):
         return self._preview_image
 
-    @property
-    def hovered(self):
-        return self._hovered
-
-    @hovered.setter
-    def hovered(self, value):
-        self._hovered = value
-
     def mouse_down(self, x, y):
         # only handle events if we are drawing asset
-        if self._draw and self._hovered:
+        if self._draw and self.hovered:
             # spawn a draggable thumb nail we can place in the scene
-            self._drag_thumb = MT_AM_UI_Drag_Thumb(x, y, self.width, self.height, self, self.op)
+            self._drag_thumb = MT_AM_UI_Drag_Thumb(x, y, self.width, self.height, self, self.asset_bar, self.op)
             self._drag_thumb.init(bpy.context)
-            self._asset_bar.drag_thumbs.append(self._drag_thumb)
+            self.asset_bar.drag_thumbs.append(self._drag_thumb)
             return True
 
         return False
@@ -165,9 +157,9 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
         Takes into account asset index, nav button width, asset bar width, and
         asset bar first_asset_index
         """
-        self.x = self._asset_bar.x + self.prefs.asset_bar_nav_button_width + (
-            self.width * (self._index)) - (self._asset_bar.first_asset_index * self.width)
-        self.y = self._asset_bar.y
+        self.x = self.asset_bar.x + self.prefs.asset_bar_nav_button_width + (
+            self.width * (self._index)) - (self.asset_bar.first_asset_index * self.width)
+        self.y = self.asset_bar.y
 
     def remove_drag_thumb(self, thumb):
         """Remove the draggable thumbnail from asset bar.
@@ -175,4 +167,4 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
         Args:
             thumb (MT_AM_UI_Drag_Thumb): thumbnail
         """
-        self._asset_bar.drag_thumbs.remove(thumb)
+        self.asset_bar.drag_thumbs.remove(thumb)

@@ -127,7 +127,7 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
         Returns:
             Bool: Return True if hovered
         """
-        if self._hovered:
+        if self.hovered:
             if self.first_asset_index > 0:
                 self.increment_asset_index(-1)
             # make sure we set any other widgets hovered state to false
@@ -144,7 +144,7 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
         Returns:
             Bool: Return True if hovered.
         """
-        if self._hovered:
+        if self.hovered:
             self.increment_asset_index(1)
             for asset in self.assets:
                 # make sure we set any other widgets hovered state to false

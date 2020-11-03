@@ -9,12 +9,13 @@ from .spawn import spawn_object, spawn_collection, spawn_material
 
 class MT_AM_UI_Drag_Thumb(MT_UI_AM_Widget):
     """Draggable thumbnail of asset used for spawning into scene."""
-    def __init__(self, x, y, width, height, asset, op):
+    def __init__(self, x, y, width, height, asset, asset_bar, op):
         self.x = x
         self.y = y
         self.width = asset.width
         self.height = asset.height
         self.asset = asset
+        self.asset_bar = asset_bar
         self.op = op
 
         super().__init__(x, y, self.width, self.height)
@@ -68,7 +69,8 @@ class MT_AM_UI_Drag_Thumb(MT_UI_AM_Widget):
     def mouse_up(self, x, y):
         if self._dragging:
             self._dragging = False
-            self.spawn_at_cursor(x, y)
+            if not self.asset_bar.hovered:
+                self.spawn_at_cursor(x, y)
             self.asset.remove_drag_thumb(self)
         return False
 

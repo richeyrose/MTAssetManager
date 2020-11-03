@@ -22,7 +22,7 @@ class MT_OT_AM_Add_Multiple_Object_To_Library(Operator):
         return
 
     def execute(self, context):
-        obs = context.selected_editable_objects
+        obs = [ob for ob in context.selected_editable_objects if ob.type == 'MESH']
         props = context.scene.mt_am_props
         prefs = get_prefs()
         assets_path = prefs.user_assets_path

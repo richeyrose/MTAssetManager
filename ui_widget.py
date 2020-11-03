@@ -11,7 +11,7 @@ class MT_UI_AM_Widget:
         self.width = width
         self.height = height
         self._bg_color = (0.8, 0.8, 0.8, 1.0)
-        self._hovered = False  # whether the mouse is over the widget
+        self.hovered = False  # whether the mouse is over the widget
         self._mouse_down = False
         self.context = None
 
@@ -102,12 +102,12 @@ class MT_UI_AM_Widget:
         elif event.type == 'MOUSEMOVE':
             hovered = self.is_hovered(x, y)
             # begin hover
-            if not self._hovered and hovered:
-                self._hovered = True
+            if not self.hovered and hovered:
+                self.hovered = True
                 self.mouse_enter(event, x, y)
             # end hover
-            elif self._hovered and not hovered:
-                self._hovered = False
+            elif self.hovered and not hovered:
+                self.hovered = False
                 self.mouse_leave(event, x, y)
 
             return False

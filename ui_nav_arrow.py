@@ -28,7 +28,7 @@ class MT_UI_AM_Nav_Arrow(MT_UI_AM_Widget):
         super().draw()
 
         # draw hovered transparency
-        if self._hovered:
+        if self.hovered:
             self.update_hover(self.x, self.y)
             self.hover_shader.bind()
             self.hover_shader.uniform_float("color", self.prefs.asset_bar_item_hover_color)
@@ -45,7 +45,7 @@ class MT_UI_AM_Left_Nav_Arrow(MT_UI_AM_Nav_Arrow):
         self.y = self._asset_bar.y
 
     def mouse_down(self, x, y):
-        if self._hovered:
+        if self.hovered:
             if self._asset_bar.first_asset_index > 0:
                 self._asset_bar.increment_asset_index(-1)
         return False
@@ -56,6 +56,6 @@ class MT_UI_AM_Right_Nav_Arrow(MT_UI_AM_Nav_Arrow):
         self.y = self._asset_bar.y
 
     def mouse_down(self, x, y):
-        if self._hovered:
+        if self.hovered:
             self._asset_bar.increment_asset_index(1)
         return False
