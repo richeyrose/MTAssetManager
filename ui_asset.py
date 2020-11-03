@@ -145,6 +145,16 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
 
         return False
 
+    def right_mouse_down(self, x, y):
+        if self._draw and self.hovered:
+            bpy.ops.wm.call_menu(name=MT_AM_Edit_Asset_Menu.bl_idname)
+            print("Right click")
+            return True
+        return False
+
+    def right_mouse_up(self, x, y):
+        pass
+
     def mouse_enter(self, event, x, y):
         pass
 
@@ -168,3 +178,14 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
             thumb (MT_AM_UI_Drag_Thumb): thumbnail
         """
         self.asset_bar.drag_thumbs.remove(thumb)
+
+class MT_AM_Edit_Asset_Menu(bpy.types.Menu):
+    bl_label = "Edit Asset"
+    bl_idname = "edit_asset_menu"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("object.delete_asset_from_library")
+
+

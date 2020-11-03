@@ -13,6 +13,7 @@ class MT_UI_AM_Widget:
         self._bg_color = (0.8, 0.8, 0.8, 1.0)
         self.hovered = False  # whether the mouse is over the widget
         self._mouse_down = False
+        self._right_mouse_down = False
         self.context = None
 
     def draw(self):
@@ -99,6 +100,14 @@ class MT_UI_AM_Widget:
                 self._mouse_down = False
                 return self.mouse_up(x, y)
 
+        elif event.type == 'RIGHTMOUSE':
+            if event.value == 'PRESS':
+                self._right_mouse_down = True
+                return self.right_mouse_down(x, y)
+            elif event.value == 'RELEASE':
+                self._right_mouse_down = False
+                return self.right_mouse_up(x, y)
+
         elif event.type == 'MOUSEMOVE':
             hovered = self.is_hovered(x, y)
             # begin hover
@@ -144,4 +153,10 @@ class MT_UI_AM_Widget:
         pass
 
     def mouse_up(self, x, y):
+        pass
+
+    def right_mouse_down(self, x, y):
+        pass
+
+    def right_mouse_up(self, x, y):
         pass
