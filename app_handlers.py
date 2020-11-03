@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import bpy
 from bpy.app.handlers import persistent
 from .system import get_addon_path
@@ -9,12 +10,60 @@ from .utils import dedupe
 
 
 def mt_am_initialise_on_activation(dummy):
-    prefs = get_prefs()
     bpy.app.handlers.depsgraph_update_pre.remove(mt_am_initialise_on_activation)
+    prefs = get_prefs()
     props = bpy.context.scene.mt_am_props
     create_properties()
-    asset_types = ['objects', 'collections', 'materials']
+
+    # we store our asset library .json files in the users directory not the add-on directory
+    # We do this because otherwise if the use removes the addon they will delete all
+    # the metadata that describes the assets
+    user_data_path = os.path.join(
+        prefs.user_assets_path,
+        "data"
+    )
+
+    default_data_path = os.path.join(
+        prefs.default_assets_path,
+        "data"
+    )
+
+    # Wite the absolute filepath to the default assets included with the asset manager
+    # to our asset description file
     set_asset_desc_filepaths(prefs.default_assets_path, asset_types)
+
+    # check to see if the user assets path already exists
+    if not os.path.exists(user_data_path):
+        os.makedirs(user_data_path)
+        # copy all files from addon assets/data folder to user assets/data folder
+        src_files = [fname for fname in os.listdir(default_data_path)
+                     if os.path.isfile(os.path.join(default_data_path, fname))]
+        for fname in src_files:
+            shutil.copy2(os.path.join(default_data_path, fname), user_data_path)
+    else:
+        # if the user already has asset description files we need to append any new
+        # asset descriptions to them
+        src_files = [fname for fname in os.listdir(default_data_path)
+                     if os.path.isfile(os.path.join(default_data_path, fname))]
+        dest_files = [fname for fname in os.listdir(user_data_path)
+                      if os.path.isfile(os.path.join(user_data_path, fname))]
+
+        for f in dest_files:
+            # skip the categories file
+            if f != 'categories.json' and f in src_files:
+                # load asset descs from user file
+                with open(os.path.join(user_data_path, f)) as json_file:
+                    descs = json.load(json_file)
+                # append the asset descs from asset manager file
+                with open(os.path.join(default_data_path, f)) as json_file:
+                    descs.extend(json.load(json_file))
+                # deduplicate
+                descs = list(dedupe(descs, key=lambda d: d['Slug']))
+                # write data file
+                with open(os.path.join(user_data_path, f), "w") as write_file:
+                    json.dump(descs, write_file, indent=4)
+
+    asset_types = ['objects', 'collections', 'materials']
     load_asset_descriptions(props, asset_types)
 
 @persistent
@@ -93,21 +142,9 @@ def load_asset_descriptions(props, asset_types):
         props (mt_am_props): asset manager props
         asset_types (list[str]): list of asset types
     """
-
     prefs = get_prefs()
     descs = []
     for a_type in asset_types:
-        # load default assets bundled with asset manager
-        json_path = os.path.join(
-            prefs.default_assets_path,
-            "data",
-            a_type + ".json")
-
-        if os.path.exists(json_path):
-            with open(json_path) as json_file:
-                descs = json.load(json_file)
-
-        # load user objects
         json_path = os.path.join(
             prefs.user_assets_path,
             "data",
@@ -115,9 +152,7 @@ def load_asset_descriptions(props, asset_types):
 
         if os.path.exists(json_path):
             with open(json_path) as json_file:
-                descs.extend(json.load(json_file))
-            #deduplicate list
-            descs = list(dedupe(descs, key=lambda d: d['Slug']))
+                descs = (json.load(json_file))
 
         setattr(props, a_type, descs)
 
