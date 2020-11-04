@@ -75,6 +75,10 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
     def first_asset_index(self, value):
         self._first_asset_index = value
 
+    def deselect_all(self):
+        for asset in self.assets:
+            asset.selected = False
+
     def increment_asset_index(self, value):
         """Increment the index of the first and last asset to display in bar.
 

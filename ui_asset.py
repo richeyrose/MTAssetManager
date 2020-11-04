@@ -31,8 +31,8 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
         self._drag_offset_x = 0
         self._drag_offset_y = 0
         self._dragging = False
-
         self._draw = False
+        self.selected = False
 
         self.context = bpy.context
         self._preview_image = self.get_preview_image(self.context)
@@ -51,6 +51,46 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
             except KeyError:
                 missing_image = context.scene.mt_bar_props['missing_preview_image'] = load_missing_preview_image()
                 return missing_image
+
+    def handle_event(self, event):
+        x = event.mouse_region_x
+        y = event.mouse_region_y
+
+        if event.type == 'LEFTMOUSE':
+            if event.value == 'PRESS':
+                if event.shift:
+                    return self.shift_click()
+                elif event.ctrl:
+                    return self.ctrl_click(x, y)
+                else:
+                    self._mouse_down = True
+                    return self.mouse_down(x, y)
+            elif event.value == 'RELEASE':
+                self._mouse_down = False
+                return self.mouse_up(x, y)
+
+        elif event.type == 'RIGHTMOUSE':
+            if event.value == 'PRESS':
+                self._right_mouse_down = True
+                return self.right_mouse_down()
+            elif event.value == 'RELEASE':
+                self._right_mouse_down = False
+                return self.right_mouse_up(x, y)
+
+        elif event.type == 'MOUSEMOVE':
+            hovered = self.is_hovered(x, y)
+            # begin hover
+            if not self.hovered and hovered:
+                self.hovered = True
+                self.mouse_enter(event, x, y)
+            # end hover
+            elif self.hovered and not hovered:
+                self.hovered = False
+                self.mouse_leave(event, x, y)
+
+            return False
+
+        return False
 
     def update(self, context, x, y):
         self._set_origin()
@@ -93,6 +133,15 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
 
             self._draw = True
 
+            # draw selected transparency
+            if self.selected:
+                self.update_selected(self.x, self.y)
+                self.select_shader.bind()
+                self.select_shader.uniform_float("color", self.prefs.asset_bar_item_selected_color)
+                bgl.glEnable(bgl.GL_BLEND)
+                self.select_panel.draw(self.select_shader)
+                bgl.glDisable(bgl.GL_BLEND)
+
             # draw thumbnail image
             # batch shader
             self.update(self.context, self.x, self.y )
@@ -119,6 +168,7 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
                 bgl.glEnable(bgl.GL_BLEND)
                 self.hover_panel.draw(self.hover_shader)
                 bgl.glDisable(bgl.GL_BLEND)
+
         else:
             self._draw = False
 
@@ -137,6 +187,9 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
     def mouse_down(self, x, y):
         # only handle events if we are drawing asset
         if self._draw and self.hovered:
+            self.asset_bar.deselect_all()
+            self.selected = True
+
             # spawn a draggable thumb nail we can place in the scene
             self._drag_thumb = MT_AM_UI_Drag_Thumb(x, y, self.width, self.height, self, self.asset_bar, self.op)
             self._drag_thumb.init(bpy.context)
@@ -145,7 +198,66 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
 
         return False
 
-    def right_mouse_down(self, x, y):
+    def shift_click(self):
+        """Implement standard shift click selection.
+
+        Returns:
+            [Bool]: Boolean. Whether event was handled
+        """
+        if self._draw and self.hovered:
+            assets = self.asset_bar.assets
+            first_selected_index = 0
+            for asset in assets:
+                if asset.selected:
+                    first_selected_index = assets.index(asset)
+                    break
+
+            if self._index >= first_selected_index:
+                if not self.selected:
+                    for asset in assets[first_selected_index:self._index]:
+                        asset.selected = True
+                    self.selected = True
+                    return True
+                else:
+                    for asset in assets:
+                        asset.selected = False
+                    for asset in assets[first_selected_index:self._index]:
+                        asset.selected = True
+                    self.selected = True
+                    return True
+            else:
+                last_selected_index = 0
+                for asset in reversed(assets):
+                    if asset.selected:
+                        last_selected_index = assets.index(asset)
+                        break
+                if not self.selected:
+                    for asset in assets[self._index:last_selected_index]:
+                        asset.selected = True
+                    return True
+                else:
+                    for asset in assets:
+                        asset.selected = False
+                    for asset in assets[self._index:last_selected_index]:
+                        asset.selected = True
+                    return True
+        return False
+
+    def ctrl_click(self):
+        """Implements standard ctrl click selection.
+
+        Returns:
+            Bool: Boolean. Whether event has been handled.
+        """
+        if self._draw and self.hovered:
+            if self.selected:
+                self.selected = False
+            else:
+                self.selected = True
+            return True
+        return False
+
+    def right_mouse_down(self):
         if self._draw and self.hovered:
             # store current asset description
             bpy.context.scene.mt_am_props.current_asset_desc = self.asset_desc
@@ -154,14 +266,7 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
             return True
         return False
 
-    def right_mouse_up(self, x, y):
-        pass
 
-    def mouse_enter(self, event, x, y):
-        pass
-
-    def mouse_leave(self, event, x, y):
-        pass
 
     def _set_origin(self):
         """Set origin of asset.

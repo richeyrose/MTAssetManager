@@ -86,7 +86,20 @@ class MT_UI_AM_Widget:
             (self.x + self.width, self.y))
 
         self.hover_shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
-        self.hover_panel = batch_for_shader(self.shader, 'TRIS', {"pos": verts}, indices=indices)
+        self.hover_panel = batch_for_shader(self.hover_shader, 'TRIS', {"pos": verts}, indices=indices)
+
+    def update_selected(self, x, y):
+        self._set_origin()
+        # bottom left, top left, top right, bottom right
+        indices = ((0, 1, 2), (0, 2, 3))
+        verts = (
+            (self.x, self.y),
+            (self.x, self.y + self.height),
+            (self.x + self.width, self.y + self.height),
+            (self.x + self.width, self.y))
+
+        self.select_shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
+        self.select_panel = batch_for_shader(self.select_shader, 'TRIS', {"pos": verts}, indices=indices)
 
     def handle_event(self, event):
         x = event.mouse_region_x
