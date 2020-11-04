@@ -147,6 +147,8 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
 
     def right_mouse_down(self, x, y):
         if self._draw and self.hovered:
+            # store current asset description
+            bpy.context.scene.mt_am_props.current_asset_desc = self.asset_desc
             bpy.ops.wm.call_menu(name=MT_AM_Edit_Asset_Menu.bl_idname)
             print("Right click")
             return True
@@ -181,11 +183,14 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
 
 class MT_AM_Edit_Asset_Menu(bpy.types.Menu):
     bl_label = "Edit Asset"
-    bl_idname = "edit_asset_menu"
+    bl_idname = "AM_MT_edit_asset_menu"
+
+    def __init__(self):
+        super().__init__()
 
     def draw(self, context):
         layout = self.layout
-
+        layout.operator_context = 'INVOKE_DEFAULT'
         layout.operator("object.delete_asset_from_library")
 
 

@@ -30,6 +30,7 @@ def mt_am_initialise_on_activation(dummy):
 
     # Wite the absolute filepath to the default assets included with the asset manager
     # to our asset description file
+    asset_types = ['objects', 'collections', 'materials']
     set_asset_desc_filepaths(prefs.default_assets_path, asset_types)
 
     # check to see if the user assets path already exists
@@ -63,7 +64,6 @@ def mt_am_initialise_on_activation(dummy):
                 with open(os.path.join(user_data_path, f), "w") as write_file:
                     json.dump(descs, write_file, indent=4)
 
-    asset_types = ['objects', 'collections', 'materials']
     load_asset_descriptions(props, asset_types)
 
 @persistent

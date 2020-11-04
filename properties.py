@@ -53,6 +53,15 @@ class MT_PT_AM_Props(PropertyGroup):
     _objects = []
     _materials = []
     _collections = []
+    _current_asset_desc = None
+
+    @property
+    def current_asset_desc(self):
+        return MT_PT_AM_Props._current_asset_desc
+
+    @current_asset_desc.setter
+    def current_asset_desc(self, value):
+        MT_PT_AM_Props._current_asset_desc = value
 
     @property
     def categories(self):
