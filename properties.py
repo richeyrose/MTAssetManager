@@ -54,6 +54,15 @@ class MT_PT_AM_Props(PropertyGroup):
     _materials = []
     _collections = []
     _current_asset_desc = None
+    _asset_bar = []
+
+    @property
+    def asset_bar(self):
+        return MT_PT_AM_Props._asset_bar
+
+    @asset_bar.setter
+    def asset_bar(self, value):
+        MT_PT_AM_Props._asset_bar = value
 
     @property
     def current_asset_desc(self):
@@ -134,6 +143,8 @@ class MT_PT_AM_Bar_Props(PropertyGroup):
         description="Index of the last asset that is visible in the asset bar",
         default=0
     )
+
+
 
 
 class MT_PT_AM_Object_Spawn_Props(PropertyGroup):

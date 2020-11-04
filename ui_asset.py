@@ -262,10 +262,8 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
             # store current asset description
             bpy.context.scene.mt_am_props.current_asset_desc = self.asset_desc
             bpy.ops.wm.call_menu(name=MT_AM_Edit_Asset_Menu.bl_idname)
-            print("Right click")
             return True
         return False
-
 
 
     def _set_origin(self):
@@ -294,8 +292,15 @@ class MT_AM_Edit_Asset_Menu(bpy.types.Menu):
         super().__init__()
 
     def draw(self, context):
+        props = context.scene.mt_am_props
+        selected_assets = [asset for asset in props.asset_bar.assets if asset.selected]
         layout = self.layout
-        layout.operator_context = 'INVOKE_DEFAULT'
-        layout.operator("object.delete_asset_from_library")
 
+        #layout.operator("object.edit_asset_metadata")
+        if selected_assets:
+            layout.operator_context = 'INVOKE_DEFAULT'
+            layout.operator("object.delete_selected_assets_from_library")
+        else:
+            layout.operator_context = 'INVOKE_DEFAULT'
+            layout.operator("object.delete_asset_from_library")
 

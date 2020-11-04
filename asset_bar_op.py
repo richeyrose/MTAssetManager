@@ -129,7 +129,7 @@ class MT_OT_AM_Asset_Bar(Operator):
                 asset.init(context)
 
     def init_asset_bar(self, context):
-        MT_OT_AM_Asset_Bar.asset_bar = MT_UI_AM_Asset_Bar(50, 50, 300, 200, self)
+        context.scene.mt_am_props.asset_bar = MT_OT_AM_Asset_Bar.asset_bar = MT_UI_AM_Asset_Bar(50, 50, 300, 200, self)
         self.asset_bar.init(context)
 
     def update_categories(self, context):
@@ -172,7 +172,7 @@ class MT_OT_AM_Asset_Bar(Operator):
                 MT_OT_AM_Asset_Bar.bar_draw_handler,
                 "WINDOW")
             MT_OT_AM_Asset_Bar.bar_draw_handler = None
-            MT_OT_AM_Asset_Bar.asset_bar = None
+            MT_OT_AM_Asset_Bar.asset_bar = context.scene.mt_am_props.asset_bar = None
 
     def handle_events(self, event):
         result = False

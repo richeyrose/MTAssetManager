@@ -28,7 +28,7 @@ def mt_am_initialise_on_activation(dummy):
         "data"
     )
 
-    # Wite the absolute filepath to the default assets included with the asset manager
+    # Write the absolute filepath to the default assets included with the asset manager
     # to our asset description file
     asset_types = ['objects', 'collections', 'materials']
     set_asset_desc_filepaths(prefs.default_assets_path, asset_types)
