@@ -312,11 +312,26 @@ class MT_AM_Edit_Asset_Menu(bpy.types.Menu):
         selected_assets = [asset for asset in props.asset_bar.assets if asset.selected]
         layout = self.layout
 
-        #layout.operator("object.edit_asset_metadata")
-        if selected_assets:
-            layout.operator_context = 'INVOKE_DEFAULT'
-            layout.operator("object.delete_selected_assets_from_library")
-        else:
+        if selected_assets == []:
             layout.operator_context = 'INVOKE_DEFAULT'
             layout.operator("object.delete_asset_from_library")
+
+        layout.operator_context = 'INVOKE_DEFAULT'
+        layout.operator("object.delete_selected_assets_from_library")
+        asset_desc = bpy.context.scene.mt_am_props.current_asset_desc
+
+        layout.operator("object.mt_cut_asset")
+        layout.operator("object.mt_copy_asset")
+        layout.operator("object.mt_paste_asset")
+
+        layout.operator_context = 'INVOKE_DEFAULT'
+        op = layout.operator("object.mt_am_edit_asset_metadata")
+        op.Name = asset_desc["Name"]
+        op.FilePath = asset_desc["FilePath"]
+        op.PreviewImagePath = asset_desc["PreviewImagePath"]
+        op.Description = asset_desc["Description"]
+        op.URI = asset_desc["URI"]
+        op.Author = asset_desc["Author"]
+        op.License = asset_desc["License"]
+        op.Tags = ", ".join(asset_desc["Tags"])
 

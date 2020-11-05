@@ -48,6 +48,12 @@ class MT_PT_AM_Props(PropertyGroup):
         description="The parent of the current active category."
     )
 
+    cut: bpy.props.BoolProperty(
+        name="Cut",
+        default=False,
+        description="Whether we are in cut or copy mode for asset moving between categories."
+    )
+
     _categories = []
     _child_cats = []
     _objects = []
@@ -55,6 +61,15 @@ class MT_PT_AM_Props(PropertyGroup):
     _collections = []
     _current_asset_desc = None
     _asset_bar = []
+    _copied_asset = None
+
+    @property
+    def copied_asset(self):
+        return MT_PT_AM_Props._copied_asset
+
+    @copied_asset.setter
+    def copied_asset(self, value):
+        MT_PT_AM_Props._copied_asset = value
 
     @property
     def asset_bar(self):
