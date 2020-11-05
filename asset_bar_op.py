@@ -127,6 +127,8 @@ class MT_OT_AM_Asset_Bar(Operator):
             # initialise assets
             for asset in assets:
                 asset.init(context)
+        else:
+            self.unregister_handlers(context)
 
     def init_asset_bar(self, context):
         context.scene.mt_am_props.asset_bar = MT_OT_AM_Asset_Bar.asset_bar = MT_UI_AM_Asset_Bar(50, 50, 300, 200, self)
@@ -175,14 +177,10 @@ class MT_OT_AM_Asset_Bar(Operator):
             MT_OT_AM_Asset_Bar.asset_bar = context.scene.mt_am_props.asset_bar = None
 
     def handle_events(self, event):
-        result = False
         try:
-            if self.asset_bar.handle_event(event):
-                result = True
+            return self.asset_bar.handle_event(event)
         except AttributeError:
-            return result
-
-        return result
+            return False
 
     def finish(self, context):
         self.unregister_handlers(context)
@@ -194,7 +192,10 @@ class MT_OT_AM_Asset_Bar(Operator):
             context.scene.mt_am_props.assets_updated = False
             self.init_assets(context, reset_index=False)
 
-        MT_OT_AM_Asset_Bar.asset_bar.draw()
+        try:
+            MT_OT_AM_Asset_Bar.asset_bar.draw()
+        except AttributeError:
+            pass
 
 
 class MT_OT_AM_Return_To_Parent(Operator):

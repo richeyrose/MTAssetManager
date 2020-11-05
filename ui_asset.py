@@ -90,6 +90,10 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
 
             return False
 
+        # handle delete events
+        elif event.type in ['DEL', 'X'] and event.value == 'PRESS':
+            return self.delete_assets()
+
         return False
 
     def update(self, context, x, y):
@@ -265,6 +269,18 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
             return True
         return False
 
+    def delete_assets(self):
+        """Call appropriate delete asset operator if we are hovered over asset bar."""
+        if self.hovered:
+            selected_assets = [asset for asset in self.asset_bar.assets if asset.selected]
+            if selected_assets:
+                bpy.ops.object.delete_selected_assets_from_library('INVOKE_DEFAULT')
+                return True
+            else:
+                bpy.context.scene.mt_am_props.current_asset_desc = self.asset_desc
+                bpy.ops.object.delete_asset_from_library('INVOKE_DEFAULT')
+                return True
+        return False
 
     def _set_origin(self):
         """Set origin of asset.

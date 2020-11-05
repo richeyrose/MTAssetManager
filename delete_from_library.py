@@ -27,7 +27,6 @@ class MT_OT_AM_Delete_Selected_Assets_from_Library(Operator):
         return len(selected_assets) > 0
 
     def execute(self, context):
-
         prefs = get_prefs()
         props = bpy.context.scene.mt_am_props
         # get in memory list of asset_descs
@@ -43,6 +42,7 @@ class MT_OT_AM_Delete_Selected_Assets_from_Library(Operator):
             if self.delete_from_disk:
                 if os.path.exists(asset.asset_desc["FilePath"]):
                     os.remove(asset.asset_desc["FilePath"])
+                    # raise flag to update asset bar
 
         # overwrite .json file with modified list
         json_file = os.path.join(
@@ -58,7 +58,6 @@ class MT_OT_AM_Delete_Selected_Assets_from_Library(Operator):
             with open(json_file, "w") as write_file:
                 json.dump(asset_descs, write_file, indent=4)
 
-        # raise flag to update asset bar
         props.assets_updated = True
 
         return {'FINISHED'}

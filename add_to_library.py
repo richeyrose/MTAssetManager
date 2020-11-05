@@ -87,7 +87,7 @@ class MT_OT_AM_Add_Active_Object_To_Library(Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.active_object and context.active_object.type == 'MESH'
+        return context.active_object and context.active_object.type == 'MESH' and len(context.selected_objects) > 0
 
     def execute(self, context):
         obj = context.active_object

@@ -1,4 +1,5 @@
 import math
+import bpy
 from .preferences import get_prefs
 from .ui_widget import MT_UI_AM_Widget
 from .ui_nav_arrow import MT_UI_AM_Left_Nav_Arrow, MT_UI_AM_Right_Nav_Arrow

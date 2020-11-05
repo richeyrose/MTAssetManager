@@ -49,12 +49,12 @@ class MT_AM_UI_Drag_Thumb(MT_UI_AM_Widget):
             self.mouse_move(x, y)
             hovered = self.is_hovered(x, y)
             # begin hover
-            if not self._hovered and hovered:
-                self._hovered = True
+            if not self.hovered and hovered:
+                self.hovered = True
                 self.mouse_enter(event, x, y)
             # end hover
-            elif self._hovered and not hovered:
-                self._hovered = False
+            elif self.hovered and not hovered:
+                self.hovered = False
                 self.mouse_leave(event, x, y)
 
             return False
