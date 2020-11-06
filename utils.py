@@ -140,6 +140,22 @@ def slugify(slug):
     slug = re.sub(r'/', '_', slug)
     return slug
 
+# TODO Get rid of near duplicate find and rename slug functions
+def find_and_rename_slug_only(self, slug, current_slugs):
+    if slug not in current_slugs:
+        current_slugs.append(slug)
+        return slug
+
+    match = re.search(r'\d+$', slug)
+    if match:
+        slug = rchop(slug, match.group())
+        slug = slug + str(int(match.group()) + 1).zfill(3)
+        find_and_rename_slug_only(self, slug, current_slugs)
+    else:
+        slug = slug + '_001'
+        find_and_rename_slug_only(self, slug, current_slugs)
+    return slug
+
 def find_and_rename(self, obj, slug, current_slugs):
     """Recursively search for and rename ID object based on slug.
 

@@ -1,8 +1,12 @@
+import os
+import json
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty
 from bpy.props import EnumProperty
+from .preferences import get_prefs
 from .categories import get_child_cats
+from .utils import slugify, tagify, find_and_rename_slug_only
 
 class MT_OT_AM_Edit_Asset_Metadata(Operator):
     bl_idname = "object.mt_am_edit_asset_metadata"
@@ -14,16 +18,6 @@ class MT_OT_AM_Edit_Asset_Metadata(Operator):
         default=""
     )
 
-    Slug: StringProperty(
-        name="Slug",
-        default="",
-        options={'HIDDEN'}
-    )
-
-    FileName: StringProperty(
-        options={'HIDDEN'}
-    )
-
     FilePath: StringProperty(
         name="Filepath",
         subtype='FILE_PATH'
@@ -32,22 +26,6 @@ class MT_OT_AM_Edit_Asset_Metadata(Operator):
     PreviewImagePath: StringProperty(
         name="Preview Image Path",
         subtype='FILE_PATH'
-    )
-
-    PreviewImageName: StringProperty(
-        options={'HIDDEN'}
-    )
-
-    Category: StringProperty(
-        name="Category",
-        default="",
-        options={'HIDDEN'}
-    )
-
-    Type: StringProperty(
-        name="Type",
-        default="",
-        options={'HIDDEN'}
     )
 
     Description: StringProperty(
@@ -75,6 +53,52 @@ class MT_OT_AM_Edit_Asset_Metadata(Operator):
     )
 
     def execute(self, context):
+        props = context.scene.mt_am_props
+        prefs = get_prefs()
+        orig_asset_desc = props.current_asset_desc
+        assets = getattr(props, orig_asset_desc["Type"].lower())
+
+        # remove asset from in memory list
+        assets.remove(orig_asset_desc)
+
+        # construct new slug if name has changed
+        if orig_asset_desc["Name"] != self.Name:
+            slug = slugify(self.Name)
+            current_slugs = [asset['Slug'] for asset in assets]
+            # check if slug already exists and increment and rename if not
+            slug = find_and_rename_slug_only(self, slug, current_slugs)
+        else:
+            slug = orig_asset_desc["Slug"]
+
+        # construct new asset description
+        asset_desc = {
+            "Name": self.Name,
+            "Slug": slug,
+            "Category": orig_asset_desc["Category"],
+            "FileName": os.path.basename(self.FilePath),
+            "FilePath": self.FilePath,
+            "PreviewImagePath": self.PreviewImagePath,
+            "PreviewImageName": os.path.basename(self.PreviewImagePath),
+            "Description": self.Description,
+            "URI": self.URI,
+            "Author": self.Author,
+            "License": self.License,
+            "Type": orig_asset_desc["Type"],
+            "Tags": tagify(self.Tags)}
+
+        # append new asset description
+        assets.append(asset_desc)
+
+        json_file = os.path.join(
+            prefs.user_assets_path,
+            "data",
+            orig_asset_desc["Type"].lower() + ".json")
+
+        if os.path.exists(json_file):
+            with open(json_file, "w") as write_file:
+                json.dump(assets, write_file, indent=4)
+
+        props.assets_updated = True
         return {'FINISHED'}
 
     def invoke(self, context, event):
