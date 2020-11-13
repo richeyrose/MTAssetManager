@@ -156,7 +156,7 @@ def find_and_rename(self, asset_name, slug, current_slugs):
     """
     if slug not in current_slugs:
         current_slugs.append(slug)
-        return slug, asset_name
+        return slug
 
     match = re.search(r'\d+$', slug)
     if match:
@@ -169,7 +169,7 @@ def find_and_rename(self, asset_name, slug, current_slugs):
         slug = slug + '_001'
         asset_name = asset_name + '.001'
         find_and_rename(self, asset_name, slug, current_slugs)
-    return slug, asset_name
+    return slug
 
 
 def rchop(s, suffix):

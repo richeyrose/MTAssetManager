@@ -148,10 +148,12 @@ def add_asset_to_library(self, context, props, asset, assets_path, asset_type, d
     slug = slugify(asset.name)
     current_slugs = [asset['Slug'] for asset in assets]
 
-    # check if slug already exists and increment and rename if not
-    new_slug, new_name = find_and_rename(self, asset.name, slug, current_slugs)
+    # check if slug already exists and increment and rename if not.
+    new_slug = find_and_rename(self, asset.name, slug, current_slugs)
 
-    asset.name = new_name
+    pretty_name = asset.name  # when we reimport an asset we will rename it to this
+
+    asset.name = new_slug
 
     # check if we're in a sub category. If not add the object to the
     # root category for its type
@@ -170,7 +172,7 @@ def add_asset_to_library(self, context, props, asset, assets_path, asset_type, d
 
     # construct dict for saving to users objects.json
     asset_desc = {
-        "Name": asset.name,
+        "Name": pretty_name,
         "Slug": new_slug,
         "Category": category,
         "FileName": new_slug + '.blend',
@@ -213,7 +215,10 @@ def add_asset_to_library(self, context, props, asset, assets_path, asset_type, d
         {asset},
         fake_user=True)
 
-    self.report({'INFO'}, asset.name + " added to Library.")
+    # change asset name back to pretty_name
+    asset.name = pretty_name
+
+    self.report({'INFO'}, pretty_name + " added to Library.")
 
     return asset_desc
 

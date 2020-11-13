@@ -75,11 +75,9 @@ def spawn_material(self, context, asset, x, y, op):
         else:
             # append material
             hit_obj.data.materials.append(mat)
-            material_index = get_material_index(hit_obj, mat)
 
         # push an undo action to the stack
         bpy.ops.ed.undo_push()
-
 
 
 def append_material(context, asset, op, link=False):
@@ -100,21 +98,24 @@ def append_material(context, asset, op, link=False):
         asset_found = False
         # load asset
         with bpy.data.libraries.load(filepath) as (data_from, data_to):
-            if asset['Name'] in data_from.materials:
-                data_to.materials = [asset['Name']]
+            if asset['Slug'] in data_from.materials:
+                data_to.materials = [asset['Slug']]
                 asset_found = True
+
+        imported_mat = data_to.materials[0]
+        imported_mat.name = asset["Name"]  # rename material to use pretty name
 
         if asset_found:
             # check if material is unique
-            materials = [material for material in bpy.data.materials if material != data_to.materials[0]]
-            unique, matched_material = material_is_unique(data_to.materials[0], materials)
+            materials = [material for material in bpy.data.materials if material != imported_mat]
+            unique, matched_material = material_is_unique(imported_mat, materials)
 
             # if not unique remove newly added material and return original material
             if not unique:
-                bpy.data.materials.remove(data_to.materials[0])
+                bpy.data.materials.remove(imported_mat)
                 return matched_material
 
-            return data_to.materials[0]
+            return imported_mat
 
     return False
 
@@ -133,8 +134,8 @@ def append_object(context, asset, op, link=False):
         asset_found = False
         # load asset
         with bpy.data.libraries.load(filepath, link=link) as (data_from, data_to):
-            if asset['Name'] in data_from.objects:
-                data_to.objects = [asset['Name']]
+            if asset['Slug'] in data_from.objects:
+                data_to.objects = [asset['Slug']]
                 asset_found = True
 
         if asset_found:
@@ -162,7 +163,7 @@ def append_object(context, asset, op, link=False):
                 materials = [material for material in bpy.data.materials if mat != material]
                 unique, matched_material = material_is_unique(bpy.data.materials[mat], materials)
 
-                        # if not unique replace with matched material
+                # if not unique replace with matched material
                 if not unique:
                     for slot in obj.material_slots:
                         if slot.material.name == mat:
@@ -170,6 +171,9 @@ def append_object(context, asset, op, link=False):
 
                     # remove duplicate material
                     bpy.data.materials.remove(bpy.data.materials[mat])
+
+            # rename object to pretty name
+            obj.name = asset["Name"]
 
             op.report({'INFO'}, obj.name + ' added to scene.')
 

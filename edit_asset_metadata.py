@@ -61,22 +61,10 @@ class MT_OT_AM_Edit_Asset_Metadata(Operator):
         # remove asset from in memory list
         assets.remove(orig_asset_desc)
 
-        # construct new slug if name has changed
-        if orig_asset_desc["Name"] != self.Name:
-            slug = slugify(self.Name)
-            current_slugs = [asset['Slug'] for asset in assets]
-            # check if slug already exists and increment and rename if not
-            slug, self.Name = find_and_rename(self, self.Name, slug, current_slugs)
-        else:
-            slug = orig_asset_desc["Slug"]
-
-        #TODO Rename asset in asset file
-        # use edit linked library addon or add a pretty name option
-
         # construct new asset description
         asset_desc = {
             "Name": self.Name,
-            "Slug": slug,
+            "Slug": orig_asset_desc["Slug"],
             "Category": orig_asset_desc["Category"],
             "FileName": os.path.basename(self.FilePath),
             "FilePath": self.FilePath,
