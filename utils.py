@@ -140,23 +140,7 @@ def slugify(slug):
     slug = re.sub(r'/', '_', slug)
     return slug
 
-# TODO Get rid of near duplicate find and rename slug functions
-def find_and_rename_slug_only(self, slug, current_slugs):
-    if slug not in current_slugs:
-        current_slugs.append(slug)
-        return slug
-
-    match = re.search(r'\d+$', slug)
-    if match:
-        slug = rchop(slug, match.group())
-        slug = slug + str(int(match.group()) + 1).zfill(3)
-        find_and_rename_slug_only(self, slug, current_slugs)
-    else:
-        slug = slug + '_001'
-        find_and_rename_slug_only(self, slug, current_slugs)
-    return slug
-
-def find_and_rename(self, obj, slug, current_slugs):
+def find_and_rename(self, asset_name, slug, current_slugs):
     """Recursively search for and rename ID object based on slug.
 
     Recursively searches for the passed in slug in current slugs and
@@ -172,20 +156,20 @@ def find_and_rename(self, obj, slug, current_slugs):
     """
     if slug not in current_slugs:
         current_slugs.append(slug)
-        return slug
+        return slug, asset_name
 
     match = re.search(r'\d+$', slug)
     if match:
         slug = rchop(slug, match.group())
         slug = slug + str(int(match.group()) + 1).zfill(3)
-        obj.name = rchop(obj.name, match.group())
-        obj.name = obj.name + str(int(match.group()) + 1).zfill(3)
-        find_and_rename(self, obj, slug, current_slugs)
+        asset_name = rchop(asset_name, match.group())
+        asset_name = asset_name + str(int(match.group()) + 1).zfill(3)
+        find_and_rename(self, asset_name, slug, current_slugs)
     else:
         slug = slug + '_001'
-        obj.name = obj.name + '.001'
-        find_and_rename(self, obj, slug, current_slugs)
-    return slug
+        asset_name = asset_name + '.001'
+        find_and_rename(self, asset_name, slug, current_slugs)
+    return slug, asset_name
 
 
 def rchop(s, suffix):

@@ -6,7 +6,7 @@ from bpy.props import StringProperty
 from bpy.props import EnumProperty
 from .preferences import get_prefs
 from .categories import get_child_cats
-from .utils import slugify, tagify, find_and_rename_slug_only
+from .utils import slugify, tagify, find_and_rename
 
 class MT_OT_AM_Edit_Asset_Metadata(Operator):
     bl_idname = "object.mt_am_edit_asset_metadata"
@@ -66,9 +66,12 @@ class MT_OT_AM_Edit_Asset_Metadata(Operator):
             slug = slugify(self.Name)
             current_slugs = [asset['Slug'] for asset in assets]
             # check if slug already exists and increment and rename if not
-            slug = find_and_rename_slug_only(self, slug, current_slugs)
+            slug, self.Name = find_and_rename(self, self.Name, slug, current_slugs)
         else:
             slug = orig_asset_desc["Slug"]
+
+        #TODO Rename asset in asset file
+        # use edit linked library addon or add a pretty name option
 
         # construct new asset description
         asset_desc = {

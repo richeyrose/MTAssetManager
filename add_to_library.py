@@ -149,7 +149,9 @@ def add_asset_to_library(self, context, props, asset, assets_path, asset_type, d
     current_slugs = [asset['Slug'] for asset in assets]
 
     # check if slug already exists and increment and rename if not
-    new_slug = find_and_rename(self, asset, slug, current_slugs)
+    new_slug, new_name = find_and_rename(self, asset.name, slug, current_slugs)
+
+    asset.name = new_name
 
     # check if we're in a sub category. If not add the object to the
     # root category for its type
