@@ -7,8 +7,10 @@ from .utils import slugify, tagify, find_and_rename
 from .preferences import get_prefs
 from .previews import render_object_preview
 
+
 class MT_OT_AM_Add_Multiple_Object_To_Library(Operator):
     """Operator that adds all selected mesh objects to the MakeTile Library."""
+
     bl_idname = "object.add_selected_objects_to_library"
     bl_label = "Add selected objects to library"
     bl_description = "Adds selected objects to the MakeTile Library"
@@ -38,7 +40,7 @@ class MT_OT_AM_Add_Multiple_Object_To_Library(Operator):
                 props,
                 obj,
                 assets_path,
-                "objects")
+                "OBJECTS")
 
             render_object_preview(
                 self,
@@ -54,6 +56,7 @@ class MT_OT_AM_Add_Multiple_Object_To_Library(Operator):
 
 class MT_OT_AM_Add_Active_Object_To_Library(Operator):
     """Operator that adds active mesh object to the MakeTile Library."""
+
     bl_idname = "object.add_active_object_to_library"
     bl_label = "Add active object to library"
     bl_options = {'REGISTER'}
@@ -101,7 +104,7 @@ class MT_OT_AM_Add_Active_Object_To_Library(Operator):
             props,
             obj,
             assets_path,
-            "objects",
+            "OBJECTS",
             self.Description,
             self.URI,
             self.Author,
@@ -122,6 +125,11 @@ class MT_OT_AM_Add_Active_Object_To_Library(Operator):
         return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
+        """Draw a pop menu up for entering properties.
+
+        Args:
+            context (bpy.Context): context
+        """
         obj = context.active_object
         layout = self.layout
         layout.prop(obj, 'name')
@@ -133,11 +141,41 @@ class MT_OT_AM_Add_Active_Object_To_Library(Operator):
 
 
 def add_asset_to_library(self, context, props, asset, assets_path, asset_type, description="", URI="", author="", license="", tags=""):
-    assets = getattr(props, asset_type)
+    """Add the passed in asset to the asset library.
+
+    Args:
+        context (bpy.Context): context
+        props (scene.mt_am_props): asset manager properties
+        asset (bpy.types.object, material, collection): the asset to add
+        assets_path (path): the path to the root assets foldere
+        asset_type (enum in {OBJECTS, COLLECTIONS, MATERIALS}): asset type
+        description (str, optional): description of asset. Defaults to "".
+        URI (str, optional): URI where asset can be downloaded. Defaults to "".
+        author (str, optional): Asset Author. Defaults to "".
+        license (str, optional): Asset license. Defaults to "".
+        tags (str, optional): Comma seperated list of tags. Used for searching. Defaults to "".
+
+    Returns:
+        dict{
+            Name: str,
+            Slug: str,
+            Category: str,
+            FileName: str,
+            FilePath: str,
+            PreviewImagePath: str,
+            PreviewImageName: str,
+            Descriptions: str,
+            URI: str,
+            Author: str,
+            License: str,
+            Type: Enum in {'OBJECTS', 'MATERIALS', 'COLLECTIONS'},
+            Tags: str }: asset_desc
+    """
+    assets = getattr(props, asset_type.lower())
 
     asset_save_path = os.path.join(
         assets_path,
-        asset_type
+        asset_type.lower()
     )
 
     json_path = os.path.join(
@@ -158,7 +196,7 @@ def add_asset_to_library(self, context, props, asset, assets_path, asset_type, d
     # check if we're in a sub category. If not add the object to the
     # root category for its type
     if props.active_category == "":
-        category = asset_type
+        category = asset_type.lower()
     else:
         category = props.active_category
 
@@ -194,7 +232,7 @@ def add_asset_to_library(self, context, props, asset, assets_path, asset_type, d
 
     # open user asset description file and then write description to file
     file_assets = []
-    json_file = os.path.join(json_path, asset_type + '.json')
+    json_file = os.path.join(json_path, asset_type.lower() + '.json')
 
     if os.path.exists(json_file):
         with open(json_file) as read_file:
@@ -224,7 +262,7 @@ def add_asset_to_library(self, context, props, asset, assets_path, asset_type, d
 
 
 def draw_object_context_menu_items(self, context):
-    """Add options to object right click context menu."""
+    """Add save options to object right click context menu."""
     layout = self.layout
     if context.active_object.type in ['MESH']:
         layout.separator()
@@ -236,9 +274,11 @@ def draw_object_context_menu_items(self, context):
             "object.add_selected_objects_to_library",
             text="Save all selected objects to MakeTile Library")
 
+
 def register():
-    """Register."""
+    """Register aditional options in object context (right click) menu."""
     bpy.types.VIEW3D_MT_object_context_menu.append(draw_object_context_menu_items)
+
 
 def unregister():
     """UnRegister."""
