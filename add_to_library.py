@@ -2,14 +2,134 @@ import os
 import json
 import bpy
 from bpy.types import Operator
-from bpy.props import StringProperty
+from bpy.props import StringProperty, BoolProperty, EnumProperty
 from .utils import slugify, tagify, find_and_rename
 from .preferences import get_prefs
-from .previews import render_object_preview
+from .previews import render_object_preview, render_material_preview
 
+def create_preview_obj_enums(self, context):
+    enum_items = []
+
+    if context is None:
+        return enum_items
+
+    prefs = get_prefs()
+
+    obj_path = os.path.join(
+        prefs.default_assets_path,
+        "previews",
+        "objects")
+
+    filenames = [name for name in os.listdir(obj_path)
+                 if os.path.isfile(os.path.join(obj_path, name))]
+
+    for name in filenames:
+        stripped_name = os.path.splitext(name)[0]
+        enum = (stripped_name, stripped_name, "")
+        enum_items.append(enum)
+
+    return sorted(enum_items)
+
+
+class MT_OT_AM_Add_Material_To_Library(Operator):
+    """Add active material to library."""
+
+    bl_idname = "material.mt_ot_am_add_material_to_library"
+    bl_label = "Add active material to library"
+    bl_description = "Adds the active material to the MakeTile Library"
+
+    Description: StringProperty(
+        name="Description",
+        default=""
+    )
+
+    URI: StringProperty(
+        name="URI",
+        default=""
+    )
+
+    Author: StringProperty(
+        name="Author",
+        default=""
+    )
+
+    License: StringProperty(
+        name="License",
+        default="All Rights Reserved"
+    )
+
+    Tags: StringProperty(
+        name="Tags",
+        description="Comma seperated list",
+        default=""
+    )
+
+    DisplacementMaterial: BoolProperty(
+        name="Displacement Material",
+        description="Is this a MakeTile diplacement material",
+        default=True
+    )
+
+    PreviewObject: EnumProperty(
+        items=create_preview_obj_enums,
+        name="Preview Object",
+        description="Preview object to use for material render"
+    )
+
+    @classmethod
+    def poll(cls, context):
+        if context.object is not None:
+            return context.object.active_material is not None
+        return False
+
+    def execute(self, context):
+        material = context.active_object.active_material
+
+        if self.DisplacementMaterial:
+            material['mt_material'] = True
+
+        props = context.scene.mt_am_props
+        prefs = get_prefs()
+        assets_path = prefs.user_assets_path
+
+        asset_desc = add_asset_to_library(
+            self,
+            context,
+            props,
+            material,
+            assets_path,
+            "MATERIALS",
+            self.Description,
+            self.URI,
+            self.Author,
+            self.License,
+            self.Tags)
+
+        scene_path = os.path.join(
+            prefs.default_assets_path,
+            "previews",
+            "preview_scenes.blend")
+
+        #TODO - Preview object should be a choice between wall, floor, roof, base etc.
+        preview_obj = self.PreviewObject
+
+        render_material_preview(self, context, asset_desc['PreviewImagePath'], scene_path, prefs.preview_scene, material, preview_obj)
+
+        props.assets_updated = True
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(context.active_object.active_material, 'name')
+        draw_save_props_menu(self, context)
+        layout.prop(self, 'DisplacementMaterial')
+        layout.prop(self, 'PreviewObject')
 
 class MT_OT_AM_Add_Multiple_Object_To_Library(Operator):
-    """Operator that adds all selected mesh objects to the MakeTile Library."""
+    """Add all selected mesh objects to the MakeTile Library."""
 
     bl_idname = "object.add_selected_objects_to_library"
     bl_label = "Add selected objects to library"
@@ -116,7 +236,14 @@ class MT_OT_AM_Add_Active_Object_To_Library(Operator):
             "previews",
             "preview_scenes.blend")
 
-        render_object_preview(self, context, asset_desc['PreviewImagePath'], scene_path, prefs.preview_scene, obj)
+        render_object_preview(
+            self,
+            context,
+            asset_desc['PreviewImagePath'],
+            scene_path,
+            prefs.preview_scene,
+            obj)
+
         props.assets_updated = True
 
         return {'FINISHED'}
@@ -125,19 +252,24 @@ class MT_OT_AM_Add_Active_Object_To_Library(Operator):
         return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
-        """Draw a pop menu up for entering properties.
-
-        Args:
-            context (bpy.Context): context
-        """
-        obj = context.active_object
         layout = self.layout
-        layout.prop(obj, 'name')
-        layout.prop(self, 'Description')
-        layout.prop(self, 'URI')
-        layout.prop(self, 'Author')
-        layout.prop(self, 'License')
-        layout.prop(self, 'Tags')
+        layout.prop(context.active_object, 'name')
+        draw_save_props_menu(self, context)
+
+
+def draw_save_props_menu(self, context):
+    """Draw a pop up menu for entering properties.
+
+    Args:
+        context (bpy.Context): context
+    """
+    obj = context.active_object
+    layout = self.layout
+    layout.prop(self, 'Description')
+    layout.prop(self, 'URI')
+    layout.prop(self, 'Author')
+    layout.prop(self, 'License')
+    layout.prop(self, 'Tags')
 
 
 def add_asset_to_library(self, context, props, asset, assets_path, asset_type, description="", URI="", author="", license="", tags=""):
@@ -195,6 +327,8 @@ def add_asset_to_library(self, context, props, asset, assets_path, asset_type, d
 
     # check if we're in a sub category. If not add the object to the
     # root category for its type
+
+    #TODO Check for what the active categiory contains
     if props.active_category == "":
         category = asset_type.lower()
     else:
@@ -273,6 +407,10 @@ def draw_object_context_menu_items(self, context):
         layout.operator(
             "object.add_selected_objects_to_library",
             text="Save all selected objects to MakeTile Library")
+        layout.operator(
+            "material.mt_ot_am_add_material_to_library",
+            text="Save active material to MakeTile Library"
+        )
 
 
 def register():
