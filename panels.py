@@ -23,7 +23,7 @@ class MT_PT_AM_Main_Panel(Panel):
 
         layout = self.layout
 
-        if active_category != "":
+        if active_category is not None:
             op = layout.operator('view3d.mt_ret_to_parent', text='...', icon='FILE_PARENT')
 
             row = layout.row()

@@ -57,10 +57,25 @@ def render_material_preview(self, context, image_path, scene_path, scene_name, m
         preview_obj.data.materials.append(material)
         material_index = list(preview_obj.material_slots.keys()).index(material.name)
 
-        #TODO add material only to appropriate area
-        # add material to entire object
-        for poly in preview_obj.data.polygons:
-            poly.material_index = material_index
+        try:
+            # add material only to preview_vert_group
+            vert_group = preview_obj.vertex_groups['preview_vert_group']
+            vert_group_index = vert_group.index
+            verts = [v.index for v in preview_obj.data.vertices
+                     if vert_group_index in [vg.group for vg in v.groups]]
+
+            for poly in preview_obj.data.polygons:
+                count = 0
+                for vert in poly.vertices:
+                    if vert in verts:
+                        count += 1
+                if count == len(poly.vertices):
+                    poly.material_index = material_index
+
+        except KeyError:
+            # add material to entire object if no preview_vert_group
+            for poly in preview_obj.data.polygons:
+                poly.material_index = material_index
 
     # reset preview object location
     preview_obj.location = (0, 0, 0)

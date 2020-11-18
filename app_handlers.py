@@ -108,7 +108,7 @@ def create_properties():
     """Create custom properties."""
     prefs = get_prefs()
     props = bpy.context.scene.mt_am_props
-    props.active_category = ""
+    # props.active_category = None
     props.parent_category = ""
 
     bar_props = bpy.context.scene.mt_bar_props

@@ -68,8 +68,8 @@ def get_category(categories, category_slug):
             Children[list[categories]]}: category
     """
     if category_slug == "":
-        return ""
-    ret_cat = ""
+        return None
+    ret_cat = None
     for cat in categories:
         if cat['Slug'] == category_slug:
             return cat
@@ -123,7 +123,7 @@ class MT_OT_Add_Category(bpy.types.Operator):
     def execute(self, context):
         """Add a new category."""
         props = context.scene.mt_am_props
-        return self.add_category(context, props.active_category, self.new_cat_name)
+        return self.add_category(context, props.active_category["Slug"], self.new_cat_name)
 
     def invoke(self, context, event):
         """Call when user accesses operator via menu."""

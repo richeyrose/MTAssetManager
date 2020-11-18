@@ -36,11 +36,13 @@ class MT_PT_AM_Props(PropertyGroup):
         description="Set to true when you add, remove or update an asset"
     )
 
+    '''
     active_category: bpy.props.StringProperty(
         name="Active Category",
         default="",
         description="The active category."
     )
+    '''
 
     parent_category: bpy.props.StringProperty(
         name="Parent Category",
@@ -62,6 +64,15 @@ class MT_PT_AM_Props(PropertyGroup):
     _current_asset_desc = None
     _asset_bar = []
     _copied_asset = None
+    _active_category = None
+
+    @property
+    def active_category(self):
+        return MT_PT_AM_Props._active_category
+
+    @active_category.setter
+    def active_category(self, value):
+        MT_PT_AM_Props._active_category = value
 
     @property
     def copied_asset(self):
@@ -160,8 +171,6 @@ class MT_PT_AM_Bar_Props(PropertyGroup):
     )
 
 
-
-
 class MT_PT_AM_Object_Spawn_Props(PropertyGroup):
     randomize_rotation: bpy.props.BoolProperty(
         name='Randomize Rotation',
@@ -192,6 +201,7 @@ class MT_PT_AM_Object_Spawn_Props(PropertyGroup):
         max=180,
         subtype='ANGLE')
 
+
 def register():
     bpy.types.Scene.mt_am_props = bpy.props.PointerProperty(
         type=MT_PT_AM_Props
@@ -204,6 +214,7 @@ def register():
     bpy.types.Scene.mt_am_spawn_props = bpy.props.PointerProperty(
         type=MT_PT_AM_Object_Spawn_Props
     )
+
 
 def unregister():
     del bpy.types.Scene.mt_am_spawn_props

@@ -112,7 +112,6 @@ class MT_OT_AM_Add_Material_To_Library(Operator):
 
         #TODO - Preview object should be a choice between wall, floor, roof, base etc.
         preview_obj = self.PreviewObject
-
         render_material_preview(self, context, asset_desc['PreviewImagePath'], scene_path, prefs.preview_scene, material, preview_obj)
 
         props.assets_updated = True
@@ -328,11 +327,11 @@ def add_asset_to_library(self, context, props, asset, assets_path, asset_type, d
     # check if we're in a sub category. If not add the object to the
     # root category for its type
 
-    #TODO Check for what the active categiory contains
+    # TODO Check for what the active category contains
     if props.active_category == "":
         category = asset_type.lower()
     else:
-        category = props.active_category
+        category = props.active_category["Slug"]
 
     filepath = os.path.join(
         asset_save_path,
