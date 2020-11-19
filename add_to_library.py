@@ -8,6 +8,17 @@ from .preferences import get_prefs
 from .previews import render_object_preview, render_material_preview
 
 def create_preview_obj_enums(self, context):
+    """Create a blender enum list of objects that can be used for rendering material previews.
+
+    Scans the addon/assets/previews/objects path and creates an enum based on the names
+    of the .blend files it finds there.
+
+    Args:
+        context (bpy.Context): Blender context
+
+    Returns:
+        list[bpy.types.EnumPropertyItem]: Enum Items
+    """
     enum_items = []
 
     if context is None:
@@ -262,7 +273,6 @@ def draw_save_props_menu(self, context):
     Args:
         context (bpy.Context): context
     """
-    obj = context.active_object
     layout = self.layout
     layout.prop(self, 'Description')
     layout.prop(self, 'URI')
@@ -324,14 +334,16 @@ def add_asset_to_library(self, context, props, asset, assets_path, asset_type, d
 
     asset.name = new_slug
 
-    # check if we're in a sub category. If not add the object to the
-    # root category for its type
-
-    # TODO Check for what the active category contains
-    if props.active_category == "":
+    # check if we're in a sub category that contains assets of the correct type.
+    # If not add the object to the root category for its type
+    if props.active_category is None:
+        # TODO: Create a popup to choose category
+        # TODO: Ensure asset bar switches to active category
         category = asset_type.lower()
-    else:
+    elif props.active_category["Contains"] == asset_type:
         category = props.active_category["Slug"]
+    else:
+        category = asset_type.lower()
 
     filepath = os.path.join(
         asset_save_path,
