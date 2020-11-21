@@ -67,11 +67,11 @@ class MT_AM_UI_Drag_Thumb(MT_UI_AM_Widget):
             self.update(self.x, self.y)
 
     def mouse_up(self, x, y):
+        self.asset.remove_drag_thumb(self)
         if self._dragging:
             self._dragging = False
             if not self.asset_bar.hovered:
                 self.spawn_at_cursor(x, y)
-            self.asset.remove_drag_thumb(self)
         return False
 
     def _set_origin(self, x, y):
