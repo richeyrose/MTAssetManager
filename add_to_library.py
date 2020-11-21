@@ -103,6 +103,15 @@ class MT_OT_AM_Add_Material_To_Library(Operator):
         prefs = get_prefs()
         assets_path = prefs.user_assets_path
 
+        asset_type = "MATERIALS"
+
+        # check if we're in a sub category that contains assets of the correct type.
+        # If not add the object to the root category for its type
+        if props.active_category is None:
+            category = asset_type.lower()
+        else:
+            category = check_category_type(props.active_category, asset_type)
+
         asset_desc = add_asset_to_library(
             self,
             context,
@@ -110,6 +119,7 @@ class MT_OT_AM_Add_Material_To_Library(Operator):
             material,
             assets_path,
             "MATERIALS",
+            category,
             self.Description,
             self.URI,
             self.Author,
@@ -138,7 +148,8 @@ class MT_OT_AM_Add_Material_To_Library(Operator):
         layout.prop(self, 'DisplacementMaterial')
         layout.prop(self, 'PreviewObject')
 
-class MT_OT_AM_Add_Multiple_Object_To_Library(Operator):
+
+class MT_OT_AM_Add_Multiple_Objects_To_Library(Operator):
     """Add all selected mesh objects to the MakeTile Library."""
 
     bl_idname = "object.add_selected_objects_to_library"
@@ -162,6 +173,14 @@ class MT_OT_AM_Add_Multiple_Object_To_Library(Operator):
             prefs.default_assets_path,
             "previews",
             "preview_scenes.blend")
+        asset_type = "OBJECTS"
+
+        # check if we're in a sub category that contains assets of the correct type.
+        # If not add the object to the root category for its type
+        if props.active_category is None:
+            category = asset_type.lower()
+        else:
+            category = check_category_type(props.active_category, asset_type)
 
         for obj in obs:
             asset_desc = add_asset_to_library(
@@ -170,7 +189,8 @@ class MT_OT_AM_Add_Multiple_Object_To_Library(Operator):
                 props,
                 obj,
                 assets_path,
-                "OBJECTS")
+                "OBJECTS",
+                category)
 
             render_object_preview(
                 self,
@@ -227,6 +247,14 @@ class MT_OT_AM_Add_Active_Object_To_Library(Operator):
         props = context.scene.mt_am_props
         prefs = get_prefs()
         assets_path = prefs.user_assets_path
+        asset_type = "OBJECTS"
+
+        # check if we're in a sub category that contains assets of the correct type.
+        # If not add the object to the root category for its type
+        if props.active_category is None:
+            category = asset_type.lower()
+        else:
+            category = check_category_type(props.active_category, asset_type)
 
         asset_desc = add_asset_to_library(
             self,
@@ -234,7 +262,8 @@ class MT_OT_AM_Add_Active_Object_To_Library(Operator):
             props,
             obj,
             assets_path,
-            "OBJECTS",
+            asset_type,
+            category,
             self.Description,
             self.URI,
             self.Author,
@@ -267,6 +296,27 @@ class MT_OT_AM_Add_Active_Object_To_Library(Operator):
         draw_save_props_menu(self, context)
 
 
+def check_category_type(category, asset_type):
+    """Return category["Slug"] if category contains assets of the correct asset type.
+
+    If not we return root category for that asset type
+
+    Args:
+        category (dict): MakeTile category
+        asset_type (ENUM in 'OBJECTS', 'MATERIALS', 'COLLECTIONS'): type of asset to save
+
+    Returns:
+        str: category_slug
+    """
+    # TODO: Create a popup to choose category
+    # TODO: Ensure asset bar switches to active category
+    if category["Contains"] == asset_type:
+        category_slug = category["Slug"]
+    else:
+        category_slug = asset_type.lower()
+    return category_slug
+
+
 def draw_save_props_menu(self, context):
     """Draw a pop up menu for entering properties.
 
@@ -281,7 +331,7 @@ def draw_save_props_menu(self, context):
     layout.prop(self, 'Tags')
 
 
-def add_asset_to_library(self, context, props, asset, assets_path, asset_type, description="", URI="", author="", license="", tags=""):
+def add_asset_to_library(self, context, props, asset, assets_path, asset_type, category, description="", URI="", author="", license="", tags=""):
     """Add the passed in asset to the asset library.
 
     Args:
@@ -290,6 +340,7 @@ def add_asset_to_library(self, context, props, asset, assets_path, asset_type, d
         asset (bpy.types.object, material, collection): the asset to add
         assets_path (path): the path to the root assets foldere
         asset_type (enum in {OBJECTS, COLLECTIONS, MATERIALS}): asset type
+        category (dict): MakeTile category
         description (str, optional): description of asset. Defaults to "".
         URI (str, optional): URI where asset can be downloaded. Defaults to "".
         author (str, optional): Asset Author. Defaults to "".
@@ -333,17 +384,6 @@ def add_asset_to_library(self, context, props, asset, assets_path, asset_type, d
     pretty_name = asset.name  # when we reimport an asset we will rename it to this
 
     asset.name = new_slug
-
-    # check if we're in a sub category that contains assets of the correct type.
-    # If not add the object to the root category for its type
-    if props.active_category is None:
-        # TODO: Create a popup to choose category
-        # TODO: Ensure asset bar switches to active category
-        category = asset_type.lower()
-    elif props.active_category["Contains"] == asset_type:
-        category = props.active_category["Slug"]
-    else:
-        category = asset_type.lower()
 
     filepath = os.path.join(
         asset_save_path,
