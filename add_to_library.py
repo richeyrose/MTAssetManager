@@ -212,6 +212,13 @@ def add_collection_to_library(self, context, collection, root_obj_name):
     else:
         category = check_category_type(props.active_category, asset_type)
 
+    kwargs = {
+        "Description": self.Description,
+        "URI": self.URI,
+        "Author": self.Author,
+        "License": self.License,
+        "RootObject": root.name}
+
     asset_desc = add_asset_to_library(
         self,
         context,
@@ -220,11 +227,8 @@ def add_collection_to_library(self, context, collection, root_obj_name):
         assets_path,
         asset_type,
         category,
-        self.Description,
-        self.URI,
-        self.Author,
-        self.License,
-        self.Tags)
+        self.Tags,
+        **kwargs)
 
     scene_path = os.path.join(
         prefs.default_assets_path,
@@ -314,6 +318,12 @@ class MT_OT_AM_Add_Material_To_Library(Operator):
         else:
             category = check_category_type(props.active_category, asset_type)
 
+        kwargs = {
+            "Description": self.Description,
+            "URI": self.URI,
+            "Author": self.Author,
+            "License": self.License}
+
         asset_desc = add_asset_to_library(
             self,
             context,
@@ -322,11 +332,8 @@ class MT_OT_AM_Add_Material_To_Library(Operator):
             assets_path,
             "MATERIALS",
             category,
-            self.Description,
-            self.URI,
-            self.Author,
-            self.License,
-            self.Tags)
+            self.Tags,
+            **kwargs)
 
         scene_path = os.path.join(
             prefs.default_assets_path,
@@ -459,6 +466,12 @@ class MT_OT_AM_Add_Active_Object_To_Library(Operator):
         else:
             category = check_category_type(props.active_category, asset_type)
 
+        kwargs = {
+            "Description": self.Description,
+            "URI": self.URI,
+            "Author": self.Author,
+            "License": self.License}
+
         asset_desc = add_asset_to_library(
             self,
             context,
@@ -467,11 +480,8 @@ class MT_OT_AM_Add_Active_Object_To_Library(Operator):
             assets_path,
             asset_type,
             category,
-            self.Description,
-            self.URI,
-            self.Author,
-            self.License,
-            self.Tags)
+            self.Tags,
+            **kwargs)
 
         scene_path = os.path.join(
             prefs.default_assets_path,
@@ -534,7 +544,8 @@ def draw_save_props_menu(self, context):
     layout.prop(self, 'Tags')
 
 
-def add_asset_to_library(self, context, props, asset, assets_path, asset_type, category, description="", URI="", author="", license="", tags=""):
+# def add_asset_to_library(self, context, props, asset, assets_path, asset_type, category, description="", URI="", author="", license=""):
+def add_asset_to_library(self, context, props, asset, assets_path, asset_type, category, tags="", **kwargs):
     """Add the passed in asset to the asset library.
 
     Args:
@@ -544,27 +555,11 @@ def add_asset_to_library(self, context, props, asset, assets_path, asset_type, c
         assets_path (path): the path to the root assets foldere
         asset_type (enum in {OBJECTS, COLLECTIONS, MATERIALS}): asset type
         category (dict): MakeTile category
-        description (str, optional): description of asset. Defaults to "".
-        URI (str, optional): URI where asset can be downloaded. Defaults to "".
-        author (str, optional): Asset Author. Defaults to "".
-        license (str, optional): Asset license. Defaults to "".
         tags (str, optional): Comma seperated list of tags. Used for searching. Defaults to "".
+        **kwargs: additional fields. Usually Description, Author, URI, License
 
     Returns:
-        dict{
-            Name: str,
-            Slug: str,
-            Category: str,
-            FileName: str,
-            FilePath: str,
-            PreviewImagePath: str,
-            PreviewImageName: str,
-            Descriptions: str,
-            URI: str,
-            Author: str,
-            License: str,
-            Type: Enum in {'OBJECTS', 'MATERIALS', 'COLLECTIONS'},
-            Tags: str }: asset_desc
+        dict: asset_desc
     """
     assets = getattr(props, asset_type.lower())
 
@@ -605,13 +600,11 @@ def add_asset_to_library(self, context, props, asset, assets_path, asset_type, c
         "FilePath": filepath,
         "PreviewImagePath": imagepath,
         "PreviewImageName": new_slug + '.png',
-        "Description": description,
-        "URI": URI,
-        "Author": author,
-        "License": license,
         "Type": asset_type.upper(),
         "Tags": tagify(tags)}
 
+    for key, value in kwargs.items():
+        asset_desc[key] = value
     # update current objects list
     assets = assets.append(asset_desc)
 
