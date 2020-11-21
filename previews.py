@@ -218,3 +218,6 @@ def render_object_preview(self, context, image_path, scene_path, scene_name, obj
     # load rendered image into scene
     bpy.data.images.load(image_path, check_existing=True)
     return
+
+def render_collection_preview(self, context, image_path, scene_path, scene_name, collection):
+    pass
