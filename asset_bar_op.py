@@ -30,6 +30,14 @@ class MT_OT_AM_Asset_Bar(Operator):
 
     def invoke(self, context, event):
         props = context.scene.mt_am_props
+
+        # save these so we can check later. Used for removing draw handlers
+        # when we switch scene, change window etc.
+        self.window = context.window
+        self.area = context.area
+        self.scene = bpy.context.scene
+        self.has_quad_views = len(bpy.context.area.spaces[0].region_quadviews) > 0
+
         # update categories
         self.update_categories(context)
 
@@ -63,6 +71,22 @@ class MT_OT_AM_Asset_Bar(Operator):
             context (bpy.context): context
             event (event): mouse or keyboard event
         """
+        # check we've not switched scene
+        if bpy.context.scene != self.scene:
+            self.finish(context)
+            return {'CANCELLED'}
+
+        # handle closing or switching workspaces here
+        areas = []
+
+        for w in context.window_manager.windows:
+            areas.extend(w.screen.areas)
+
+        if self.area not in areas or self.area.type != 'VIEW_3D' or self.has_quad_views != (
+                len(self.area.spaces[0].region_quadviews) > 0):
+            self.finish(context)
+            return {'CANCELLED'}
+
         # make sure we always redraw 3d view if we are drawing
         if context.area:
             context.area.tag_redraw()
@@ -172,6 +196,7 @@ class MT_OT_AM_Asset_Bar(Operator):
             MT_OT_AM_Asset_Bar.bar_draw_handler = None
             MT_OT_AM_Asset_Bar.asset_bar = context.scene.mt_am_props.asset_bar = None
 
+
     def handle_events(self, event):
         try:
             return self.asset_bar.handle_event(event)
@@ -179,7 +204,17 @@ class MT_OT_AM_Asset_Bar(Operator):
             return False
 
     def finish(self, context):
+        props = context.scene.mt_am_props
         self.unregister_handlers(context)
+
+        # reset categories for side bar
+        props.active_category = None
+        props.parent_category = ""
+
+        # get child categories and update side bar
+        props['child_cats'] = get_child_cats(
+            props.categories,
+            "")
         return {"FINISHED"}
 
     def draw_callback_asset_bar(self, op, context):
@@ -187,9 +222,7 @@ class MT_OT_AM_Asset_Bar(Operator):
         if context.scene.mt_am_props.assets_updated:
             context.scene.mt_am_props.assets_updated = False
             # TODO make sure asset bar updates if we start with an empty category and then add an asset to it
-
             self.init_assets(context, reset_index=False)
-
         try:
             MT_OT_AM_Asset_Bar.asset_bar.draw()
         except AttributeError:
