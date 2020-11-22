@@ -16,17 +16,8 @@ def render_material_preview(self, context, image_path, scene_path, scene_name, m
     """
     prefs = get_prefs()
     # link preview scene we're going to use for render
-    if scene_name not in bpy.data.scenes:
-        with bpy.data.libraries.load(scene_path) as (data_from, data_to):
-            if scene_name not in data_from.scenes:
-                self.report(
-                    {'WARNING'},
-                    "Preview scene " + scene_name + " not found. Preview render aborted")
-                return
-            else:
-                data_to.scenes = [scene_name]
+    preview_scene = link_preview_scene(scene_name, scene_path)
 
-    preview_scene = bpy.data.scenes[scene_name]
     orig_scene = context.window.scene
 
     # switch scene
@@ -136,20 +127,9 @@ def render_object_preview(self, context, image_path, scene_path, scene_name, obj
         obj (bpy.types.Object): object to render
     """
     # link preview scene we're going to use for render
-    if scene_name not in bpy.data.scenes:
-        previews_path = os.path.join(
-            scene_path)
-        with bpy.data.libraries.load(previews_path) as (data_from, data_to):
-            if scene_name not in data_from.scenes:
-                self.report(
-                    {'WARNING'},
-                    "Preview scene " + scene_name + " not found. Preview render aborted")
-                return
-            data_to.scenes = [scene_name]
-
-    preview_scene = bpy.data.scenes[scene_name]
-    render_object = obj
+    preview_scene = link_preview_scene(scene_name, scene_path)
     orig_scene = context.window.scene
+    render_object = obj
 
     # copy object and apply all modifiers
     depsgraph = context.evaluated_depsgraph_get()
@@ -219,5 +199,83 @@ def render_object_preview(self, context, image_path, scene_path, scene_name, obj
     bpy.data.images.load(image_path, check_existing=True)
     return
 
+
 def render_collection_preview(self, context, image_path, scene_path, scene_name, collection):
-    pass
+    """Render a preview of the passed in collection and saves it.
+
+    Args:
+        context (bpy.context): context
+        image_path (str): Path to save the preview image
+        scene_path (str): Path to preview scene .blend file to use for render
+        scene_name (str): Name of preview scene to use in .blend file
+        collection (bpy.types.Collection): Collection to render.
+    """
+    # link preview scene we're going to use for render
+    preview_scene = link_preview_scene(scene_name, scene_path)
+    orig_scene = context.window.scene
+
+    # switch scene
+    context.window.scene = preview_scene
+
+    # link objects to new scene and select them
+    for obj in collection.all_objects:
+        preview_scene.collection.objects.link(obj)
+
+    ctx = {
+        'selected_objects': collection.all_objects,
+        'object': collection.all_objects[0],
+        'active_object': collection.all_objects[0],
+        'selected_editable_objects': collection}
+
+    # frame all objects with camera
+    bpy.ops.view3d.camera_to_view_selected(ctx)
+
+    # set render settings
+    render = context.scene.render
+
+    # save current render settings
+    orig_engine = render.engine
+    orig_film = render.film_transparent
+    orig_res_x = render.resolution_x
+    orig_res_y = render.resolution_y
+    orig_filepath = render.filepath
+
+    # new render settings
+    render.engine = 'BLENDER_EEVEE'
+    render.film_transparent = True
+    render.resolution_x = 512
+    render.resolution_y = 512
+    render.filepath = image_path
+
+    # render image of mesh
+    bpy.ops.render.render(write_still=True)
+
+    # reset render engine
+    render.engine = orig_engine
+    render.film_transparent = orig_film
+    render.resolution_x = orig_res_x
+    render.resolution_y = orig_res_y
+    render.filepath = orig_filepath
+
+    # unlink collection objects from preview scene
+    for obj in collection.all_objects:
+        preview_scene.collection.objects.unlink(obj)
+
+    # switch back to original scene
+    context.window.scene = orig_scene
+
+    # load rendered image into scene
+    bpy.data.images.load(image_path, check_existing=True)
+    return
+
+
+def link_preview_scene(scene_name, scene_path):
+    # link preview scene we're going to use for render
+    if scene_name not in bpy.data.scenes:
+        previews_path = os.path.join(
+            scene_path)
+        with bpy.data.libraries.load(previews_path) as (data_from, data_to):
+            if scene_name in data_from.scenes:
+                data_to.scenes = [scene_name]
+        return data_to.scenes[0]
+    return None

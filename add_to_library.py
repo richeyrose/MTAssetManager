@@ -170,7 +170,7 @@ class MT_OT_Add_Collection_To_Library(Operator):
 
 
 def add_collection_to_library(self, context, collection, root_obj_name):
-    """Add the passed in collection to the MakeTile Library
+    """Add the passed in collection to the MakeTile Library.
 
     Args:
         context (bpy.Context): context
