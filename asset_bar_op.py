@@ -10,8 +10,10 @@ from .ui_asset import MT_AM_UI_Asset
 from .ui_nav_arrow import MT_UI_AM_Left_Nav_Arrow, MT_UI_AM_Right_Nav_Arrow
 from .app_handlers import create_properties
 
-#TODO see if we can get self.report to work properly
+
+# TODO see if we can get self.report to work properly
 class MT_OT_AM_Asset_Bar(Operator):
+    """Operator for displaying the MakeTile Asset bar"""
     bl_idname = "view3d.mt_asset_bar"
     bl_label = "Show Asset Bar"
     bl_description = "Display asset bar based on passed in category_slug"
@@ -110,6 +112,12 @@ class MT_OT_AM_Asset_Bar(Operator):
         return {'PASS_THROUGH'}
 
     def init_assets(self, context, reset_index=True):
+        """Initialise assets based on current active category.
+
+        Args:
+            context (bpy.context): context
+            reset_index (bool, optional): WHether to reset the asset bar index to 0. Defaults to True.
+        """
         props = context.scene.mt_am_props
         # get current assets based on active category
         current_assets = get_assets_by_cat(props.active_category["Slug"])
@@ -137,7 +145,7 @@ class MT_OT_AM_Asset_Bar(Operator):
                 # reset asset indexes.
                 # We don't want to do this if we are reinitialising
                 # assets after we've added, removed or updated one as we want the
-                # asset bar to ramin at its current index
+                # asset bar to remain at its current index
                 if reset_index:
                     self.asset_bar.first_asset_index = 0
             except AttributeError:
@@ -177,6 +185,12 @@ class MT_OT_AM_Asset_Bar(Operator):
             self.category_slug)
 
     def register_asset_bar_draw_handler(self, args, context):
+        """Register the draw handler for the asset bar.
+
+        Args:
+            args (tuple(self, context)): self and bpy.context
+            context (bpy.context): context
+        """
         MT_OT_AM_Asset_Bar.bar_draw_handler = bpy.types.SpaceView3D.draw_handler_add(
             self.draw_callback_asset_bar,
             args,
@@ -204,6 +218,14 @@ class MT_OT_AM_Asset_Bar(Operator):
             return False
 
     def finish(self, context):
+        """Unregister handlers and clean up. Call when switching windows, scenes etc.
+
+        Args:
+            context (bpy.context): Context
+
+        Returns:
+            operator return value {'FINISHED'}: Operator return
+        """
         props = context.scene.mt_am_props
         self.unregister_handlers(context)
 
@@ -218,6 +240,12 @@ class MT_OT_AM_Asset_Bar(Operator):
         return {"FINISHED"}
 
     def draw_callback_asset_bar(self, op, context):
+        """Draw callback for asset bar.
+
+        Args:
+            op (operator): operator
+            context (bpy.context): context
+        """
         # check to see if an asset has been added, removed or updated.
         if context.scene.mt_am_props.assets_updated:
             context.scene.mt_am_props.assets_updated = False
