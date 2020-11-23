@@ -195,15 +195,16 @@ def add_collection_to_library(self, context, collection, root_obj_name):
         root.show_in_front = True
         context.view_layer.update()
 
-        # parent all objects in collection that don;t already have a parent
-        # to the new root object
-        for ob in collection.objects:
-            if ob != root:
-                if ob.parent is None:
-                    ob.parent = root
-                    ob.matrix_parent_inverse = root.matrix_world.inverted()
     else:
         root = bpy.data.objects[root_obj_name]
+
+    # parent all objects in collection that don't already have a parent
+    # to the root object
+    for ob in collection.objects:
+        if ob != root:
+            if ob.parent is None:
+                ob.parent = root
+                ob.matrix_parent_inverse = root.matrix_world.inverted()
 
     # check if we're in a sub category that contains assets of the correct type.
     # If not add the object to the root category for its type
@@ -236,7 +237,6 @@ def add_collection_to_library(self, context, collection, root_obj_name):
         "preview_scenes.blend")
 
     render_collection_preview(
-        self,
         context,
         asset_desc['PreviewImagePath'],
         scene_path,
