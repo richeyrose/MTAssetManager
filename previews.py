@@ -200,7 +200,7 @@ def render_object_preview(self, context, image_path, scene_path, scene_name, obj
     return
 
 
-def render_collection_preview(self, context, image_path, scene_path, scene_name, collection):
+def render_collection_preview(context, image_path, scene_path, scene_name, collection):
     """Render a preview of the passed in collection and saves it.
 
     Args:
@@ -217,18 +217,19 @@ def render_collection_preview(self, context, image_path, scene_path, scene_name,
     # switch scene
     context.window.scene = preview_scene
 
+    # store camera rotation and location as we'll be moving this in order to frame our collection
+    camera_rot = context.scene.camera.rotation_euler.copy()
+    camera_loc = context.scene.camera.location.copy()
+
     # link objects to new scene and select them
     for obj in collection.all_objects:
         preview_scene.collection.objects.link(obj)
+        obj.select_set(True)
 
-    ctx = {
-        'selected_objects': collection.all_objects,
-        'object': collection.all_objects[0],
-        'active_object': collection.all_objects[0],
-        'selected_editable_objects': collection}
+    context.view_layer.update()
 
     # frame all objects with camera
-    bpy.ops.view3d.camera_to_view_selected(ctx)
+    bpy.ops.view3d.camera_to_view_selected()
 
     # set render settings
     render = context.scene.render
@@ -261,6 +262,10 @@ def render_collection_preview(self, context, image_path, scene_path, scene_name,
     for obj in collection.all_objects:
         preview_scene.collection.objects.unlink(obj)
 
+    # reset camera
+    context.scene.camera.location = camera_loc
+    context.scene.camera.rotation_euler = camera_rot
+
     # switch back to original scene
     context.window.scene = orig_scene
 
@@ -278,4 +283,4 @@ def link_preview_scene(scene_name, scene_path):
             if scene_name in data_from.scenes:
                 data_to.scenes = [scene_name]
         return data_to.scenes[0]
-    return None
+    return bpy.data.scenes[scene_name]
