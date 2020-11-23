@@ -5,9 +5,10 @@ from bpy.types import Operator
 from bpy.props import StringProperty, PointerProperty, BoolProperty
 from .preferences import get_prefs
 
+
 class MT_OT_AM_Delete_Selected_Assets_from_Library(Operator):
-    """Operator that deletes all assets selected in the asset bar from the MakeTile library and optionally
-    from disk"""
+    """Operator that deletes all assets selected in the asset bar from the MakeTile library and optionally from disk."""
+
     bl_idname = "object.delete_selected_assets_from_library"
     bl_label = "Delete Selected Assets"
     bl_description = "deletes all assets selected in the asset bar from the MakeTile library and optionally from disk"
