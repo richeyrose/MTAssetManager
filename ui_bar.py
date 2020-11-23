@@ -4,6 +4,8 @@ from .preferences import get_prefs
 from .ui_widget import MT_UI_AM_Widget
 from .ui_nav_arrow import MT_UI_AM_Left_Nav_Arrow, MT_UI_AM_Right_Nav_Arrow
 
+# TODO add right click method for pasting in bar
+
 class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
     def __init__(self, x, y, width, height, op):
         super().__init__(x, y, width, height)
@@ -107,6 +109,12 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
         if event.type == 'WHEELDOWNMOUSE':
             return self.wheel_down()
 
+        # handle right click
+        if event.type == 'RIGHTMOUSE':
+            if event.value == 'PRESS':
+                if self.right_mouse_down(0, 0):
+                    result = True
+
         # handle nav arrow events
         for arrow in self.nav_arrows:
             if arrow.handle_event(event):
@@ -123,6 +131,15 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
                 result = True
 
         return result
+
+    def right_mouse_down(self, x, y):
+        for asset in self.assets:
+            if asset.hovered:
+                return False
+        if self.hovered:
+            bpy.ops.wm.call_menu(name=MT_AM_Paste_Asset_Menu.bl_idname)
+            return True
+        return False
 
     def wheel_up(self):
         """Handle wheel up event.
@@ -215,4 +232,10 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
         self._last_asset_index = self._first_asset_index + (
             math.floor((self.width - (self.prefs.asset_bar_nav_button_width * 2)) / self.prefs.asset_item_dimensions)) - 1
 
+class MT_AM_Paste_Asset_Menu(bpy.types.Menu):
+    bl_label = "Paste Asset"
+    bl_idname = "AM_MT_paste_asset_menu"
 
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("object.mt_paste_asset")

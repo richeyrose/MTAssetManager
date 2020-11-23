@@ -72,7 +72,7 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
         elif event.type == 'RIGHTMOUSE':
             if event.value == 'PRESS':
                 self._right_mouse_down = True
-                return self.right_mouse_down()
+                return self.right_mouse_down(x, y)
             elif event.value == 'RELEASE':
                 self._right_mouse_down = False
                 return self.right_mouse_up(x, y)
@@ -261,7 +261,7 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
             return True
         return False
 
-    def right_mouse_down(self):
+    def right_mouse_down(self, x, y):
         if self._draw and self.hovered:
             # store current asset description
             bpy.context.scene.mt_am_props.current_asset_desc = self.asset_desc
@@ -303,9 +303,6 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
 class MT_AM_Edit_Asset_Menu(bpy.types.Menu):
     bl_label = "Edit Asset"
     bl_idname = "AM_MT_edit_asset_menu"
-
-    def __init__(self):
-        super().__init__()
 
     def draw(self, context):
         props = context.scene.mt_am_props

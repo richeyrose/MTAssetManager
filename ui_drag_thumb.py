@@ -1,11 +1,10 @@
 import gpu
 import bgl
-import bpy
 
 from gpu_extras.batch import batch_for_shader
 from .ui_widget import MT_UI_AM_Widget
-from .preferences import get_prefs
 from .spawn import spawn_object, spawn_collection, spawn_material
+
 
 class MT_AM_UI_Drag_Thumb(MT_UI_AM_Widget):
     """Draggable thumbnail of asset used for spawning into scene."""
@@ -67,11 +66,33 @@ class MT_AM_UI_Drag_Thumb(MT_UI_AM_Widget):
             self.update(self.x, self.y)
 
     def mouse_up(self, x, y):
-        self.asset.remove_drag_thumb(self)
+        """Handle mouse up event.
+
+        If we are not hovered over the asset bar we spawn the asset coressponding to the
+        dragged thumbnail at the cursor.
+
+        Args:
+            x (float): mouse x
+            y (float): mouse y
+
+        Returns:
+            bool: Whether event was handled
+        """
         if self._dragging:
             self._dragging = False
+            self.asset.remove_drag_thumb(self)
             if not self.asset_bar.hovered:
-                self.spawn_at_cursor(x, y)
+                # spawn asset at cursor location
+                asset_desc = self.asset.asset_desc
+                if asset_desc['Type'] == 'OBJECTS':
+                    if spawn_object(self.context, self.asset.asset_desc, x, y):
+                        return True
+                elif asset_desc['Type'] == 'COLLECTIONS':
+                    if spawn_collection(self.context, self.asset.asset_desc, x, y):
+                        return True
+                else:
+                    if spawn_material(self.context, self.asset.asset_desc, x, y):
+                        return True
         return False
 
     def _set_origin(self, x, y):
@@ -107,7 +128,8 @@ class MT_AM_UI_Drag_Thumb(MT_UI_AM_Widget):
             raise Exception()
 
     def draw(self):
-        # draw thumbnail image
+        """Draw thumbnail image.
+        """
         # batch shader
         self.update(self.x, self.y)
 
@@ -124,12 +146,3 @@ class MT_AM_UI_Drag_Thumb(MT_UI_AM_Widget):
         self.shader.uniform_int("image", 0)
         self.batch_panel.draw(self.shader)
         bgl.glDisable(bgl.GL_BLEND)
-
-    def spawn_at_cursor(self, x, y):
-        asset_desc = self.asset.asset_desc
-        if asset_desc['Type'] == 'OBJECTS':
-            spawn_object(self, self.context, self.asset.asset_desc, x, y, self.op)
-        elif asset_desc['Type'] == 'COLLECTIONS':
-            spawn_collection(self, self.context, self.asset.asset_desc, x, y, self.op)
-        elif asset_desc['Type'] == 'MATERIALS':
-            spawn_material(self, self.context, self.asset.asset_desc, x, y, self.op)

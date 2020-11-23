@@ -43,25 +43,20 @@ class MT_OT_AM_Asset_Bar(Operator):
         # update categories
         self.update_categories(context)
 
-        # check to see if current category contains any assets.
-        # We only display asset bar if it does
         if props.active_category:
-            current_assets = get_assets_by_cat(props.active_category["Slug"])
-
-            if len(current_assets) > 0:
-                # Check to see if we are already displaying asset bar
-                # and add asset bar draw handler and modal handler if not
-                if not MT_OT_AM_Asset_Bar.asset_bar:
-                    # initialise asset bar
-                    self.init_asset_bar(context)
-                    # register asset bar draw handler
-                    args = (self, context)
-                    self.register_asset_bar_draw_handler(args, context)
-                    # add the modal handler that handles events
-                    context.window_manager.modal_handler_add(self)
-                # initialise assets
-                self.init_assets(context)
-                return {'RUNNING_MODAL'}
+            # Check to see if we are already displaying asset bar
+            # and add asset bar draw handler and modal handler if not
+            if not MT_OT_AM_Asset_Bar.asset_bar:
+                # initialise asset bar
+                self.init_asset_bar(context)
+                # register asset bar draw handler
+                args = (self, context)
+                self.register_asset_bar_draw_handler(args, context)
+                # add the modal handler that handles events
+                context.window_manager.modal_handler_add(self)
+            # initialise assets
+            self.init_assets(context)
+            return {'RUNNING_MODAL'}
 
         self.unregister_handlers(context)
         return {'FINISHED'}
@@ -122,45 +117,43 @@ class MT_OT_AM_Asset_Bar(Operator):
         # get current assets based on active category
         current_assets = get_assets_by_cat(props.active_category["Slug"])
 
-        if len(current_assets) > 0:
-            # make sure preview images are appended
-            append_preview_images(current_assets)
 
-            # instantiate a thumbnail for each asset in current assets
-            prefs = get_prefs()
-            assets = []
-            for asset in current_assets:
-                new_asset = MT_AM_UI_Asset(
-                    50,
-                    50,
-                    prefs.asset_item_dimensions,
-                    prefs.asset_item_dimensions,
-                    asset,
-                    MT_OT_AM_Asset_Bar.asset_bar,
-                    current_assets.index(asset),
-                    self)
-                assets.append(new_asset)
+        # make sure preview images are appended
+        append_preview_images(current_assets)
 
-            try:
-                # reset asset indexes.
-                # We don't want to do this if we are reinitialising
-                # assets after we've added, removed or updated one as we want the
-                # asset bar to remain at its current index
-                if reset_index:
-                    self.asset_bar.first_asset_index = 0
-            except AttributeError:
-                self.init_asset_bar(context)
-                if reset_index:
-                    self.asset_bar.first_asset_index = 0
+        # instantiate a thumbnail for each asset in current assets
+        prefs = get_prefs()
+        assets = []
+        for asset in current_assets:
+            new_asset = MT_AM_UI_Asset(
+                50,
+                50,
+                prefs.asset_item_dimensions,
+                prefs.asset_item_dimensions,
+                asset,
+                MT_OT_AM_Asset_Bar.asset_bar,
+                current_assets.index(asset),
+                self)
+            assets.append(new_asset)
 
-            # register assets in asset bar
-            self.asset_bar.assets = assets
+        try:
+            # reset asset indexes.
+            # We don't want to do this if we are reinitialising
+            # assets after we've added, removed or updated one as we want the
+            # asset bar to remain at its current index
+            if reset_index:
+                self.asset_bar.first_asset_index = 0
+        except AttributeError:
+            self.init_asset_bar(context)
+            if reset_index:
+                self.asset_bar.first_asset_index = 0
 
-            # initialise assets
-            for asset in assets:
-                asset.init(context)
-        else:
-            self.unregister_handlers(context)
+        # register assets in asset bar
+        self.asset_bar.assets = assets
+
+        # initialise assets
+        for asset in assets:
+            asset.init(context)
 
     def init_asset_bar(self, context):
         context.scene.mt_am_props.asset_bar = MT_OT_AM_Asset_Bar.asset_bar = MT_UI_AM_Asset_Bar(50, 50, 300, 200, self)

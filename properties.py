@@ -53,7 +53,7 @@ class MT_PT_AM_Props(PropertyGroup):
     cut: bpy.props.BoolProperty(
         name="Cut",
         default=False,
-        description="Whether we are in cut or copy mode for asset moving between categories."
+        description="Whether we are in asset cut mode."
     )
 
     _categories = []
