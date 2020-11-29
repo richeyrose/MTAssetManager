@@ -68,7 +68,7 @@ class MT_AM_UI_Drag_Thumb(MT_UI_AM_Widget):
     def mouse_up(self, x, y):
         """Handle mouse up event.
 
-        If we are not hovered over the asset bar we spawn the asset coressponding to the
+        If we are not hovered over the asset bar we spawn the asset corresponding to the
         dragged thumbnail at the cursor.
 
         Args:

@@ -43,7 +43,6 @@ class MT_OT_AM_Delete_Selected_Assets_from_Library(Operator):
             if self.delete_from_disk:
                 if os.path.exists(asset.asset_desc["FilePath"]):
                     os.remove(asset.asset_desc["FilePath"])
-                    # raise flag to update asset bar
 
         # overwrite .json file with modified list
         json_file = os.path.join(

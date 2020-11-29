@@ -544,7 +544,6 @@ def draw_save_props_menu(self, context):
     layout.prop(self, 'Tags')
 
 
-# def add_asset_to_library(self, context, props, asset, assets_path, asset_type, category, description="", URI="", author="", license=""):
 def add_asset_to_library(self, context, props, asset, assets_path, asset_type, category, tags="", **kwargs):
     """Add the passed in asset to the asset library.
 
@@ -577,7 +576,7 @@ def add_asset_to_library(self, context, props, asset, assets_path, asset_type, c
     current_slugs = [asset['Slug'] for asset in assets]
 
     # check if slug already exists and increment and rename if not.
-    new_slug = find_and_rename(self, asset.name, slug, current_slugs)
+    new_slug = find_and_rename(slug, current_slugs)
 
     pretty_name = asset.name  # when we reimport an asset we will rename it to this
 

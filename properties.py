@@ -36,14 +36,6 @@ class MT_PT_AM_Props(PropertyGroup):
         description="Set to true when you add, remove or update an asset"
     )
 
-    '''
-    active_category: bpy.props.StringProperty(
-        name="Active Category",
-        default="",
-        description="The active category."
-    )
-    '''
-
     parent_category: bpy.props.StringProperty(
         name="Parent Category",
         default="",
@@ -63,7 +55,7 @@ class MT_PT_AM_Props(PropertyGroup):
     _collections = []
     _current_asset_desc = None
     _asset_bar = []
-    _copied_asset = None
+    _copied_assets = None
     _active_category = None
 
     @property
@@ -75,12 +67,12 @@ class MT_PT_AM_Props(PropertyGroup):
         MT_PT_AM_Props._active_category = value
 
     @property
-    def copied_asset(self):
-        return MT_PT_AM_Props._copied_asset
+    def copied_assets(self):
+        return MT_PT_AM_Props._copied_assets
 
-    @copied_asset.setter
-    def copied_asset(self, value):
-        MT_PT_AM_Props._copied_asset = value
+    @copied_assets.setter
+    def copied_assets(self, value):
+        MT_PT_AM_Props._copied_assets = value
 
     @property
     def asset_bar(self):
