@@ -30,9 +30,10 @@ def mouse_raycast(context, coord):
     ray_target = ray_origin + (view_vector * 1000000000)
 
     vec = ray_target - ray_origin
+    depsgraph = context.evaluated_depsgraph_get()
 
     has_hit, snapped_location, snapped_normal, face_index, obj, matrix = bpy.context.scene.ray_cast(
-        bpy.context.view_layer, ray_origin, vec)
+        depsgraph, ray_origin, vec)
 
     # rote = mathutils.Euler((0, 0, math.pi))
     randoffset = math.pi
