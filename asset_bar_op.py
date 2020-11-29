@@ -117,7 +117,6 @@ class MT_OT_AM_Asset_Bar(Operator):
         # get current assets based on active category
         current_assets = get_assets_by_cat(props.active_category["Slug"])
 
-
         # make sure preview images are appended
         append_preview_images(current_assets)
 

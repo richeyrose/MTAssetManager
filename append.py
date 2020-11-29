@@ -124,7 +124,9 @@ def append_collection(context, asset, link=False):
         link (bool, optional): Whether to link the collection or append it. Defaults to False.
 
     Returns:
-        bpy.types.collection: collection
+        tuple (
+            bpy.types.collection: collection,
+            bpy.types.Object: Root object)
     """
     filepath = asset["FilePath"]
 
