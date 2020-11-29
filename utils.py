@@ -140,7 +140,8 @@ def slugify(slug):
     slug = re.sub(r'/', '_', slug)
     return slug
 
-def find_and_rename(self, asset_name, slug, current_slugs):
+
+def find_and_rename(slug, current_slugs):
     """Recursively search for and rename ID object based on slug.
 
     Recursively searches for the passed in slug in current slugs and
@@ -162,13 +163,10 @@ def find_and_rename(self, asset_name, slug, current_slugs):
     if match:
         slug = rchop(slug, match.group())
         slug = slug + str(int(match.group()) + 1).zfill(3)
-        asset_name = rchop(asset_name, match.group())
-        asset_name = asset_name + str(int(match.group()) + 1).zfill(3)
-        find_and_rename(self, asset_name, slug, current_slugs)
+        slug = find_and_rename(slug, current_slugs)
     else:
         slug = slug + '_001'
-        asset_name = asset_name + '.001'
-        find_and_rename(self, asset_name, slug, current_slugs)
+        slug = find_and_rename(slug, current_slugs)
     return slug
 
 
