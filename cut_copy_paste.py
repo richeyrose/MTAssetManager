@@ -1,15 +1,17 @@
 import os
 import json
-import bpy
-import copy
+from copy import deepcopy
 from shutil import copy2
 
+import bpy
 from .preferences import get_prefs
 from bpy.types import Operator
 from .utils import find_and_rename
 from .append import append_collection, append_material, append_object
 
+
 class MT_OT_AM_Cut_Asset(Operator):
+    """Cut an asset in the asset bar."""
     bl_idname = "object.mt_cut_asset"
     bl_label = "Cut Asset"
     bl_description = "Cut Asset"
@@ -22,6 +24,7 @@ class MT_OT_AM_Cut_Asset(Operator):
 
 
 class MT_OT_AM_Copy_Asset(Operator):
+    """Copy an asset in the asset bar."""
     bl_idname = "object.mt_copy_asset"
     bl_label = "Copy Asset"
     bl_description = "Copy Asset"
@@ -34,6 +37,7 @@ class MT_OT_AM_Copy_Asset(Operator):
 
 
 class MT_OT_AM_Paste_Asset(Operator):
+    """Paste an asset in the asset bar."""
     bl_idname = "object.mt_paste_asset"
     bl_label = "Paste Asset"
     bl_description = "Paste Asset"
@@ -43,7 +47,6 @@ class MT_OT_AM_Paste_Asset(Operator):
         props = context.scene.mt_am_props
         if props.copied_assets and props.copied_assets[0]["Type"] == props.active_category["Contains"]:
             return True
-
 
     def execute(self, context):
         prefs = get_prefs()
@@ -66,7 +69,7 @@ class MT_OT_AM_Paste_Asset(Operator):
             for asset_desc in copied_asset_descs:
                 if asset_type == "OBJECTS":
                     # copy asset desc and update it so it has unique slug
-                    new_asset_desc = self.copy_and_update_asset_desc(asset_desc, asset_descs, prefs, asset_type, active_category)
+                    new_asset_desc = self.copy_asset_desc_and_make_unique(props, asset_desc, prefs, asset_type, active_category["Slug"])
                     asset_descs.append(new_asset_desc)
 
                     # load asset into Blender
@@ -88,12 +91,28 @@ class MT_OT_AM_Paste_Asset(Operator):
                     bpy.data.objects.remove(asset)
 
                 elif asset_type == "COLLECTIONS":
+                    new_asset_desc = self.copy_asset_desc_and_make_unique(props, asset_desc, prefs, asset_type, active_category["Slug"])
+                    asset_descs.append(new_asset_desc)
                     ret = append_collection(context, asset_desc)
                     asset = ret[0]
-                    # bpy.data.collections.remove(asset)
+                    asset.name = new_asset_desc["Slug"]
+                    bpy.data.libraries.write(
+                        new_asset_desc["FilePath"],
+                        {asset},
+                        fake_user=True)
+                    copy2(asset_desc["PreviewImagePath"], new_asset_desc["PreviewImagePath"])
+                    bpy.data.collections.remove(asset)
                 else:
+                    new_asset_desc = self.copy_asset_desc_and_make_unique(props, asset_desc, prefs, asset_type, active_category["Slug"])
+                    asset_descs.append(new_asset_desc)
                     asset = append_material(context, asset_desc)
-                    # bpy.data.materials.remove(asset)
+                    asset.name = new_asset_desc["Slug"]
+                    bpy.data.libraries.write(
+                        new_asset_desc["FilePath"],
+                        {asset},
+                        fake_user=True)
+                    copy2(asset_desc["PreviewImagePath"], new_asset_desc["PreviewImagePath"])
+                    bpy.data.materials.remove(asset)
 
         # overwrite .json file with modified list
         json_file = os.path.join(
@@ -114,7 +133,22 @@ class MT_OT_AM_Paste_Asset(Operator):
 
         return {'FINISHED'}
 
-    def copy_and_update_asset_desc(self, asset_desc, asset_descs, prefs, asset_type, active_category):
+    def copy_asset_desc_and_make_unique(self, props, asset_desc, prefs, asset_type, cat_slug):
+        """Copy the passed in asset description and updates its slug and other items to make it unique.
+
+        Args:
+            asset_desc (dict): NakeTile asset description
+            prefs (dict): Asset manager prefs
+            asset_type (Enum in {OBJECTS, COLLECTIONS, MATERIALS}): asset type
+            cat_slug (string): Category slug asset belongs to
+
+        Returns:
+            dict: Asset description.
+        """
+        # get in memory list of asset descs
+        asset_descs = getattr(props, asset_type.lower())
+
+        # get slugs
         current_slugs = [desc['Slug'] for desc in asset_descs]
 
         # get a new unique slug for the asset
@@ -126,10 +160,10 @@ class MT_OT_AM_Paste_Asset(Operator):
             asset_type.lower())
 
         # create deep copy of asset desc
-        new_asset_desc = copy.deepcopy(asset_desc)
+        new_asset_desc = deepcopy(asset_desc)
 
         # update asset desc
-        new_asset_desc["Category"] = active_category["Slug"]
+        new_asset_desc["Category"] = cat_slug
         new_asset_desc["Slug"] = new_slug
         new_asset_desc["FileName"] = new_slug + '.blend'
         new_asset_desc["FilePath"] = os.path.join(assets_path, new_slug + '.blend')
