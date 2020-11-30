@@ -392,6 +392,12 @@ class MT_OT_AM_Add_Multiple_Objects_To_Library(Operator):
         else:
             category = check_category_type(props.active_category, asset_type)
 
+        kwargs = {
+            "Description": "",
+            "URI": "",
+            "Author": "",
+            "License": ""}
+
         for obj in obs:
             asset_desc = add_asset_to_library(
                 self,
@@ -400,7 +406,8 @@ class MT_OT_AM_Add_Multiple_Objects_To_Library(Operator):
                 obj,
                 assets_path,
                 "OBJECTS",
-                category)
+                category,
+                **kwargs)
 
             render_object_preview(
                 self,
