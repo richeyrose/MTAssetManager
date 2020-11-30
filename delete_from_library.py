@@ -126,6 +126,11 @@ class MT_OT_AM_Delete_Asset_from_Library(Operator):
         return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
+        """Draw confirmation dialog.
+
+        Args:
+            context (bpy.context): context
+        """
         props = context.scene.mt_am_props
         layout = self.layout
         layout.label(text="Delete " + props.current_asset_desc['Name'] + "?")
