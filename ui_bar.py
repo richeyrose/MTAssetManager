@@ -7,6 +7,7 @@ from .ui_nav_arrow import MT_UI_AM_Left_Nav_Arrow, MT_UI_AM_Right_Nav_Arrow
 # TODO add right click method for pasting in bar
 
 class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
+    """The asset bar UI element."""
     def __init__(self, x, y, width, height, op):
         super().__init__(x, y, width, height)
         self.prefs = get_prefs()
@@ -39,7 +40,7 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
             arrow.init(context)
 
     def draw(self):
-        """Draw the asset bar
+        """Draw the asset bar.
         """
         # draw asset bar
         self.set_asset_bar_dimensions()
@@ -79,6 +80,8 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
         self._first_asset_index = value
 
     def deselect_all(self):
+        """Deselect all assets.
+        """
         for asset in self.assets:
             asset.selected = False
 
@@ -100,17 +103,31 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
         Returns:
             Bool: True if no more event processing should be done by other elements, otherwise False.
         """
-        result = False
+        x = event.mouse_region_x
+        y = event.mouse_region_y
 
+        result = False
         # handle scrolling
-        super().handle_event(event)
         if event.type == 'WHEELUPMOUSE':
-            return self.wheel_up()
-        if event.type == 'WHEELDOWNMOUSE':
-            return self.wheel_down()
+            result = self.wheel_up()
+
+        elif event.type == 'WHEELDOWNMOUSE':
+            result = self.wheel_down()
+
+        elif event.type == 'MOUSEMOVE':
+            hovered = self.is_hovered(x, y)
+            # begin hover
+            if not self.hovered and hovered:
+                self.hovered = True
+                self.mouse_enter(event, x, y)
+            # end hover
+            elif self.hovered and not hovered:
+                self.hovered = False
+                self.mouse_leave(event, x, y)
+            result = False
 
         # handle right click
-        if event.type == 'RIGHTMOUSE':
+        elif event.type == 'RIGHTMOUSE':
             if event.value == 'PRESS':
                 if self.right_mouse_down(0, 0):
                     result = True
@@ -133,6 +150,15 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
         return result
 
     def right_mouse_down(self, x, y):
+        """Draw paste asset menu on right click.
+
+        Args:
+            x (float): mouse x
+            y (float): mouse y
+
+        Returns:
+            bool: Whether we are drawing menu.
+        """
         for asset in self.assets:
             if asset.hovered:
                 return False
@@ -232,10 +258,13 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
         self._last_asset_index = self._first_asset_index + (
             math.floor((self.width - (self.prefs.asset_bar_nav_button_width * 2)) / self.prefs.asset_item_dimensions)) - 1
 
+
 class MT_AM_Paste_Asset_Menu(bpy.types.Menu):
+    """Paste Asset menu for asset bar."""
     bl_label = "Paste Asset"
     bl_idname = "AM_MT_paste_asset_menu"
 
     def draw(self, context):
+        """Draw the menu."""
         layout = self.layout
         layout.operator("object.mt_paste_asset")

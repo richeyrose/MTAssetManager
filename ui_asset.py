@@ -263,8 +263,11 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
 
     def right_mouse_down(self, x, y):
         if self._draw and self.hovered:
-            # store current asset description
+            # store current asset description for edit asset metadata operator
             bpy.context.scene.mt_am_props.current_asset_desc = self.asset_desc
+            if not self.selected:
+                self.asset_bar.deselect_all()
+                self.selected = True
             bpy.ops.wm.call_menu(name=MT_AM_Edit_Asset_Menu.bl_idname)
             return True
         return False
@@ -275,10 +278,6 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
             selected_assets = [asset for asset in self.asset_bar.assets if asset.selected]
             if selected_assets:
                 bpy.ops.object.delete_selected_assets_from_library('INVOKE_DEFAULT')
-                return True
-            else:
-                bpy.context.scene.mt_am_props.current_asset_desc = self.asset_desc
-                bpy.ops.object.delete_asset_from_library('INVOKE_DEFAULT')
                 return True
         return False
 
@@ -306,22 +305,18 @@ class MT_AM_Edit_Asset_Menu(bpy.types.Menu):
 
     def draw(self, context):
         props = context.scene.mt_am_props
-        selected_assets = [asset for asset in props.asset_bar.assets if asset.selected]
         layout = self.layout
 
-        if selected_assets == []:
-            layout.operator_context = 'INVOKE_DEFAULT'
-            layout.operator("object.delete_asset_from_library")
-
         layout.operator_context = 'INVOKE_DEFAULT'
-        layout.operator("object.delete_selected_assets_from_library")
-        asset_desc = bpy.context.scene.mt_am_props.current_asset_desc
 
         layout.operator("object.mt_cut_asset")
         layout.operator("object.mt_copy_asset")
         layout.operator("object.mt_paste_asset")
+        layout.operator("object.delete_selected_assets_from_library")
 
-        layout.operator_context = 'INVOKE_DEFAULT'
+        layout.separator()
+
+        asset_desc = bpy.context.scene.mt_am_props.current_asset_desc
         op = layout.operator("object.mt_am_edit_asset_metadata")
         op.Name = asset_desc["Name"]
         op.FilePath = asset_desc["FilePath"]
@@ -331,4 +326,6 @@ class MT_AM_Edit_Asset_Menu(bpy.types.Menu):
         op.Author = asset_desc["Author"]
         op.License = asset_desc["License"]
         op.Tags = ", ".join(asset_desc["Tags"])
+
+
 
