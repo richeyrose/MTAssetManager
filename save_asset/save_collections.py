@@ -3,16 +3,92 @@
 import os
 import bpy
 from bpy.types import Operator
-from bpy.props import StringProperty, EnumProperty
+from bpy.props import StringProperty, EnumProperty, BoolProperty
 from ..collections import (
     get_object_owning_collections,
-    activate_collection)
+    activate_collection,
+    get_all_descendent_collections)
 from .add_to_library import (
     draw_save_props_menu,
     check_category_type,
     add_asset_to_library)
 from ..preferences import get_prefs
 from .preview_rendering import render_collection_preview
+
+
+class MT_OT_Set_Object_Bool_Type(Operator):
+    """Set the object type for objects saved as part of a ARCH_ELEM collection."""
+
+    bl_idname = "collection.set_object_type"
+    bl_label = "Set Object Propertis."
+    bl_description = "Set the properties for objects saved as part of an architectural element collection."
+
+    Description: StringProperty(
+        name="Description",
+        default=""
+    )
+
+    URI: StringProperty(
+        name="URI",
+        default=""
+    )
+
+    Author: StringProperty(
+        name="Author",
+        default=""
+    )
+
+    License: StringProperty(
+        name="License",
+        default="All Rights Reserved"
+    )
+
+    Tags: StringProperty(
+        name="Tags",
+        description="Comma seperated list",
+        default=""
+    )
+
+    RootObject: StringProperty(
+        name="Root Object",
+        description="Object that all other objects in this collection are parented to. Select None to create a new empty object"
+    )
+
+    OwningCollection: StringProperty(
+        name="Collection",
+        description="Collection to save."
+    )
+
+    CollectionType: StringProperty(
+        name="Collection Type",
+        description="Collection Type."
+    )
+
+    def execute(self, context):
+        return add_collection_to_library(self, context)
+
+    def invoke(self, context, event):
+        collection = bpy.data.collections[self.OwningCollection]
+        objects = sorted([obj for obj in collection.objects if obj.type == 'MESH'], key=lambda obj: obj.name)
+
+        for i, obj in enumerate(objects):
+            obj.mt_object_props.boolean_order = i
+
+        return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context):
+        collection = bpy.data.collections[self.OwningCollection]
+        objects = sorted([obj for obj in collection.objects if obj.type == 'MESH'], key=lambda obj: obj.name)
+        layout = self.layout
+        layout.use_property_decorate = False
+
+        for obj in objects:
+            row = layout.row(align=True)
+            row.prop(obj, "name")
+            row.prop(obj.mt_object_props, "boolean_type", text="")
+            row.prop(obj.mt_object_props, "boolean_order", text="")
+
+
 
 
 class MT_OT_Add_Collection_To_Library(Operator):
@@ -75,6 +151,20 @@ class MT_OT_Add_Collection_To_Library(Operator):
 
         return sorted(enum_items)
 
+    def create_collection_type_enums(self, context):
+        enum_items = []
+
+        if context is None:
+            return enum_items
+
+        return [
+            ("TILE", "Tile", ""),
+            # e.g. a doorway or window that should be added to a tile rather than printed on its own
+            ("ARCH_ELEMENT", "Architectural Element", ""),
+            # a building type prefab consisting of multiple tiles to be printed separately
+            ("BUILDING", "Building", ""),
+            # A generic collection
+            ("OTHER", "Other", "")]
 
     def update_active_collection(self, context):
         """Updates the active collection
@@ -123,12 +213,27 @@ class MT_OT_Add_Collection_To_Library(Operator):
         description="Collection to save."
     )
 
+    CollectionType: EnumProperty(
+        name="Collection Type",
+        items=create_collection_type_enums,
+        description="Collection Type."
+    )
+
     def execute(self, context):
-        return add_collection_to_library(
-            self,
-            context,
-            bpy.data.collections[self.OwningCollection],
-            self.RootObject)
+        if self.CollectionType == 'ARCH_ELEMENT':
+            return bpy.ops.collection.set_object_type(
+                'INVOKE_DEFAULT',
+                Description=self.Description,
+                URI=self.URI,
+                Author=self.Author,
+                License=self.License,
+                Tags=self.Tags,
+                RootObject=self.RootObject,
+                OwningCollection=self.OwningCollection)
+        else:
+            return add_collection_to_library(
+                self,
+                context)
 
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self)
@@ -137,17 +242,15 @@ class MT_OT_Add_Collection_To_Library(Operator):
         layout = self.layout
         layout.prop(self, 'RootObject')
         layout.prop(self, 'OwningCollection')
+        layout.prop(self, 'CollectionType')
         draw_save_props_menu(self, context)
 
 
-def add_collection_to_library(self, context, collection, root_obj_name):
+def add_collection_to_library(self, context):
     """Add the passed in collection to the MakeTile Library.
 
     Args:
         context (bpy.Context): context
-        collection (bpy.types.Collection): collection
-        root_obj_name (str): name of root object
-
     Returns:
         Enum in {'FINISHED', 'CANCELLED'}: Operator return
     """
@@ -156,6 +259,8 @@ def add_collection_to_library(self, context, collection, root_obj_name):
     prefs = get_prefs()
     assets_path = prefs.user_assets_path
     asset_type = "COLLECTIONS"
+    collection = bpy.data.collections[self.OwningCollection]
+    root_obj_name = self.RootObject
 
     # if user doesn't choose one of the existing objects as the root object create a new empty
     # and move it to the origin of the active object
@@ -169,9 +274,22 @@ def add_collection_to_library(self, context, collection, root_obj_name):
     else:
         root = bpy.data.objects[root_obj_name]
 
-    # parent all objects in collection that don't already have a parent
+    root.mt_object_props.geometry_type = 'BASE'
+
+    # we need to make sure we parent all objects, including those in sub collections
+    # to our root
+    colls = set(get_all_descendent_collections(collection))
+    colls.add(collection)
+
+    all_obs = set()
+
+    for coll in colls:
+        for obj in coll.objects:
+            all_obs.add(obj)
+
+    # parent all objects that don't already have a parent
     # to the root object
-    for ob in collection.objects:
+    for ob in all_obs:
         if ob != root:
             if ob.parent is None:
                 ob.parent = root

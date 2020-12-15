@@ -47,3 +47,19 @@ def get_object_owning_collections(obj):
             collections.append(coll)
 
     return collections
+
+
+def get_all_descendent_collections(collection):
+    """Return a list of all descendent collections.
+
+    Args:
+        collection (bpy.types.Collection): collection
+    """
+    collections = []
+
+    for child in collection.children:
+        collections.append(child)
+        if child.children:
+            collections.extend(get_all_descendent_collections(child))
+
+    return collections
