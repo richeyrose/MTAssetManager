@@ -129,7 +129,7 @@ def load_categories():
     prefs = get_prefs()
     categories = []
     json_path = os.path.join(
-        prefs.default_assets_path,
+        prefs.user_assets_path,
         "data",
         "categories.json"
     )
@@ -156,7 +156,6 @@ def append_category(categories, parent_slug, new_cat):
 
 class MT_OT_Delete_category(bpy.types.Operator):
     """Delete an existing category and optionally the assets and subcategories it contains.
-
     If user decides not to delete assets and subcategories contents is added to parent category.
     """
 
@@ -168,8 +167,8 @@ class MT_OT_Delete_category(bpy.types.Operator):
         name="Category")
 
     delete_assets: BoolProperty(
-        name="Delete Assets and subcategories?",
-        description="Also delete assets and subcategories contained in this category from disk? Warning - Cannot be undone!",
+        name="Delete Assets and Subcategories?",
+        description="Delete all assets and subcategories contained in this category from disk? Warning - Cannot be undone!",
         default=False)
 
     def execute(self, context):
@@ -200,7 +199,8 @@ class MT_OT_Delete_category(bpy.types.Operator):
 
             # delete category
             delete_category(props.categories, self.category_slug)
-            # TODO Update .json
+            # TODO Update .json for delete category
+
             # update sidebar
             props['child_cats'] = get_child_cats(
                 props.categories,
@@ -268,7 +268,7 @@ class MT_OT_Add_Category(bpy.types.Operator):
 
             # Write categories.json file
             json_file = os.path.join(
-                prefs.default_assets_path,
+                prefs.user_assets_path,
                 "data",
                 "categories.json")
 

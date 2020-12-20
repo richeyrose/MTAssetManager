@@ -16,7 +16,7 @@ def mt_am_initialise_on_activation(dummy):
     create_properties()
 
     # we store our asset library .json files in the users directory not the add-on directory
-    # We do this because otherwise if the use removes the addon they will delete all
+    # We do this because otherwise if the user removes the addon they will delete all
     # the metadata that describes the assets
     user_data_path = os.path.join(
         prefs.user_assets_path,
@@ -50,8 +50,7 @@ def mt_am_initialise_on_activation(dummy):
                       if os.path.isfile(os.path.join(user_data_path, fname))]
 
         for f in dest_files:
-            # skip the categories file
-            if f != 'categories.json' and f in src_files:
+            if f in src_files:
                 # load asset descs from user file
                 with open(os.path.join(user_data_path, f)) as json_file:
                     descs = json.load(json_file)

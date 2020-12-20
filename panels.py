@@ -34,7 +34,11 @@ class MT_PT_AM_Main_Panel(Panel):
 
         for cat in child_cats:
             cat_text = cat["Name"]
-            op = layout.operator("view3d.mt_asset_bar", text=cat_text, icon="FILE_FOLDER")
+            row = layout.row()
+            op = row.operator("view3d.mt_asset_bar", text=cat_text, icon="FILE_FOLDER")
             op.category_slug = cat["Slug"]
+            if cat["Parent"]:
+                del_op = row.operator("view3d.mt_delete_category", text="", icon="REMOVE")
+                del_op.category_slug = cat["Slug"]
 
 
