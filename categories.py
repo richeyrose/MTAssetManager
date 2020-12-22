@@ -6,7 +6,7 @@ from.utils import slugify
 from .system import get_addon_path
 from .preferences import get_prefs
 from bpy.props import StringProperty, BoolProperty
-
+from .delete_from_library import delete_assets
 
 def get_descendent_cats(category):
     """Return all descendents of category as a flat list.
@@ -102,26 +102,31 @@ def get_category(categories, category_slug):
     return ret_cat
 
 
-def delete_category(categories, category_slug):
-    """Delete the category.
+
+def delete_category(categories, category_slug, prefs):
+    """Delete the category and all child categories.
 
     Args:
         categories (list[categories]): categories
         category_slug (string): category slug
-
-    Returns:
-        dict{Name,
-            Slug,
-            Parent,
-            Children[list[categories]]}: category
+        prefs (dict): AssetManager prefs
     """
     for cat in categories:
         if cat['Slug'] == category_slug:
             categories.remove(cat)
+            break
         else:
-            delete_category(cat['Children'], category_slug)
+            delete_category(cat['Children'], category_slug, prefs)
 
+    # Update categories.json file
+    json_file = os.path.join(
+        prefs.user_assets_path,
+        "data",
+        "categories.json")
 
+    if os.path.exists(json_file):
+        with open(json_file, "w") as write_file:
+            json.dump(categories, write_file, indent=4)
 
 
 def load_categories():
@@ -154,57 +159,41 @@ def append_category(categories, parent_slug, new_cat):
     return found
 
 
-class MT_OT_Delete_category(bpy.types.Operator):
-    """Delete an existing category and optionally the assets and subcategories it contains.
-    If user decides not to delete assets and subcategories contents is added to parent category.
-    """
+class MT_OT_Delete_Category(bpy.types.Operator):
+    """Delete an existing category and the assets and subcategories it contains."""
 
     bl_idname = "view3d.mt_delete_category"
-    bl_label = "Delete Category"
-    bl_description = "Delete the category."
+    bl_label = "Delete the category and all assets it contains?"
+    bl_description = "Warning, this cannot be Undone!"
+    bl_options = {'INTERNAL'}
 
     category_slug: StringProperty(
         name="Category")
 
-    delete_assets: BoolProperty(
-        name="Delete Assets and Subcategories?",
-        description="Delete all assets and subcategories contained in this category from disk? Warning - Cannot be undone!",
-        default=False)
-
     def execute(self, context):
+        prefs = get_prefs()
         props = context.scene.mt_am_props
         category = get_category(props.active_category["Children"], self.category_slug)
 
-        # in memory list of asset description
-        asset_descs = getattr(props, category["Contains"].lower())
+        asset_type = category["Contains"].lower()
+        asset_descs = getattr(props, asset_type)
 
-        if self.delete_assets:
-            # construct list containing all sub categories
-            descendent_cats = get_descendent_cats(category)
-            descendent_cats.append(category)
-            category_slugs = [cat["Slug"] for cat in descendent_cats]
+        # construct list containing all sub categories
+        descendent_cats = get_descendent_cats(category)
+        descendent_cats.append(category)
+        category_slugs = [cat["Slug"] for cat in descendent_cats]
 
-            # delete all assets
-            for asset in asset_descs:
-                if asset["Category"] in category_slugs:
-                    # remove item from in memory list
-                    asset_descs.remove(asset)
-                    # delete preview image
-                    if os.path.exists(asset["PreviewImagePath"]):
-                        os.remove(asset["PreviewImagePath"])
-                    # delete asset file
-                    if os.path.exists(asset["FilePath"]):
-                        os.remove(asset["FilePath"])
-                    # TODO Update .json
+        # get all assets
+        selected_assets = [desc for desc in asset_descs if desc["Category"] in category_slugs]
+        delete_assets(selected_assets, prefs, props, asset_type, True)
 
-            # delete category
-            delete_category(props.categories, self.category_slug)
-            # TODO Update .json for delete category
+        # delete categories
+        delete_category(props.categories, self.category_slug, prefs)
 
-            # update sidebar
-            props['child_cats'] = get_child_cats(
-                props.categories,
-                props.active_category["Slug"])
+        # update sidebar
+        props['child_cats'] = get_child_cats(
+            props.categories,
+            props.active_category["Slug"])
 
         # update asset bar
         props.assets_updated = True
@@ -213,12 +202,7 @@ class MT_OT_Delete_category(bpy.types.Operator):
 
     def invoke(self, context, event):
         """Call when user accesses operator via menu."""
-        return context.window_manager.invoke_props_dialog(self)
-
-    def draw(self, context):
-        """Draw modal pop up."""
-        layout = self.layout
-        layout.prop(self, 'delete_assets')
+        return context.window_manager.invoke_confirm(self, event)
 
 
 class MT_OT_Add_Category(bpy.types.Operator):
