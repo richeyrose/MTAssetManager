@@ -2,7 +2,7 @@ import os
 import json
 import bpy
 from bpy.types import Operator
-from bpy.props import StringProperty, PointerProperty, BoolProperty
+from bpy.props import BoolProperty
 from .preferences import get_prefs
 
 
