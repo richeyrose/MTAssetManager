@@ -1,6 +1,6 @@
 import bpy
-from bpy.types import Panel, Operator
-from .categories import get_category, get_child_cats, get_parent_cat_slug, load_categories
+from bpy.types import Panel
+from .categories import load_categories
 
 
 class MT_PT_AM_Main_Panel(Panel):
@@ -24,7 +24,7 @@ class MT_PT_AM_Main_Panel(Panel):
         layout = self.layout
 
         if active_category is not None:
-            op = layout.operator('view3d.mt_ret_to_parent', text='...', icon='FILE_PARENT')
+            op = layout.operator('view3d.mt_ret_to_parent', text=active_category['Name'], icon='FILE_PARENT')
 
             row = layout.row()
             row.label(text='Categories')
@@ -40,5 +40,3 @@ class MT_PT_AM_Main_Panel(Panel):
             if cat["Parent"]:
                 del_op = row.operator("view3d.mt_delete_category", text="", icon="REMOVE")
                 del_op.category_slug = cat["Slug"]
-
-
