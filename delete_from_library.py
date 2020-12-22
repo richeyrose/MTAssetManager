@@ -19,44 +19,20 @@ class MT_OT_AM_Delete_Selected_Assets_from_Library(Operator):
 
     def __init__(self):
         props = bpy.context.scene.mt_am_props
-        self.assets = [asset for asset in props.asset_bar.assets if asset.selected]
+        self.selected_assets = [asset.asset_desc for asset in props.asset_bar.assets if asset.selected]
 
     @classmethod
     def poll(cls, context):
-        props = bpy.context.scene.mt_am_props
+        props = context.scene.mt_am_props
         selected_assets = [asset for asset in props.asset_bar.assets if asset.selected]
         return len(selected_assets) > 0
 
     def execute(self, context):
         prefs = get_prefs()
-        props = bpy.context.scene.mt_am_props
+        props = context.scene.mt_am_props
         # get in memory list of asset_descs
-        asset_descs = getattr(props, self.assets[0].asset_desc["Type"].lower())
-
-        for asset in self.assets:
-            # remove item from in memory list
-            asset_descs.remove(asset.asset_desc)
-            # delete preview image
-            if os.path.exists(asset.asset_desc["PreviewImagePath"]):
-                os.remove(asset.asset_desc["PreviewImagePath"])
-            # delete asset file
-            if self.delete_from_disk:
-                if os.path.exists(asset.asset_desc["FilePath"]):
-                    os.remove(asset.asset_desc["FilePath"])
-
-        # overwrite .json file with modified list
-        json_file = os.path.join(
-            prefs.user_assets_path,
-            "data",
-            self.assets[0].asset_desc["Type"].lower() + ".json")
-
-        if os.path.exists(json_file):
-            with open(json_file, "w") as write_file:
-                json.dump(asset_descs, write_file, indent=4)
-        else:
-            os.makedirs(json_file)
-            with open(json_file, "w") as write_file:
-                json.dump(asset_descs, write_file, indent=4)
+        asset_type = self.selected_assets[0]["Type"].lower()
+        delete_assets(self.selected_assets, prefs, props, asset_type, self.delete_from_disk)
 
         props.assets_updated = True
 
@@ -68,8 +44,43 @@ class MT_OT_AM_Delete_Selected_Assets_from_Library(Operator):
     def draw(self, context):
         props = context.scene.mt_am_props
         layout = self.layout
-        layout.label(text="Delete " + str(len(self.assets)) + " Assets?")
+        layout.label(text="Delete " + str(len(self.selected_assets)) + " Assets?")
         layout.label(text="Warning! Cannot be Undone!")
         layout.prop(self, 'delete_from_disk')
 
 
+def delete_assets(selected_assets, prefs, props, asset_type, delete_from_disk=True):
+    """Delete the selected assets.
+
+    Args:
+        selected_assets (list[asset_descriptions]): list of MakeTile asset descriptions
+        prefs (dict): Asset manager prefs
+        props (dict): Asset manager props
+        asset_type (ENUM in {'objects', 'collections', 'materials'}): asset type
+        delete_from_disk (bool, optional): Delete .blend file containing asset from disk? Defaults to True.
+    """
+    asset_descs = getattr(props, asset_type)
+    for asset in selected_assets:
+        # remove item from in memory list
+        asset_descs.remove(asset)
+        # delete preview image
+        if os.path.exists(asset["PreviewImagePath"]):
+            os.remove(asset["PreviewImagePath"])
+        # delete asset file
+        if delete_from_disk:
+            if os.path.exists(asset["FilePath"]):
+                os.remove(asset["FilePath"])
+
+    # overwrite .json file with modified list
+    json_file = os.path.join(
+        prefs.user_assets_path,
+        "data",
+        asset_type + ".json")
+
+    if os.path.exists(json_file):
+        with open(json_file, "w") as write_file:
+            json.dump(asset_descs, write_file, indent=4)
+    else:
+        os.makedirs(json_file)
+        with open(json_file, "w") as write_file:
+            json.dump(asset_descs, write_file, indent=4)
