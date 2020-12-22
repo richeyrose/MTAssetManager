@@ -10,6 +10,10 @@ from .utils import dedupe
 
 
 def mt_am_initialise_on_activation(dummy):
+    """Call the first time the depsgraph is updated after add-on activation.
+
+    Sets up asset cache .json files
+    """
     bpy.app.handlers.depsgraph_update_pre.remove(mt_am_initialise_on_activation)
     prefs = get_prefs()
     props = bpy.context.scene.mt_am_props
