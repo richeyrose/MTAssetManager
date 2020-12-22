@@ -33,35 +33,28 @@ def mt_am_initialise_on_activation(dummy):
     asset_types = ['objects', 'collections', 'materials']
     set_asset_desc_filepaths(prefs.default_assets_path, asset_types)
 
-    # check to see if the user assets path already exists
-    if not os.path.exists(user_data_path):
-        os.makedirs(user_data_path)
-        # copy all files from addon assets/data folder to user assets/data folder
-        src_files = [fname for fname in os.listdir(default_data_path)
-                     if os.path.isfile(os.path.join(default_data_path, fname))]
-        for fname in src_files:
-            shutil.copy2(os.path.join(default_data_path, fname), user_data_path)
-    else:
-        # if the user already has asset description files we need to append any new
-        # asset descriptions to them
-        src_files = [fname for fname in os.listdir(default_data_path)
-                     if os.path.isfile(os.path.join(default_data_path, fname))]
-        dest_files = [fname for fname in os.listdir(user_data_path)
-                      if os.path.isfile(os.path.join(user_data_path, fname))]
+    # Create user asset and categories files if none exist and update existing one with
+    # new bundled assets if they do.
+    asset_types.append('categories')
 
-        for f in dest_files:
-            if f in src_files:
-                # load asset descs from user file
-                with open(os.path.join(user_data_path, f)) as json_file:
-                    descs = json.load(json_file)
-                # append the asset descs from asset manager file
-                with open(os.path.join(default_data_path, f)) as json_file:
-                    descs.extend(json.load(json_file))
-                # deduplicate
-                descs = list(dedupe(descs, key=lambda d: d['Slug']))
-                # write data file
-                with open(os.path.join(user_data_path, f), "w") as write_file:
-                    json.dump(descs, write_file, indent=4)
+    for name in asset_types:
+        filename = name + '.json'
+        # if user asset file doesn't exist create it
+        if not os.path.exists(os.path.join(user_data_path, filename)):
+            shutil.copy2(os.path.join(default_data_path, filename), user_data_path)
+        # else update existing asset file with new bundled assets
+        else:
+            # load asset descs from user file
+            with open(os.path.join(user_data_path, filename)) as json_file:
+                descs = json.load(json_file)
+            # append the asset descs from asset manager file
+            with open(os.path.join(default_data_path, filename)) as json_file:
+                descs.extend(json.load(json_file))
+            # deduplicate
+            descs = list(dedupe(descs, key=lambda d: d['Slug']))
+            # write data file
+            with open(os.path.join(user_data_path, filename), "w") as write_file:
+                json.dump(descs, write_file, indent=4)
 
     load_asset_descriptions(props, asset_types)
 
