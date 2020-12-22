@@ -61,7 +61,7 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
                 if event.shift:
                     return self.shift_click()
                 elif event.ctrl:
-                    return self.ctrl_click(x, y)
+                    return self.ctrl_click()
                 else:
                     self._mouse_down = True
                     return self.mouse_down(x, y)
