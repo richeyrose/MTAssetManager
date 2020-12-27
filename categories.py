@@ -3,7 +3,7 @@ import os
 import json
 import bpy
 from bpy.props import StringProperty
-from.utils import slugify
+from .utils import slugify
 from .preferences import get_prefs
 from .delete_from_library import delete_assets
 
