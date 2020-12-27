@@ -41,6 +41,10 @@ def mt_am_initialise_on_activation(dummy):
     # new bundled assets if they do.
     asset_types.append('categories')
 
+    # check data directory exists
+    if not os.path.exists(user_data_path):
+        os.makedirs(user_data_path)
+
     for name in asset_types:
         filename = name + '.json'
         # if user asset file doesn't exist create it
