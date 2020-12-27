@@ -2,10 +2,9 @@ import re
 import os
 import json
 import bpy
+from bpy.props import StringProperty
 from.utils import slugify
-from .system import get_addon_path
 from .preferences import get_prefs
-from bpy.props import StringProperty, BoolProperty
 from .delete_from_library import delete_assets
 
 def get_descendent_cats(category):
