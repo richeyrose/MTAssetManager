@@ -31,41 +31,13 @@ from bpy.props import (
 
 class MT_AM_Prefs(bpy.types.AddonPreferences):
     bl_idname = __package__
-
     addon_path = get_addon_path()
     user_path = os.path.expanduser('~')
     export_path = os.path.join(user_path, 'MakeTile')
-    user_assets_path = os.path.join(user_path, 'MakeTile', 'UserAssets')
-
-    # asset libraries
-    def update_assetspath(self, context):
-        '''method to update the asset path'''
-
-        new_path = makedir(abspath(self.assets_path))
-        old_path = abspath(self.old_path)
-
-        if new_path != old_path:
-            print(" » Copying asset libraries from %s to %s" % (old_path, new_path))
-
-            libs = sorted([f for f in os.listdir(old_path) if os.path.isdir(os.path.join(old_path, f))])
-
-            for lib in libs:
-                src = os.path.join(old_path, lib)
-                dest = os.path.join(new_path, lib)
-
-                if not os.path.exists(dest):
-                    print(" » %s" % (lib))
-                    shutil.copytree(src, dest)
-
-            # set the new old_path
-            self.old_path = new_path
-
-            # reload assets
-            reload_asset_libraries()
+    user_assets_path = os.path.join(user_path, 'MakeTile')
 
     def update_user_assetspath(self, context):
-        '''method to update the user asset path'''
-
+        """Update the user assets path."""
         new_path = makedir(abspath(self.user_assets_path))
         old_path = abspath(self.old_path)
 
@@ -92,8 +64,7 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
         name="Default Asset Libraries",
         description="Path to Default Asset Libraries",
         subtype='DIR_PATH',
-        default=os.path.join(addon_path, "assets"),
-        update=update_assetspath
+        default=os.path.join(addon_path, "assets")
     )
 
     user_assets_path: StringProperty(
