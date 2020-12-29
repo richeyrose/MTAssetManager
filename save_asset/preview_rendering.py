@@ -36,7 +36,7 @@ def render_material_preview(self, context, image_path, scene_path, scene_name, m
                 self.report(
                     {'WARNING'},
                     "Preview object not found. Preview render aborted")
-                return
+                return None
             else:
                 data_to.objects = [preview_obj_name]
 
@@ -112,8 +112,7 @@ def render_material_preview(self, context, image_path, scene_path, scene_name, m
     context.window.scene = orig_scene
 
     # load rendered image into scene
-    bpy.data.images.load(image_path, check_existing=True)
-    return
+    return bpy.data.images.load(image_path, check_existing=True)
 
 
 def render_object_preview(self, context, image_path, scene_path, scene_name, obj):
@@ -196,8 +195,7 @@ def render_object_preview(self, context, image_path, scene_path, scene_name, obj
     context.window.scene = orig_scene
 
     # load rendered image into scene
-    bpy.data.images.load(image_path, check_existing=True)
-    return
+    return bpy.data.images.load(image_path, check_existing=True)
 
 
 def render_collection_preview(context, image_path, scene_path, scene_name, collection):
@@ -270,8 +268,8 @@ def render_collection_preview(context, image_path, scene_path, scene_name, colle
     context.window.scene = orig_scene
 
     # load rendered image into scene
-    bpy.data.images.load(image_path, check_existing=True)
-    return
+    return bpy.data.images.load(image_path, check_existing=True)
+
 
 
 def link_preview_scene(scene_name, scene_path):
