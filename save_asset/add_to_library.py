@@ -77,22 +77,22 @@ def draw_save_props_menu(self, context):
     layout.prop(self, 'Tags')
 
 
-def add_asset_to_library(self, context, props, asset, assets_path, asset_type, category, tags="", **kwargs):
+def add_asset_to_library(self, context, asset, asset_type, asset_desc):
     """Add the passed in asset to the asset library.
 
     Args:
         context (bpy.Context): context
-        props (scene.mt_am_props): asset manager properties
         asset (bpy.types.object, material, collection): the asset to add
-        assets_path (path): the path to the root assets foldere
         asset_type (enum in {OBJECTS, COLLECTIONS, MATERIALS}): asset type
-        category (dict): MakeTile category
-        tags (str, optional): Comma seperated list of tags. Used for searching. Defaults to "".
-        **kwargs: additional fields. Usually Description, Author, URI, License
 
     Returns:
         dict: asset_desc
     """
+    props = context.scene.mt_am_props
+    prefs = get_prefs()
+    assets_path = prefs.user_assets_path
+
+    # in memory list of assets of asset_type
     assets = getattr(props, asset_type.lower())
 
     asset_save_path = os.path.join(
@@ -105,38 +105,6 @@ def add_asset_to_library(self, context, props, asset, assets_path, asset_type, c
         "data"
     )
 
-    slug = slugify(asset.name)
-    current_slugs = [asset['Slug'] for asset in assets]
-
-    # check if slug already exists and increment and rename if not.
-    new_slug = find_and_rename(slug, current_slugs)
-
-    pretty_name = asset.name  # when we reimport an asset we will rename it to this
-
-    asset.name = new_slug
-
-    filepath = os.path.join(
-        asset_save_path,
-        new_slug + '.blend')
-
-    imagepath = os.path.join(
-        asset_save_path,
-        new_slug + '.png')
-
-    # construct dict for saving to users objects.json
-    asset_desc = {
-        "Name": pretty_name,
-        "Slug": new_slug,
-        "Category": category,
-        "FileName": new_slug + '.blend',
-        "FilePath": filepath,
-        "PreviewImagePath": imagepath,
-        "PreviewImageName": new_slug + '.png',
-        "Type": asset_type.upper(),
-        "Tags": tagify(tags)}
-
-    for key, value in kwargs.items():
-        asset_desc[key] = value
     # update current objects list
     assets = assets.append(asset_desc)
 
@@ -161,18 +129,91 @@ def add_asset_to_library(self, context, props, asset, assets_path, asset_type, c
     if not os.path.exists(asset_save_path):
         os.makedirs(asset_save_path)
 
+    # change asset name to asset slug
+    asset.name = asset_desc['Slug']
+
+    # save asset in individual file
     bpy.data.libraries.write(
-        os.path.join(filepath),
+        os.path.join(asset_desc['FilePath']),
         {asset},
         fake_user=True)
 
-    # change asset name back to pretty_name
-    asset.name = pretty_name
+    # change asset name back to pretty name
+    asset.name = asset_desc['Name']
 
-    self.report({'INFO'}, pretty_name + " added to Library.")
+    self.report({'INFO'}, asset_desc['Name'] + " added to Library.")
 
     return asset_desc
 
+
+def construct_asset_description(props, asset_type, assets_path, asset, **kwargs):
+    # check if we're in a sub category that contains assets of the correct type.
+    # If not add the object to the root category for its type
+    if props.active_category is None:
+        category = asset_type.lower()
+    else:
+        category = check_category_type(props.active_category, asset_type)
+
+    # in memory list of assets of asset_type
+    assets = getattr(props, asset_type.lower())
+
+    asset_save_path = os.path.join(
+        assets_path,
+        asset_type.lower()
+    )
+
+    slug = slugify(asset.name)
+    current_slugs = [asset['Slug'] for asset in assets]
+
+    # check if slug already exists and increment and rename if not.
+    new_slug = find_and_rename(slug, current_slugs)
+
+    pretty_name = asset.name  # when we reimport an asset we will rename it to this
+
+    filepath = os.path.join(
+        asset_save_path,
+        new_slug + '.blend')
+
+    imagepath = os.path.join(
+        asset_save_path,
+        new_slug + '.png')
+
+    # construct dict for saving to .json cache file
+    asset_desc = {
+        "Name": pretty_name,
+        "Slug": new_slug,
+        "Category": category,
+        "FileName": new_slug + '.blend',
+        "FilePath": filepath,
+        "PreviewImagePath": imagepath,
+        "PreviewImageName": new_slug + '.png',
+        "Type": asset_type.upper()}
+
+    for key, value in kwargs.items():
+        asset_desc[key] = value
+
+    return asset_desc
+
+def save_as_blender_asset(asset, asset_desc, tags):
+    """Save asset as blender asset for blender's internal asset browser.
+
+    Args:
+        asset (ID data block): Asset
+        asset_desc (dict): asset description
+        tags (list[str]): list of tags
+    """
+    ctx = {'id': asset}
+    try:
+        bpy.ops.asset.mark(ctx)
+    except RuntimeError:
+        bpy.ops.asset.clear(ctx)
+        bpy.ops.asset.mark(ctx)
+
+    bpy.ops.ed.lib_id_load_custom_preview(ctx, filepath=asset_desc['PreviewImagePath'])
+    asset.asset_data.description = asset_desc['Description']
+
+    for tag in tags:
+        asset.asset_data.tags.new(tag, skip_if_exists=True)
 
 def draw_object_context_menu_items(self, context):
     """Add save options to object right click context menu."""
