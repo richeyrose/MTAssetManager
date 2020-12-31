@@ -239,7 +239,7 @@ class MT_OT_AM_Asset_Bar(Operator):
             context (bpy.context): context
         """
         # check to see if an asset has been added, removed or updated.
-        if context.scene.mt_am_props.assets_updated:
+        if hasattr(context.scene, 'mt_am_props') and context.scene.mt_am_props.assets_updated:
             context.scene.mt_am_props.assets_updated = False
             # TODO make sure asset bar updates if we start with an empty category and then add an asset to it
             self.init_assets(context, reset_index=False)
