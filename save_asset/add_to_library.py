@@ -194,6 +194,7 @@ def construct_asset_description(props, asset_type, assets_path, asset, **kwargs)
 
     return asset_desc
 
+
 def save_as_blender_asset(asset, asset_desc, tags):
     """Save asset as blender asset for blender's internal asset browser.
 
@@ -203,17 +204,21 @@ def save_as_blender_asset(asset, asset_desc, tags):
         tags (list[str]): list of tags
     """
     ctx = {'id': asset}
-    try:
+
+    if not hasattr(asset.asset_data, 'id_data'):
         bpy.ops.asset.mark(ctx)
-    except RuntimeError:
+    else:
         bpy.ops.asset.clear(ctx)
         bpy.ops.asset.mark(ctx)
 
-    bpy.ops.ed.lib_id_load_custom_preview(ctx, filepath=asset_desc['PreviewImagePath'])
+    if os.path.isfile(asset_desc['PreviewImagePath']):
+        bpy.ops.ed.lib_id_load_custom_preview(ctx, filepath=asset_desc['PreviewImagePath'])
+
     asset.asset_data.description = asset_desc['Description']
 
     for tag in tags:
         asset.asset_data.tags.new(tag, skip_if_exists=True)
+
 
 def draw_object_context_menu_items(self, context):
     """Add save options to object right click context menu."""
