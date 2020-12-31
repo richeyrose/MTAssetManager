@@ -188,28 +188,30 @@ class MT_OT_AM_Add_Active_Object_To_Library(Operator):
             "previews",
             "preview_scenes.blend")
 
-        render_object_preview(
-            self,
-            context,
-            asset_desc['PreviewImagePath'],
-            scene_path,
-            prefs.preview_scene,
-            obj)
+        if render_object_preview(
+                self,
+                context,
+                asset_desc['PreviewImagePath'],
+                scene_path,
+                prefs.preview_scene,
+                obj):
 
-        # save asset data for Blender asset browser
-        if hasattr(obj, 'asset_data'):
-            save_as_blender_asset(obj, asset_desc, tags)
+            # save asset data for Blender asset browser
+            if hasattr(obj, 'asset_data'):
+                save_as_blender_asset(obj, asset_desc, tags)
 
-        add_asset_to_library(
-            self,
-            context,
-            obj,
-            asset_type,
-            asset_desc)
+            add_asset_to_library(
+                self,
+                context,
+                obj,
+                asset_type,
+                asset_desc)
 
-        props.assets_updated = True
+            props.assets_updated = True
 
-        return {'FINISHED'}
+            return {'FINISHED'}
+
+        return {'CANCELLED'}
 
     def invoke(self, context, event):
         """Call when operator invoked from UI."""

@@ -11,10 +11,12 @@ from ..collections import (
 from .add_to_library import (
     draw_save_props_menu,
     check_category_type,
-    add_asset_to_library)
+    add_asset_to_library,
+    construct_asset_description,
+    save_as_blender_asset)
 from ..preferences import get_prefs
 from .preview_rendering import render_collection_preview
-
+from ..utils import tagify
 
 class MT_OT_Set_Object_Bool_Type(Operator):
     """Set the object type for objects saved as part of a ARCH_ELEM collection."""
@@ -87,8 +89,6 @@ class MT_OT_Set_Object_Bool_Type(Operator):
             row.prop(obj, "name")
             row.prop(obj.mt_object_props, "boolean_type", text="")
             row.prop(obj.mt_object_props, "boolean_order", text="")
-
-
 
 
 class MT_OT_Add_Collection_To_Library(Operator):
@@ -295,29 +295,21 @@ def add_collection_to_library(self, context):
                 ob.parent = root
                 ob.matrix_parent_inverse = root.matrix_world.inverted()
 
-    # check if we're in a sub category that contains assets of the correct type.
-    # If not add the object to the root category for its type
-    if props.active_category is None:
-        category = asset_type.lower()
-    else:
-        category = check_category_type(props.active_category, asset_type)
+    tags = tagify(self.Tags)
 
     kwargs = {
         "Description": self.Description,
         "URI": self.URI,
         "Author": self.Author,
         "License": self.License,
+        "Tags": tags,
         "RootObject": root.name}
 
-    asset_desc = add_asset_to_library(
-        self,
-        context,
+    asset_desc = construct_asset_description(
         props,
-        collection,
-        assets_path,
         asset_type,
-        category,
-        self.Tags,
+        assets_path,
+        collection,
         **kwargs)
 
     scene_path = os.path.join(
@@ -325,13 +317,26 @@ def add_collection_to_library(self, context):
         "previews",
         "preview_scenes.blend")
 
-    render_collection_preview(
-        context,
-        asset_desc['PreviewImagePath'],
-        scene_path,
-        prefs.preview_scene,
-        collection)
+    if render_collection_preview(
+            self,
+            context,
+            asset_desc['PreviewImagePath'],
+            scene_path,
+            prefs.preview_scene,
+            collection):
 
-    props.assets_updated = True
+        if hasattr(collection, 'asset_data'):
+            save_as_blender_asset(collection, asset_desc, tags)
 
-    return {'FINISHED'}
+        add_asset_to_library(
+            self,
+            context,
+            collection,
+            asset_type,
+            asset_desc)
+
+        props.assets_updated = True
+
+        return {'FINISHED'}
+
+    return {'CANCELLED'}

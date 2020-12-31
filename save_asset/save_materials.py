@@ -6,9 +6,12 @@ from .add_to_library import create_preview_obj_enums
 from .add_to_library import (
     draw_save_props_menu,
     check_category_type,
-    add_asset_to_library)
+    add_asset_to_library,
+    construct_asset_description,
+    save_as_blender_asset)
 from ..preferences import get_prefs
 from .preview_rendering import render_material_preview
+from ..utils import tagify
 
 
 class MT_OT_AM_Add_Material_To_Library(Operator):
@@ -73,38 +76,28 @@ class MT_OT_AM_Add_Material_To_Library(Operator):
     def execute(self, context):
         """Add the active material to the MakeTile Library."""
         material = context.active_object.active_material
+        props = context.scene.mt_am_props
+        prefs = get_prefs()
+        assets_path = prefs.user_assets_path
+        asset_type = "MATERIALS"
 
         if self.DisplacementMaterial:
             material['mt_material'] = True
 
-        props = context.scene.mt_am_props
-        prefs = get_prefs()
-        assets_path = prefs.user_assets_path
-
-        asset_type = "MATERIALS"
-
-        # check if we're in a sub category that contains assets of the correct type.
-        # If not add the object to the root category for its type
-        if props.active_category is None:
-            category = asset_type.lower()
-        else:
-            category = check_category_type(props.active_category, asset_type)
+        tags = tagify(self.Tags)
 
         kwargs = {
             "Description": self.Description,
             "URI": self.URI,
             "Author": self.Author,
-            "License": self.License}
+            "License": self.License,
+            "Tags": tags}
 
-        asset_desc = add_asset_to_library(
-            self,
-            context,
+        asset_desc = construct_asset_description(
             props,
-            material,
+            asset_type,
             assets_path,
-            "MATERIALS",
-            category,
-            self.Tags,
+            material,
             **kwargs)
 
         scene_path = os.path.join(
@@ -115,17 +108,33 @@ class MT_OT_AM_Add_Material_To_Library(Operator):
         # Preview object should be a choice between wall, floor, roof, base etc.
         # TODO implement mini base and roof preview objects
         preview_obj = self.PreviewObject
-        render_material_preview(
-            self,
-            context,
-            asset_desc['PreviewImagePath'],
-            scene_path,
-            prefs.preview_scene,
-            material,
-            preview_obj)
 
-        props.assets_updated = True
-        return {'FINISHED'}
+        if render_material_preview(
+                self,
+                context,
+                asset_desc['PreviewImagePath'],
+                scene_path,
+                prefs.preview_scene,
+                material,
+                preview_obj):
+
+            # TODO - This is currently broken for materials. Why?
+            # save asset data for Blender asset browser
+            if hasattr(material, 'asset_data'):
+                save_as_blender_asset(material, asset_desc, tags)
+
+            add_asset_to_library(
+                self,
+                context,
+                material,
+                asset_type,
+                asset_desc)
+
+            props.assets_updated = True
+
+            return {'FINISHED'}
+
+        return {'CANCELLED'}
 
     def invoke(self, context, event):
         """Call when operator invoked from UI."""
