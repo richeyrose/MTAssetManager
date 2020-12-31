@@ -218,9 +218,9 @@ def save_as_blender_asset(asset, asset_desc, tags):
 def draw_object_context_menu_items(self, context):
     """Add save options to object right click context menu."""
     layout = self.layout
+    layout.operator_context = 'INVOKE_DEFAULT'
     if context.active_object.type in ['MESH']:
         layout.separator()
-        layout.operator_context = 'INVOKE_DEFAULT'
         layout.operator(
             "object.add_active_object_to_library",
             text="Save active object to MakeTile Library")
