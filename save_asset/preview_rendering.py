@@ -270,15 +270,27 @@ def render_collection_preview(context, image_path, scene_path, scene_name, colle
     # load rendered image into scene
     return bpy.data.images.load(image_path, check_existing=True)
 
+def link_preview_scene(self, scene_name, scene_path):
+    """Link preview scene used for preview renders.
 
+    Args:
+        scene_name (str): Scene Name
+        scene_path (str): Path to .blend file containing scene.
 
-def link_preview_scene(scene_name, scene_path):
-    # link preview scene we're going to use for render
+    Returns:
+        bpy.types.Scene: Preview Scene.
+    """
     if scene_name not in bpy.data.scenes:
         previews_path = os.path.join(
             scene_path)
+        try:
         with bpy.data.libraries.load(previews_path) as (data_from, data_to):
             if scene_name in data_from.scenes:
                 data_to.scenes = [scene_name]
-        return data_to.scenes[0]
+                else:
+                    self.report({'ERROR'}, 'Preview scene ' + scene_name + ' not found. Aborting')
+                    return False
+        except OSError:
+            self.report({'ERROR'}, scene_path + ' not found. Aborting')
+            return False
     return bpy.data.scenes[scene_name]
