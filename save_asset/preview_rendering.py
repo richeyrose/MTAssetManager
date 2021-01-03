@@ -72,8 +72,9 @@ def render_material_preview(self, context, image_path, scene_path, scene_name, m
                 for poly in preview_obj.data.polygons:
                     poly.material_index = material_index
 
-        # reset preview object location
-        preview_obj.location = (0, 0, 0)
+        # TODO #5 This really shouldn't be hard coded but currently necessary to get wooden framework to render properly.
+        if preview_obj.name != 'Wall':
+            preview_obj.location = (0, 0, 0)
 
         render = context.scene.render
 
@@ -244,9 +245,11 @@ def render_collection_preview(self, context, image_path, scene_path, scene_name,
         camera_rot = context.scene.camera.rotation_euler.copy()
         camera_loc = context.scene.camera.location.copy()
 
-        # link objects to new scene and select them
+        context.collection.children.link(collection)
+
+        # Select all objects in collection
         for obj in collection.all_objects:
-            preview_scene.collection.objects.link(obj)
+            # preview_scene.collection.objects.link(obj)
             obj.select_set(True)
 
         context.view_layer.update()
@@ -281,9 +284,8 @@ def render_collection_preview(self, context, image_path, scene_path, scene_name,
         render.resolution_y = orig_res_y
         render.filepath = orig_filepath
 
-        # unlink collection objects from preview scene
-        for obj in collection.all_objects:
-            preview_scene.collection.objects.unlink(obj)
+        # unlink collection from preview scene
+        context.collection.children.unlink(collection)
 
         # reset camera
         context.scene.camera.location = camera_loc
