@@ -118,7 +118,6 @@ class MT_OT_AM_Add_Material_To_Library(Operator):
                 material,
                 preview_obj):
 
-            # TODO - This is currently broken for materials. Why?
             # save asset data for Blender asset browser
             if hasattr(material, 'asset_data'):
                 save_as_blender_asset(material, asset_desc, tags)
@@ -135,6 +134,7 @@ class MT_OT_AM_Add_Material_To_Library(Operator):
             return {'FINISHED'}
 
         return {'CANCELLED'}
+
 
     def invoke(self, context, event):
         """Call when operator invoked from UI."""

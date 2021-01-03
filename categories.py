@@ -7,6 +7,7 @@ from .utils import slugify
 from .preferences import get_prefs
 from .delete_from_library import delete_assets
 
+# TODO #1 Create a rename category operator
 def get_descendent_cats(category):
     """Return all descendents of category as a flat list.
 

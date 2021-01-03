@@ -4,8 +4,7 @@ from .preferences import get_prefs
 from .ui_widget import MT_UI_AM_Widget
 from .ui_nav_arrow import MT_UI_AM_Left_Nav_Arrow, MT_UI_AM_Right_Nav_Arrow
 
-# TODO add right click method for pasting in bar
-
+#TODO #4 add pop over preview with larger image and meta data
 class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
     """The asset bar UI element."""
     def __init__(self, x, y, width, height, op):
