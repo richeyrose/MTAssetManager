@@ -88,6 +88,7 @@ def add_asset_to_library(self, context, asset, asset_type, asset_desc):
     Returns:
         dict: asset_desc
     """
+    asset = asset.id_data
     props = context.scene.mt_am_props
     prefs = get_prefs()
     assets_path = prefs.user_assets_path
@@ -204,6 +205,7 @@ def save_as_blender_asset(asset, asset_desc, tags):
         tags (list[str]): list of tags
     """
     ctx = {'id': asset}
+    asset = asset.id_data
 
     if not hasattr(asset.asset_data, 'id_data'):
         bpy.ops.asset.mark(ctx)
@@ -211,14 +213,16 @@ def save_as_blender_asset(asset, asset_desc, tags):
         bpy.ops.asset.clear(ctx)
         bpy.ops.asset.mark(ctx)
 
+    # TODO: #2 Check back when 2.92 is in Beta to see if this is more reliable. Currently it causes
+    # an access violation when used on a material.
+    '''
     if os.path.isfile(asset_desc['PreviewImagePath']):
         bpy.ops.ed.lib_id_load_custom_preview(ctx, filepath=asset_desc['PreviewImagePath'])
-
+    '''
     asset.asset_data.description = asset_desc['Description']
 
     for tag in tags:
         asset.asset_data.tags.new(tag, skip_if_exists=True)
-
 
 def draw_object_context_menu_items(self, context):
     """Add save options to object right click context menu."""
