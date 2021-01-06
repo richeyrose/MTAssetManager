@@ -16,23 +16,14 @@
                         "Slug": "collections\\tiles\\walls",
                         "Parent": "collections\\tiles",
                         "Contains": "COLLECTIONS",
-                        "Children": [
-                            {
-                                "Name": "Straight",
-                                "Slug": "collections\\tiles\\walls\\straight",
-                                "Parent": "collections\\tiles\\walls",
-                                "Contains": "COLLECTIONS",
-                                "Children": [
-                                    {
-                                        "Name": "Wibble",
-                                        "Slug": "collections\\tiles\\walls\\straight",
-                                        "Parent": "collections\\tiles\\walls",
-                                        "Contains": "COLLECTIONS",
-                                        "Children": []
-                                    }
-                                ]
-                            }
-                        ]
+                        "Children": []
+                    },
+                    {
+                        "Name": "Columns",
+                        "Slug": "collections\\tiles\\columns",
+                        "Parent": "collections\\tiles",
+                        "Contains": "COLLECTIONS",
+                        "Children": []
                     },
                     {
                         "Name": "Floors",
@@ -40,11 +31,26 @@
                         "Parent": "collections\\tiles",
                         "Contains": "COLLECTIONS",
                         "Children": []
+                    }
+                ]
+            },
+            {
+                "Name": "Architectural Elements",
+                "Slug": "collections\\architectural_elements",
+                "Parent": "collections",
+                "Contains": "COLLECTIONS",
+                "Children": [
+                    {
+                        "Name": "Doors and Doorways",
+                        "Slug": "collections\\architectural_elements\\doors_and_doorways",
+                        "Parent": "collections\\architectural_elements",
+                        "Contains": "COLLECTIONS",
+                        "Children": []
                     },
                     {
-                        "Name": "Columns",
-                        "Slug": "collections\\tiles\\columns",
-                        "Parent": "collections\\tiles",
+                        "Name": "Windows",
+                        "Slug": "collections\\architectural_elements\\windows",
+                        "Parent": "collections\\architectural_elements",
                         "Contains": "COLLECTIONS",
                         "Children": []
                     }
@@ -58,28 +64,6 @@
         "Parent": "",
         "Contains": "OBJECTS",
         "Children": [
-            {
-                "Name": "Booleans",
-                "Slug": "objects\\booleans",
-                "Parent": "objects",
-                "Contains": "OBJECTS",
-                "Children": [
-                    {
-                        "Name": "Cutters",
-                        "Slug": "objects\\booleans\\cutters",
-                        "Parent": "objects\\booleans",
-                        "Contains": "OBJECTS",
-                        "Children": []
-                    },
-                    {
-                        "Name": "Top Pegs",
-                        "Slug": "objects\\booleans\\top_pegs",
-                        "Parent": "objects\\booleans",
-                        "Contains": "OBJECTS",
-                        "Children": []
-                    }
-                ]
-            },
             {
                 "Name": "Props",
                 "Slug": "objects\\props",
@@ -116,35 +100,6 @@
                         "Children": []
                     }
                 ]
-            },
-            {
-                "Name": "New Category",
-                "Slug": "objects\\new_category",
-                "Parent": "objects",
-                "Contains": "OBJECTS",
-                "Children": [
-                    {
-                        "Name": "New Category",
-                        "Slug": "objects\\new_category\\new_category",
-                        "Parent": "objects\\new_category",
-                        "Contains": "OBJECTS",
-                        "Children": []
-                    }
-                ]
-            },
-            {
-                "Name": "New Category",
-                "Slug": "objects\\new_category",
-                "Parent": "objects",
-                "Contains": "OBJECTS",
-                "Children": []
-            },
-            {
-                "Name": "Test",
-                "Slug": "objects\\test",
-                "Parent": "objects",
-                "Contains": "OBJECTS",
-                "Children": []
             }
         ]
     },
@@ -155,66 +110,22 @@
         "Contains": "MATERIALS",
         "Children": [
             {
+                "Name": "Special",
+                "Slug": "materials\\special",
+                "Parent": "materials",
+                "Contains": "MATERIALS",
+                "Children": []
+            },
+            {
                 "Name": "Wall",
                 "Slug": "materials\\wall",
                 "Parent": "materials",
                 "Contains": "MATERIALS",
-                "Children": [
-                    {
-                        "Name": "Stone",
-                        "Slug": "materials\\wall\\stone",
-                        "Parent": "materials\\wall",
-                        "Contains": "MATERIALS",
-                        "Children": []
-                    },
-                    {
-                        "Name": "Brick",
-                        "Slug": "materials\\wall\\brick",
-                        "Parent": "materials\\wall",
-                        "Contains": "MATERIALS",
-                        "Children": []
-                    }
-                ]
+                "Children": []
             },
             {
                 "Name": "Floor",
                 "Slug": "materials\\floor",
-                "Parent": "materials",
-                "Contains": "MATERIALS",
-                "Children": [
-                    {
-                        "Name": "Stone",
-                        "Slug": "materials\\floor\\stone",
-                        "Parent": "materials\\floor",
-                        "Contains": "MATERIALS",
-                        "Children": []
-                    },
-                    {
-                        "Name": "Wood",
-                        "Slug": "materials\\floor\\wood",
-                        "Parent": "materials\\floor",
-                        "Contains": "MATERIALS",
-                        "Children": []
-                    },
-                    {
-                        "Name": "Brick",
-                        "Slug": "materials\\floor\\brick",
-                        "Parent": "materials\\floor",
-                        "Contains": "MATERIALS",
-                        "Children": []
-                    },
-                    {
-                        "Name": "Other",
-                        "Slug": "materials\\floor\\other",
-                        "Parent": "materials\\floor",
-                        "Contains": "MATERIALS",
-                        "Children": []
-                    }
-                ]
-            },
-            {
-                "Name": "Special",
-                "Slug": "materials\\special",
                 "Parent": "materials",
                 "Contains": "MATERIALS",
                 "Children": []

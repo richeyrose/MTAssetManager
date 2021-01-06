@@ -27,24 +27,28 @@ def render_material_preview(self, context, image_path, scene_path, scene_name, m
         # switch scene
         context.window.scene = preview_scene
 
-        # link preview obj to preview scene
-        preview_obj_path = os.path.join(
-            prefs.default_assets_path,
-            "previews",
-            "objects",
-            preview_obj_name + ".blend")
+        try:
+            preview_obj = bpy.data.objects[preview_obj_name]
+        except KeyError:
+            # link preview obj to preview scene
+            preview_obj_path = os.path.join(
+                prefs.default_assets_path,
+                "previews",
+                "objects",
+                preview_obj_name + ".blend")
 
-        if os.path.isfile(preview_obj_path):
-            with bpy.data.libraries.load(preview_obj_path) as (data_from, data_to):
-                if preview_obj_name not in data_from.objects:
-                    self.report(
-                        {'WARNING'},
-                        "Preview object not found. Preview render aborted")
-                    return None
-                else:
-                    data_to.objects = [preview_obj_name]
+            if os.path.isfile(preview_obj_path):
+                with bpy.data.libraries.load(preview_obj_path) as (data_from, data_to):
+                    if preview_obj_name not in data_from.objects:
+                        self.report(
+                            {'WARNING'},
+                            "Preview object not found. Preview render aborted")
+                        return None
+                    else:
+                        data_to.objects = [preview_obj_name]
 
-        preview_obj = data_to.objects[0]
+            preview_obj = data_to.objects[0]
+
         context.collection.objects.link(preview_obj)
 
         # add material to object if not on it already
@@ -71,10 +75,6 @@ def render_material_preview(self, context, image_path, scene_path, scene_name, m
                 # add material to entire object if no preview_vert_group
                 for poly in preview_obj.data.polygons:
                     poly.material_index = material_index
-
-        # TODO #5 This really shouldn't be hard coded but currently necessary to get wooden framework to render properly.
-        if preview_obj.name != 'Wall':
-            preview_obj.location = (0, 0, 0)
 
         render = context.scene.render
 
