@@ -1,4 +1,5 @@
 import bpy
+from bpy.app.handlers import persistent
 from math import floor
 from bpy.types import Operator
 from bpy.props import StringProperty
@@ -241,7 +242,6 @@ class MT_OT_AM_Asset_Bar(Operator):
         # check to see if an asset has been added, removed or updated.
         if hasattr(context.scene, 'mt_am_props') and context.scene.mt_am_props.assets_updated:
             context.scene.mt_am_props.assets_updated = False
-            # TODO make sure asset bar updates if we start with an empty category and then add an asset to it
             self.init_assets(context, reset_index=False)
         try:
             MT_OT_AM_Asset_Bar.asset_bar.draw()
@@ -261,3 +261,15 @@ class MT_OT_AM_Return_To_Parent(Operator):
             'INVOKE_DEFAULT',
             category_slug=props.parent_category)
         return {'FINISHED'}
+
+@persistent
+def remove_asset_bar_on_load(dummy):
+    """Remove the asset bar when a new file is loaded."""
+    if MT_OT_AM_Asset_Bar.bar_draw_handler:
+        bpy.types.SpaceView3D.draw_handler_remove(
+            MT_OT_AM_Asset_Bar.bar_draw_handler,
+            "WINDOW")
+        MT_OT_AM_Asset_Bar.bar_draw_handler = None
+        MT_OT_AM_Asset_Bar.asset_bar = bpy.context.scene.mt_am_props.asset_bar = None
+
+bpy.app.handlers.load_pre.append(remove_asset_bar_on_load)
