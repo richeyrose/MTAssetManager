@@ -77,6 +77,9 @@ class MT_OT_AM_Edit_Asset_Metadata(Operator):
             "Type": orig_asset_desc["Type"],
             "Tags": tagify(self.Tags)}
 
+        if orig_asset_desc["Type"] == "COLLECTIONS":
+            asset_desc["RootObject"] = orig_asset_desc["RootObject"]
+
         # append new asset description
         assets.append(asset_desc)
 
