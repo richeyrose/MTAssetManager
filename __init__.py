@@ -12,14 +12,16 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 bl_info = {
-    "name": "MTAssetManager",
+    "name": "MakeTile Asset Manager",
     "author": "Richard Rose",
     "description": "",
     "blender": (2, 90, 1),
     "version": (0, 0, 1),
-    "location": "",
+    "location": "View3D > UI > MakeTile",
     "warning": "",
-    "category": "Generic"
+    "doc_url": "https://maketile.readthedocs.io/en/latest/",
+    "tracker_url": "https://github.com/richeyrose/make-tile/issues/",
+    "category": "Object"
 }
 
 from . import auto_load
