@@ -9,7 +9,7 @@ from bpy.types import Operator
 from .utils import find_and_rename
 from .append import append_collection, append_material, append_object
 
-
+# TODO: #7 fix copy asset for collections
 class MT_OT_AM_Cut_Asset(Operator):
     """Cut an asset in the asset bar."""
     bl_idname = "object.mt_cut_asset"

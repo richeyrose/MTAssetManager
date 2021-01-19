@@ -3,7 +3,6 @@ from .raycast import mouse_raycast, floor_raycast
 from .utils import find_vertex_group_of_face, assign_mat_to_vert_group
 from .append import append_collection, append_material, append_object
 
-
 def spawn_object(context, asset, x, y):
     """Spawn an object at the cursor based on the passed in asset description.
 
@@ -17,10 +16,6 @@ def spawn_object(context, asset, x, y):
         bpy.types.Object: object
     """
     coords = (x, y)
-    obj = append_object(context, asset)
-
-    if not obj:
-        return None
 
     # check if there is an object under the mouse.
     hit, location, normal, rotation, face_index, hit_obj, matrix = mouse_raycast(context, coords)
@@ -29,13 +24,15 @@ def spawn_object(context, asset, x, y):
     if not hit:
         hit, location, normal, rotation, face_index, hit_obj, matrix = floor_raycast(context, coords)
 
-    # set object location and rotation to hit point
-    obj.location = location
-    obj.rotation_euler = rotation
-
     # deselect any currently selected objects
     for obj in context.selected_objects:
         obj.select_set(False)
+
+    obj = append_object(context, asset)
+
+    # set object location and rotation to hit point
+    obj.location = location
+    obj.rotation_euler = rotation
 
     # select and activate spawned object
     bpy.context.view_layer.objects.active = obj
@@ -43,6 +40,7 @@ def spawn_object(context, asset, x, y):
 
     # push an undo action to the stack
     bpy.ops.ed.undo_push()
+
     return obj
 
 
@@ -60,11 +58,6 @@ def spawn_collection(context, asset, x, y):
     """
     coords = (x, y)
 
-    collection, root_object = append_collection(context, asset)
-
-    if not collection:
-        return None
-
     # check if there is an object under the mouse.
     hit, location, normal, rotation, face_index, hit_obj, matrix = mouse_raycast(context, coords)
 
@@ -76,8 +69,13 @@ def spawn_collection(context, asset, x, y):
     for obj in context.selected_objects:
         obj.select_set(False)
 
+    collection, root_object = append_collection(context, asset)
+
+    if not collection:
+        return None
+
     # select the root object
-    bpy.context.view_layer.objects.active = root_object
+    context.view_layer.objects.active = root_object
     root_object.select_set(True)
 
     context.view_layer.update()
