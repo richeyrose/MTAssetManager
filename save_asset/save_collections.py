@@ -25,6 +25,11 @@ class MT_OT_Set_Object_Bool_Type(Operator):
     bl_label = "Set Object Propertis."
     bl_description = "Set the properties for objects saved as part of an architectural element collection."
 
+    Name: StringProperty(
+        name="Name",
+        default=""
+    )
+
     Description: StringProperty(
         name="Description",
         default=""
@@ -162,7 +167,7 @@ class MT_OT_Add_Collection_To_Library(Operator):
             # e.g. a doorway or window that should be added to a tile rather than printed on its own
             ("ARCH_ELEMENT", "Architectural Element", ""),
             # a building type prefab consisting of multiple tiles to be printed separately
-            ("BUILDING", "Building", ""),
+            # ("BUILDING", "Building", ""),
             # A generic collection
             ("OTHER", "Other", "")]
 
@@ -173,6 +178,11 @@ class MT_OT_Add_Collection_To_Library(Operator):
             context (bpy.Context): context
         """
         activate_collection(self.OwningCollection)
+
+    Name: StringProperty(
+        name="Name",
+        default="Collection"
+    )
 
     Description: StringProperty(
         name="Description",
@@ -223,6 +233,7 @@ class MT_OT_Add_Collection_To_Library(Operator):
         if self.CollectionType == 'ARCH_ELEMENT':
             return bpy.ops.collection.set_object_type(
                 'INVOKE_DEFAULT',
+                Name=self.Name,
                 Description=self.Description,
                 URI=self.URI,
                 Author=self.Author,
@@ -240,6 +251,7 @@ class MT_OT_Add_Collection_To_Library(Operator):
 
     def draw(self, context):
         layout = self.layout
+        layout.prop(self, 'Name')
         layout.prop(self, 'RootObject')
         layout.prop(self, 'OwningCollection')
         layout.prop(self, 'CollectionType')
@@ -311,6 +323,10 @@ def add_collection_to_library(self, context):
         assets_path,
         collection,
         **kwargs)
+
+    # for collections we set this here because it's hard to know what collection the user wants to
+    # save in advance.
+    asset_desc['Name'] = self.Name
 
     scene_path = os.path.join(
         prefs.default_assets_path,
