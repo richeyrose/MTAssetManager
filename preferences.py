@@ -25,7 +25,6 @@ from bpy.props import (
     FloatVectorProperty,
     FloatProperty,
     IntProperty,
-    EnumProperty,
     BoolProperty)
 
 
@@ -78,7 +77,7 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
     old_path: StringProperty(
         name="Old Path",
         subtype='DIR_PATH',
-        default=os.path.join(addon_path, "assets")
+        default=os.path.join(user_path, "MakeTile")
     )
 
     asset_bar_bg_color: FloatVectorProperty(
@@ -200,11 +199,13 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
         description="Use GPU for preview renders"
     )
 
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, 'user_assets_path')
 
 # TODO: Stub - reload_asset_libraries
 def reload_asset_libraries():
     pass
-
 
 def get_prefs():
     """returns MakeTile preferences"""

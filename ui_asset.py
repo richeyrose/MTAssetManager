@@ -310,7 +310,7 @@ class MT_AM_Edit_Asset_Menu(bpy.types.Menu):
         layout.operator_context = 'INVOKE_DEFAULT'
 
         layout.operator("object.mt_cut_asset")
-        layout.operator("object.mt_copy_asset")
+        # layout.operator("object.mt_copy_asset")
         layout.operator("object.mt_paste_asset")
         layout.operator("object.delete_selected_assets_from_library")
 
