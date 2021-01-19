@@ -18,6 +18,8 @@ class MT_PT_AM_Main_Panel(Panel):
         active_category = props.active_category
         try:
             child_cats = props['child_cats']
+            if active_category is None and len(child_cats) == 0:
+                child_cats = load_categories()
         except KeyError:
             child_cats = load_categories()
 

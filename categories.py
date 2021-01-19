@@ -175,17 +175,20 @@ class MT_OT_Delete_Category(bpy.types.Operator):
         props = context.scene.mt_am_props
         category = get_category(props.active_category["Children"], self.category_slug)
 
-        asset_type = category["Contains"].lower()
-        asset_descs = getattr(props, asset_type)
+        try:
+            asset_type = category["Contains"].lower()
+            asset_descs = getattr(props, asset_type)
 
-        # construct list containing all sub categories
-        descendent_cats = get_descendent_cats(category)
-        descendent_cats.append(category)
-        category_slugs = [cat["Slug"] for cat in descendent_cats]
+            # construct list containing all sub categories
+            descendent_cats = get_descendent_cats(category)
+            descendent_cats.append(category)
+            category_slugs = [cat["Slug"] for cat in descendent_cats]
 
-        # get all assets
-        selected_assets = [desc for desc in asset_descs if desc["Category"] in category_slugs]
-        delete_assets(selected_assets, prefs, props, asset_type, True)
+            # get all assets
+            selected_assets = [desc for desc in asset_descs if desc["Category"] in category_slugs]
+            delete_assets(selected_assets, prefs, props, asset_type, True)
+        except TypeError:
+            pass
 
         # delete categories
         delete_category(props.categories, self.category_slug, prefs)
@@ -197,6 +200,7 @@ class MT_OT_Delete_Category(bpy.types.Operator):
 
         # update asset bar
         props.assets_updated = True
+
 
         return {'FINISHED'}
 

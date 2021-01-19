@@ -228,6 +228,7 @@ def draw_object_context_menu_items(self, context):
     """Add save options to object right click context menu."""
     layout = self.layout
     layout.operator_context = 'INVOKE_DEFAULT'
+    try:
     if context.active_object.type in ['MESH']:
         layout.separator()
         layout.operator(
@@ -245,6 +246,8 @@ def draw_object_context_menu_items(self, context):
             "collection.add_collection_to_library",
             text="Save active object's owning collection to MakeTile Library"
         )
+    except AttributeError:
+        pass
 
 
 def register():
