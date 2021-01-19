@@ -182,10 +182,14 @@ def append_collection(context, asset, link=False):
                 if not unique:
                     for ob_name in new_obs:
                         for slot in bpy.data.objects[ob_name].material_slots:
-                            if slot.material.name == mat:
-                                slot.material = matched_material
+                            #TODO Work out why this fails sometimes on Rectangular floors
+                            try:
+                                if slot.material.name == mat:
+                                    slot.material = matched_material
+                            except AttributeError:
+                                pass
 
                     # remove duplicate material
                     bpy.data.materials.remove(bpy.data.materials[mat])
-                    return collection, root_object
+            return collection, root_object
     return None
