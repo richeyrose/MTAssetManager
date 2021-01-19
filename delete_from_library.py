@@ -5,7 +5,7 @@ from bpy.types import Operator
 from bpy.props import BoolProperty
 from .preferences import get_prefs
 
-
+# TODO: #6 Ensure preview image is also deleted from boy.data.images
 class MT_OT_AM_Delete_Selected_Assets_from_Library(Operator):
     """Delete all selected assets from the MakeTile library and optionally from disk."""
 
