@@ -204,6 +204,9 @@ def save_as_blender_asset(asset, asset_desc, tags):
         asset_desc (dict): asset description
         tags (list[str]): list of tags
     """
+    pass
+    '''
+    # TODO: #2 Currently this is disabled in 2.92 beta
     ctx = {'id': asset}
     asset = asset.id_data
 
@@ -213,39 +216,36 @@ def save_as_blender_asset(asset, asset_desc, tags):
         bpy.ops.asset.clear(ctx)
         bpy.ops.asset.mark(ctx)
 
-    # TODO: #2 Check back when 2.92 is in Beta to see if this is more reliable. Currently it causes
-    # an access violation when used on a material.
-    '''
     if os.path.isfile(asset_desc['PreviewImagePath']):
         bpy.ops.ed.lib_id_load_custom_preview(ctx, filepath=asset_desc['PreviewImagePath'])
-    '''
+
     asset.asset_data.description = asset_desc['Description']
 
     for tag in tags:
         asset.asset_data.tags.new(tag, skip_if_exists=True)
-
+    '''
 def draw_object_context_menu_items(self, context):
     """Add save options to object right click context menu."""
     layout = self.layout
     layout.operator_context = 'INVOKE_DEFAULT'
     try:
-    if context.active_object.type in ['MESH']:
-        layout.separator()
-        layout.operator(
-            "object.add_active_object_to_library",
-            text="Save active object to MakeTile Library")
-        layout.operator(
-            "object.add_selected_objects_to_library",
-            text="Save all selected objects to MakeTile Library")
-        layout.operator(
-            "material.mt_ot_am_add_material_to_library",
-            text="Save active material to MakeTile Library"
-        )
-    if context.active_object.type in ['MESH', 'EMPTY']:
-        layout.operator(
-            "collection.add_collection_to_library",
-            text="Save active object's owning collection to MakeTile Library"
-        )
+        if context.active_object.type in ['MESH']:
+            layout.separator()
+            layout.operator(
+                "object.add_active_object_to_library",
+                text="Save active object to MakeTile Library")
+            layout.operator(
+                "object.add_selected_objects_to_library",
+                text="Save all selected objects to MakeTile Library")
+            layout.operator(
+                "material.mt_ot_am_add_material_to_library",
+                text="Save active material to MakeTile Library"
+            )
+        if context.active_object.type in ['MESH', 'EMPTY']:
+            layout.operator(
+                "collection.add_collection_to_library",
+                text="Save active object's owning collection to MakeTile Library"
+            )
     except AttributeError:
         pass
 
