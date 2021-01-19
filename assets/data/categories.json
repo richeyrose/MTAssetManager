@@ -31,6 +31,13 @@
                         "Parent": "collections\\tiles",
                         "Contains": "COLLECTIONS",
                         "Children": []
+                    },
+                    {
+                        "Name": "Example",
+                        "Slug": "collections\\tiles\\example",
+                        "Parent": "collections\\tiles",
+                        "Contains": "COLLECTIONS",
+                        "Children": []
                     }
                 ]
             },
@@ -39,22 +46,7 @@
                 "Slug": "collections\\architectural_elements",
                 "Parent": "collections",
                 "Contains": "COLLECTIONS",
-                "Children": [
-                    {
-                        "Name": "Doors and Doorways",
-                        "Slug": "collections\\architectural_elements\\doors_and_doorways",
-                        "Parent": "collections\\architectural_elements",
-                        "Contains": "COLLECTIONS",
-                        "Children": []
-                    },
-                    {
-                        "Name": "Windows",
-                        "Slug": "collections\\architectural_elements\\windows",
-                        "Parent": "collections\\architectural_elements",
-                        "Contains": "COLLECTIONS",
-                        "Children": []
-                    }
-                ]
+                "Children": []
             }
         ]
     },
@@ -65,41 +57,11 @@
         "Contains": "OBJECTS",
         "Children": [
             {
-                "Name": "Props",
-                "Slug": "objects\\props",
+                "Name": "Doors",
+                "Slug": "objects\\doors",
                 "Parent": "objects",
                 "Contains": "OBJECTS",
-                "Children": [
-                    {
-                        "Name": "Tavern",
-                        "Slug": "objects\\props\\tavern",
-                        "Parent": "objects\\props",
-                        "Contains": "OBJECTS",
-                        "Children": [
-                            {
-                                "Name": "Seats",
-                                "Slug": "objects\\props\\tavern\\seats",
-                                "Parent": "objects\\props\\tavern",
-                                "Contains": "OBJECTS",
-                                "Children": []
-                            },
-                            {
-                                "Name": "Tables",
-                                "Slug": "objects\\props\\tavern\\tables",
-                                "Parent": "objects\\props\\tavern",
-                                "Contains": "OBJECTS",
-                                "Children": []
-                            }
-                        ]
-                    },
-                    {
-                        "Name": "Dungeon",
-                        "Slug": "objects\\props\\dungeon",
-                        "Parent": "objects\\props",
-                        "Contains": "OBJECTS",
-                        "Children": []
-                    }
-                ]
+                "Children": []
             }
         ]
     },
@@ -126,6 +88,13 @@
             {
                 "Name": "Floor",
                 "Slug": "materials\\floor",
+                "Parent": "materials",
+                "Contains": "MATERIALS",
+                "Children": []
+            },
+            {
+                "Name": "Example",
+                "Slug": "materials\\example",
                 "Parent": "materials",
                 "Contains": "MATERIALS",
                 "Children": []
