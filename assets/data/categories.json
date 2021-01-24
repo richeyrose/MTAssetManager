@@ -91,13 +91,6 @@
                 "Parent": "materials",
                 "Contains": "MATERIALS",
                 "Children": []
-            },
-            {
-                "Name": "Example",
-                "Slug": "materials\\example",
-                "Parent": "materials",
-                "Contains": "MATERIALS",
-                "Children": []
             }
         ]
     }

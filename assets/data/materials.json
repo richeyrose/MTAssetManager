@@ -106,29 +106,6 @@
         ]
     },
     {
-        "Name": "Smooth Stone",
-        "Slug": "smooth_stone",
-        "Category": "materials\\wall",
-        "FileName": "smooth_stone.blend",
-        "FilePath": "C:\\Users\\riche\\AppData\\Roaming\\Blender Foundation\\Blender\\2.92\\scripts\\addons\\MTAssetManager\\assets\\materials\\smooth_stone.blend",
-        "PreviewImagePath": "C:\\Users\\riche\\AppData\\Roaming\\Blender Foundation\\Blender\\2.92\\scripts\\addons\\MTAssetManager\\assets\\materials\\smooth_stone.png",
-        "PreviewImageName": "smooth_stone.png",
-        "Type": "MATERIALS",
-        "Description": "Smooth stone material with or without cracks",
-        "URI": "",
-        "Author": "Richard Rose",
-        "License": "All Rights Reserved",
-        "Tags": [
-            "stone",
-            "smooth",
-            "natural",
-            "man made",
-            "historical",
-            "fantasy",
-            "contemporary"
-        ]
-    },
-    {
         "Name": "Wooden Framework",
         "Slug": "wooden_framework",
         "Category": "materials\\wall",
