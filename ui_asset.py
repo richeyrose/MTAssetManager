@@ -1,3 +1,4 @@
+import os
 import gpu
 import bgl
 import bpy
@@ -42,7 +43,7 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
 
     def get_preview_image(self, context):
         bar_props = context.scene.mt_bar_props
-        filename = self._preview_image_path.rsplit('\\', 1)[1]
+        filename = os.path.split(os.path.normpath(self._preview_image_path))[1]
         try:
             return bpy.data.images[filename]
         except KeyError:
