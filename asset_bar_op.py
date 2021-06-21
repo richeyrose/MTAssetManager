@@ -11,6 +11,38 @@ from .ui_asset import MT_AM_UI_Asset
 from .ui_nav_arrow import MT_UI_AM_Left_Nav_Arrow, MT_UI_AM_Right_Nav_Arrow
 from .app_handlers import create_properties
 
+'''
+import gpu
+from gpu_extras.batch import batch_for_shader
+
+class Test_operatorOperator(bpy.types.Operator):
+    bl_idname = "scene.test_operator"
+    bl_label = "test_operator"
+
+    def execute(self, context):
+        bpy.types.SpaceView3D.draw_handler_add(self.draw_rect, (), 'WINDOW', 'POST_PIXEL')
+        return {'FINISHED'}
+
+    def draw_rect(context):
+        vertices = (
+            (100, 100), (300, 100),
+            (100, 200), (300, 200))
+
+        indices = (
+            (0, 1, 2), (2, 1, 3))
+
+        shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
+        # use alpha channel
+
+        batch = batch_for_shader(shader, 'TRIS', {"pos": vertices}, indices=indices)
+
+        shader.bind()
+        shader.uniform_float("color", (0, 0.5, 0.5, 0.5))
+        gpu.state.blend_set('ALPHA')
+        batch.draw(shader)
+        # reset alpha
+        gpu.state.blend_set('NONE')
+'''
 
 # TODO see if we can get self.report to work properly
 class MT_OT_AM_Asset_Bar(Operator):
@@ -173,6 +205,7 @@ class MT_OT_AM_Asset_Bar(Operator):
         context.scene.mt_am_props.active_category = get_category(categories, self.category_slug)
 
         # get child categories and update side bar
+        #TODO: Should be an annotation
         am_props['child_cats'] = get_child_cats(
             categories,
             self.category_slug)
