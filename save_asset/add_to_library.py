@@ -204,26 +204,22 @@ def save_as_blender_asset(asset, asset_desc, tags):
         asset_desc (dict): asset description
         tags (list[str]): list of tags
     """
-    pass
-    '''
-    # TODO: #2 Currently this is disabled in 2.92 beta
+    # Clear any existing asset data and then mark as asset
+    asset.asset_clear()
+    asset.asset_mark()
+
+    # set asset preview
     ctx = {'id': asset}
-    asset = asset.id_data
-
-    if not hasattr(asset.asset_data, 'id_data'):
-        bpy.ops.asset.mark(ctx)
-    else:
-        bpy.ops.asset.clear(ctx)
-        bpy.ops.asset.mark(ctx)
-
     if os.path.isfile(asset_desc['PreviewImagePath']):
         bpy.ops.ed.lib_id_load_custom_preview(ctx, filepath=asset_desc['PreviewImagePath'])
 
+    # set asset description
     asset.asset_data.description = asset_desc['Description']
 
+    # set asset tags
     for tag in tags:
         asset.asset_data.tags.new(tag, skip_if_exists=True)
-    '''
+
 def draw_object_context_menu_items(self, context):
     """Add save options to object right click context menu."""
     layout = self.layout
