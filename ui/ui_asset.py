@@ -1,13 +1,12 @@
 import os
 import gpu
-import bgl
 import bpy
 
 from gpu_extras.batch import batch_for_shader
 from .ui_widget import MT_UI_AM_Widget
 from .ui_drag_thumb import MT_AM_UI_Drag_Thumb
-from .preferences import get_prefs
-from .app_handlers import load_missing_preview_image
+from ..preferences import get_prefs
+from ..app_handlers import load_missing_preview_image
 
 class MT_AM_UI_Asset(MT_UI_AM_Widget):
     def __init__(self, x, y, width, height, asset, asset_bar, index, op):
@@ -42,6 +41,15 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
         self._drag_thumb = None
 
     def get_preview_image(self, context):
+        """Return the preview image for an asset. If no preview image is foun returns a generic
+        no preview image found image.
+
+        Args:
+            context (bpy.context): context
+
+        Returns:
+            bpy.types.Image: Image
+        """
         bar_props = context.scene.mt_bar_props
         filename = os.path.split(os.path.normpath(self._preview_image_path))[1]
         try:
@@ -54,6 +62,14 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
                 return missing_image
 
     def handle_event(self, event):
+        """Handle Mouse Events.
+
+        Args:
+            event (event): mouse event
+
+        Returns:
+            bool: Whether the event was handled
+        """
         x = event.mouse_region_x
         y = event.mouse_region_y
 
@@ -97,7 +113,14 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
 
         return False
 
-    def update(self, context, x, y):
+    def update(self):
+        """Update thumbnail location.
+
+        Args:
+            context (bpy.context): [description]
+            x ([type]): [description]
+            y ([type]): [description]
+        """
         self._set_origin()
 
         indices = ((0, 1, 2), (2, 1, 3))
@@ -117,20 +140,16 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
                (crop[2], crop[3])]
 
         self.shader = gpu.shader.from_builtin('2D_IMAGE')
+
         self.batch_panel = batch_for_shader(
             self.shader,
             'TRIS',
             {"pos": coords, "texCoord": uvs},
             indices=indices)
 
-        # send image to gpu if it isn't there already
-        try:
-            if self._preview_image.gl_load():
-                raise Exception()
-        except ReferenceError:
-            self._preview_image = self.get_preview_image(context)
-
     def draw(self):
+        """Draw Asset Thumnails.
+        """
         # Check if there is space to draw asset in asset bar
         if self.asset_bar.show_assets \
             and self._index >= self.asset_bar.first_asset_index \
@@ -143,36 +162,27 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
                 self.update_selected(self.x, self.y)
                 self.select_shader.bind()
                 self.select_shader.uniform_float("color", self.prefs.asset_bar_item_selected_color)
-                bgl.glEnable(bgl.GL_BLEND)
+                gpu.state.blend_set('ALPHA')
                 self.select_panel.draw(self.select_shader)
-                bgl.glDisable(bgl.GL_BLEND)
+                gpu.state.blend_set('NONE')
 
             # draw thumbnail image
-            # batch shader
-            self.update(self.context, self.x, self.y )
-
-            # texture identifier on gpu
-            texture_id = self._preview_image.bindcode
-
-            bgl.glEnable(bgl.GL_BLEND)
-            # bind texture to image unit 0
-            bgl.glActiveTexture(bgl.GL_TEXTURE0)
-            bgl.glBindTexture(bgl.GL_TEXTURE_2D, texture_id)
-
+            self.update()
+            gpu.state.blend_set('ALPHA')
             self.shader.bind()
-            # tell shader to use the image that is bound to image unit 0
-            self.shader.uniform_int("image", 0)
+            image = self._preview_image
+            tex = gpu.texture.from_image(image)
+            self.shader.uniform_sampler("image", tex)
             self.batch_panel.draw(self.shader)
-            bgl.glDisable(bgl.GL_BLEND)
 
             # draw hovered transparency
             if self.hovered:
                 self.update_hover(self.x, self.y)
                 self.hover_shader.bind()
-                self.hover_shader.uniform_float("color", self.prefs.asset_bar_item_hover_color)
-                bgl.glEnable(bgl.GL_BLEND)
+                # self.hover_shader.uniform_float("color", self.prefs.asset_bar_item_hover_color)
+                self.hover_shader.uniform_float("color", (self.prefs.asset_bar_item_hover_color))
+                gpu.state.blend_set('ALPHA')
                 self.hover_panel.draw(self.hover_shader)
-                bgl.glDisable(bgl.GL_BLEND)
 
         else:
             self._draw = False

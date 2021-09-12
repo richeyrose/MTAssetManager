@@ -3,7 +3,7 @@ import bgl
 
 from gpu_extras.batch import batch_for_shader
 from .ui_widget import MT_UI_AM_Widget
-from .spawn import spawn_object, spawn_collection, spawn_material
+from ..spawn import spawn_object, spawn_collection, spawn_material
 
 
 class MT_AM_UI_Drag_Thumb(MT_UI_AM_Widget):
@@ -123,26 +123,15 @@ class MT_AM_UI_Drag_Thumb(MT_UI_AM_Widget):
             {"pos": coords, "texCoord": uvs},
             indices=indices)
 
-        # send image to gpu if it isn't there already
-        if self._preview_image.gl_load():
-            raise Exception()
-
     def draw(self):
         """Draw thumbnail image.
         """
         # batch shader
         self.update(self.x, self.y)
 
-        # texture identifier on gpu
-        texture_id = self._preview_image.bindcode
-
-        bgl.glEnable(bgl.GL_BLEND)
-        # bind texture to image unit 0
-        bgl.glActiveTexture(bgl.GL_TEXTURE0)
-        bgl.glBindTexture(bgl.GL_TEXTURE_2D, texture_id)
-
+        gpu.state.blend_set('ALPHA')
         self.shader.bind()
-        # tell shader to use the image that is bound to image unit 0
-        self.shader.uniform_int("image", 0)
+        tex = gpu.texture.from_image(self._preview_image)
+        self.shader.uniform_sampler("image", tex)
         self.batch_panel.draw(self.shader)
-        bgl.glDisable(bgl.GL_BLEND)
+

@@ -1,10 +1,5 @@
-import math
 import gpu
-import bgl
-import bpy
-
-from  gpu_extras.batch import batch_for_shader
-from .preferences import get_prefs
+from ..preferences import get_prefs
 from .ui_widget import MT_UI_AM_Widget
 
 class MT_UI_AM_Nav_Arrow(MT_UI_AM_Widget):
@@ -32,9 +27,9 @@ class MT_UI_AM_Nav_Arrow(MT_UI_AM_Widget):
             self.update_hover(self.x, self.y)
             self.hover_shader.bind()
             self.hover_shader.uniform_float("color", self.prefs.asset_bar_item_hover_color)
-            bgl.glEnable(bgl.GL_BLEND)
+            gpu.state.blend_set('ALPHA')
             self.hover_panel.draw(self.hover_shader)
-            bgl.glDisable(bgl.GL_BLEND)
+            gpu.state.blend_set('NONE')
 
     def _set_origin(self):
         pass

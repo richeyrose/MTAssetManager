@@ -1,7 +1,4 @@
 import gpu
-import bgl
-import bpy
-
 from  gpu_extras.batch import batch_for_shader
 
 class MT_UI_AM_Widget:
@@ -22,9 +19,10 @@ class MT_UI_AM_Widget:
         self.shader.uniform_float("color", self.bg_color)
 
         # draw the panel
-        bgl.glEnable(bgl.GL_BLEND)
+        gpu.state.blend_set('ALPHA')
         self.batch_panel.draw(self.shader)
-        bgl.glDisable(bgl.GL_BLEND)
+        # reset alpha
+        gpu.state.blend_set('NONE')
 
     def init(self, context):
         self.context = context
