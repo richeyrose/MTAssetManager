@@ -209,6 +209,26 @@ class MT_OT_Delete_Category(bpy.types.Operator):
         return context.window_manager.invoke_confirm(self, event)
 
 
+class MT_OT_Add_Folder(bpy.types.Operator):
+    """Add a new folder."""
+    bl_idname = "scene.mt_am_add_folder"
+    bl_label = "Add Category"
+    bl_description = "Add a new Category"
+    bl_options = {"REGISTER"}
+
+    new_cat_name: StringProperty(
+        name="Name",
+        default=""
+    )
+
+    def execute(self, context):
+        prefs = get_prefs()
+        props = context.scene.mt_am_props
+        parent_slug = props.active_category["Slug"]
+        name = self.new_cat_name
+
+        return{'FINISHED'}
+
 class MT_OT_Add_Category(bpy.types.Operator):
     """Add a new category."""
     bl_idname = "scene.mt_am_add_category"

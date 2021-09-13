@@ -1,3 +1,4 @@
+import os
 import bpy
 from bpy.app.handlers import persistent
 from math import floor
@@ -11,38 +12,39 @@ from .ui.ui_asset import MT_AM_UI_Asset
 from .ui.ui_nav_arrow import MT_UI_AM_Left_Nav_Arrow, MT_UI_AM_Right_Nav_Arrow
 from .app_handlers import create_properties
 
-'''
-import gpu
-from gpu_extras.batch import batch_for_shader
+class MT_OT_AM_Asset_Bar_2(Operator):
+    """Operator for displaying the MakeTile Asset bar"""
+    bl_idname = "view3d.mt_asset_bar_2"
+    bl_label = "Show Asset Bar"
+    bl_description = "Display asset bar"
+    bl_options = {'REGISTER'}
 
-class Test_operatorOperator(bpy.types.Operator):
-    bl_idname = "scene.test_operator"
-    bl_label = "test_operator"
+    current_category_path: StringProperty(
+        name="Category Path",
+        subtype='DIR_PATH',
+        description="Path to the current category"
+    )
 
-    def execute(self, context):
-        bpy.types.SpaceView3D.draw_handler_add(self.draw_rect, (), 'WINDOW', 'POST_PIXEL')
+    bar_draw_handler = None
+    asset_bar = None
+
+    def __init__(self):
+        self.previous_category = ""
+
+    def invoke(self, context, event):
+        props = context.scene.mt_am_props
+        self.update_categories(context)
+
         return {'FINISHED'}
 
-    def draw_rect(context):
-        vertices = (
-            (100, 100), (300, 100),
-            (100, 200), (300, 200))
+    def update_categories(self, context):
+        am_props = context.scene.mt_am_props
 
-        indices = (
-            (0, 1, 2), (2, 1, 3))
+        # update parent category path
+        context.scene.mt_am_props.parent_category_path = os.path.abspath(os.path.join(self.current_category_path, os.pardir))
 
-        shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
-        # use alpha channel
-
-        batch = batch_for_shader(shader, 'TRIS', {"pos": vertices}, indices=indices)
-
-        shader.bind()
-        shader.uniform_float("color", (0, 0.5, 0.5, 0.5))
-        gpu.state.blend_set('ALPHA')
-        batch.draw(shader)
-        # reset alpha
-        gpu.state.blend_set('NONE')
-'''
+        #update current category path
+        context.scene.mt_am_props.current_category_path = self.current_category_path
 
 # TODO see if we can get self.report to work properly
 class MT_OT_AM_Asset_Bar(Operator):
@@ -293,6 +295,19 @@ class MT_OT_AM_Return_To_Parent(Operator):
         bpy.ops.view3d.mt_asset_bar(
             'INVOKE_DEFAULT',
             category_slug=props.parent_category)
+        return {'FINISHED'}
+
+class MT_OT_AM_Return_To_Parent_2(Operator):
+    bl_idname = "view3d.mt_ret_to_parent_2"
+    bl_label = "MakeTile return to parent"
+    bl_description = "Move up a category level"
+    bl_options = {'INTERNAL'}
+
+    def execute(self, context):
+        props = context.scene.mt_am_props
+        bpy.ops.view3d.mt_asset_bar_2(
+            'INVOKE_DEFAULT',
+            current_category_path=props.parent_category_path)
         return {'FINISHED'}
 
 @persistent

@@ -42,6 +42,18 @@ class MT_PT_AM_Props(PropertyGroup):
         description="The parent of the current active category."
     )
 
+    current_category_path: StringProperty(
+        name="Current Category Path",
+        subtype='DIR_PATH',
+        description="Path to the current category"
+    )
+
+    parent_category_path: StringProperty(
+        name="Parent Category Path",
+        subtype='DIR_PATH',
+        description="Path to the parent of the current category"
+    )
+
     cut: bpy.props.BoolProperty(
         name="Cut",
         default=False,

@@ -67,9 +67,9 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
     )
 
     user_assets_path: StringProperty(
-        name="User Asset Libraries",
+        name="User Asset Library",
         subtype='DIR_PATH',
-        description="Path to User Asset Libraries",
+        description="Path to User Asset Library",
         default=user_assets_path,
         update=update_user_assetspath
     )
