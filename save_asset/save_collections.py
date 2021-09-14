@@ -333,14 +333,15 @@ def add_collection_to_library(self, context):
         "previews",
         "preview_scenes.blend")
 
-    if render_collection_preview(
+
+    img = render_collection_preview(
             self,
             context,
             asset_desc['PreviewImagePath'],
             scene_path,
             prefs.preview_scene,
-            collection):
-
+            collection)
+    if img:
         if hasattr(collection, 'asset_data'):
             save_as_blender_asset(collection, asset_desc, tags)
 
@@ -349,7 +350,8 @@ def add_collection_to_library(self, context):
             context,
             collection,
             asset_type,
-            asset_desc)
+            asset_desc,
+            img)
 
         props.assets_updated = True
 

@@ -109,15 +109,15 @@ class MT_OT_AM_Add_Material_To_Library(Operator):
         # TODO implement mini base and roof preview objects
         preview_obj = self.PreviewObject
 
-        if render_material_preview(
+        img = render_material_preview(
                 self,
                 context,
                 asset_desc['PreviewImagePath'],
                 scene_path,
                 prefs.preview_scene,
                 material,
-                preview_obj):
-
+                preview_obj)
+        if img:
             # save asset data for Blender asset browser
             if hasattr(material, 'asset_data'):
                 save_as_blender_asset(material, asset_desc, tags)
@@ -127,7 +127,8 @@ class MT_OT_AM_Add_Material_To_Library(Operator):
                 context,
                 material,
                 asset_type,
-                asset_desc)
+                asset_desc,
+                img)
 
             props.assets_updated = True
 

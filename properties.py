@@ -3,32 +3,6 @@ import bpy
 from bpy.types import PropertyGroup
 from bpy.props import StringProperty, BoolProperty, EnumProperty, PointerProperty
 
-def get_cat_enums():
-    mt_cats = [
-        ("collections", "collections", ""),
-        ("collections\\tiles", "collections\\tiles", ""),
-        ("collections\\tiles\\walls", "collections\\tiles\\walls", ""),
-        ("objects", "objects", ""),
-        ("objects\\booleans", "objects\\booleans", ""),
-        ("materials", "materials", "")]
-    return mt_cats
-
-
-def get_license_enums():
-    mt_licenses = [
-        ("ARR", "All RIghts Reserved", ""),
-        ("CC0", "CC0", "")]
-    return mt_licenses
-
-
-def get_type_enums():
-    mt_types = [
-        ("OBJECT", "Object", ""),
-        ("COLLECTION", "Collection", ""),
-        ("MATERIAL", "Material", "")]
-    return mt_types
-
-
 class MT_PT_AM_Props(PropertyGroup):
     assets_updated: BoolProperty(
         name="Assets Updated",
@@ -219,6 +193,47 @@ def register():
         type=MT_PT_AM_Object_Spawn_Props
     )
 
+    # Custom asset properties
+    bpy.types.AssetMetaData.mt_license = EnumProperty(
+        items=[
+            ("ARR", "All Rights Reserved", ""),
+            ("CCBY", "Attribution (CC BY)", ""),
+            ("CCBYSA", "Attribution-ShareAlike (CC BY-SA)", ""),
+            ("CCBYND", "Attribution-NoDerivs (CC BY-ND)", ""),
+            ("CCBYNC", "Attribution-NonCommercial (CC BY-NC)", ""),
+            ("CCBYNCSA", "Attribution-NonCommercial-ShareAlike (CC BY-NC-SA)", ""),
+            ("CCBYNCND", "Attribution-NonCommercial-NoDerivs (CC BY-NC-ND)", "")],
+        name="License",
+        description="License for asset use",
+        default="ARR")
+
+    bpy.types.AssetMetaData.mt_author = StringProperty(
+        name="Author",
+        description="Creator of the asset",
+        default="")
+
+    bpy.types.AssetMetaData.mt_preview_hash = StringProperty(
+        name="Preview Image Hash",
+        description="Hash of the preview image used as a name."
+    )
+
+    bpy.types.Object.mt_preview_img = PointerProperty(
+        name="Preview Image",
+        type=bpy.types.Image,
+        description="Preview Image to use in MT Asset Browser."
+    )
+
+    bpy.types.Collection.mt_preview_img = PointerProperty(
+        name="Preview Image",
+        type=bpy.types.Image,
+        description="Preview Image to use in MT Asset Browser."
+    )
+
+    bpy.types.Material.mt_preview_img = PointerProperty(
+        name="Preview Image",
+        type=bpy.types.Image,
+        description="Preview Image to use in MT Asset Browser."
+    )
 
 def unregister():
     del bpy.types.Scene.mt_am_spawn_props

@@ -11,18 +11,21 @@ from ..app_handlers import load_missing_preview_image
 class MT_AM_UI_Asset(MT_UI_AM_Widget):
     def __init__(self, x, y, width, height, asset, asset_bar, index, op):
         super().__init__(x, y, width, height)
-        self._asset_desc = asset
-        self._name = asset["Name"]
-        self._slug = asset["Slug"]
-        self._category = asset["Category"]
-        self._filepath = asset["FilePath"]
-        self._preview_image_path = asset["PreviewImagePath"]
-        self._description = asset["Description"]
-        self._URI = asset["URI"]
-        self._author = asset["Author"]
-        self._license = asset["License"]
-        self._type = asset["Type"]
-        self._tags = asset["Tags"]
+        # self._asset_desc = asset
+        # self._name = asset["Name"]
+        # self._slug = asset["Slug"]
+        # self._category = asset["Category"]
+        # self._filepath = asset["FilePath"]
+        # self._preview_image_path = asset["PreviewImagePath"]
+        # self._description = asset["Description"]
+        # self._URI = asset["URI"]
+        # self._author = asset["Author"]
+        # self._license = asset["License"]
+        # self._type = asset["Type"]
+        # self._tags = asset["Tags"]
+        self.asset = asset
+        self._metadata = asset.asset_data
+        self._name = asset.name
 
         self.asset_bar = asset_bar
         self.op = op
@@ -36,7 +39,7 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
 
         self.context = bpy.context
         self._preview_image = self.get_preview_image(self.context)
-
+        # self._preview_image = asset.mt_preview_img
         self.prefs = get_prefs()
         self._drag_thumb = None
 
@@ -51,15 +54,20 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
             bpy.types.Image: Image
         """
         bar_props = context.scene.mt_bar_props
-        filename = os.path.split(os.path.normpath(self._preview_image_path))[1]
-        try:
-            return bpy.data.images[filename]
-        except KeyError:
+        if self.asset.mt_preview_img:
+            return self.asset.mt_preview_img
+        else:
             try:
                 return bar_props['missing_preview_image']
             except KeyError:
                 missing_image = context.scene.mt_bar_props['missing_preview_image'] = load_missing_preview_image()
                 return missing_image
+        # filename = os.path.split(os.path.normpath(self._preview_image_path))[1]
+        # try:
+        #     return bpy.data.images[filename]
+        # except KeyError:
+        #     try:
+        #         return bar_props['missing_preview_image']
 
     def handle_event(self, event):
         """Handle Mouse Events.

@@ -3,9 +3,25 @@ import os
 from bpy.types import Panel
 from .categories import load_categories
 from .preferences import get_prefs
+from bpy_extras import (
+    asset_utils,
+)
 
 def list_subfolders_with_paths(path):
     return [f.path for f in os.scandir(path) if f.is_dir()]
+
+class ASSETBROWSER_PT_custom_name(asset_utils.AssetMetaDataPanel, Panel):
+    bl_label = "MakeTile Properties"
+    bl_space_type = "FILE_BROWSER"
+    bl_region_type = 'TOOL_PROPS'
+
+    def draw(self, context):
+        layout=self.layout
+        active_asset = asset_utils.SpaceAssetInfo.get_active_asset(context)
+
+        if active_asset:
+            layout.prop(active_asset, 'mt_author')
+            layout.prop(active_asset, 'mt_license')
 
 class MT_PT_AM_Main_Panel(Panel):
     """Asset N Menu UI panel."""

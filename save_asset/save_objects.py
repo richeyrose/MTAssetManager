@@ -84,7 +84,7 @@ class MT_OT_AM_Add_Multiple_Objects_To_Library(Operator):
                 obj,
                 **kwargs)
 
-            render_object_preview(
+            img = render_object_preview(
                 self,
                 context,
                 asset_desc['PreviewImagePath'],
@@ -102,7 +102,8 @@ class MT_OT_AM_Add_Multiple_Objects_To_Library(Operator):
                 context,
                 obj,
                 asset_type,
-                asset_desc)
+                asset_desc,
+                img)
 
         props.assets_updated = True
 
@@ -188,14 +189,14 @@ class MT_OT_AM_Add_Active_Object_To_Library(Operator):
             "previews",
             "preview_scenes.blend")
 
-        if render_object_preview(
+        img = render_object_preview(
                 self,
                 context,
                 asset_desc['PreviewImagePath'],
                 scene_path,
                 prefs.preview_scene,
-                obj):
-
+                obj)
+        if img:
             # save asset data for Blender asset browser
             if hasattr(obj, 'asset_data'):
                 save_as_blender_asset(obj, asset_desc, tags)
@@ -205,7 +206,8 @@ class MT_OT_AM_Add_Active_Object_To_Library(Operator):
                 context,
                 obj,
                 asset_type,
-                asset_desc)
+                asset_desc,
+                img)
 
             props.assets_updated = True
 

@@ -215,6 +215,7 @@ def render_object_preview(self, context, image_path, scene_path, scene_name, obj
 
         # load rendered image into scene
         img = bpy.data.images.load(image_path, check_existing=True)
+
         return img
 
     return False

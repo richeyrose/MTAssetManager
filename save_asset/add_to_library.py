@@ -77,7 +77,7 @@ def draw_save_props_menu(self, context):
     layout.prop(self, 'Tags')
 
 
-def add_asset_to_library(self, context, asset, asset_type, asset_desc):
+def add_asset_to_library(self, context, asset, asset_type, asset_desc, preview_img = None):
     """Add the passed in asset to the asset library.
 
     Args:
@@ -92,6 +92,10 @@ def add_asset_to_library(self, context, asset, asset_type, asset_desc):
     props = context.scene.mt_am_props
     prefs = get_prefs()
     assets_path = prefs.user_assets_path
+
+    # save asset preview image to asset
+    asset.mt_preview_img = preview_img
+    preview_img.pack()
 
     # in memory list of assets of asset_type
     assets = getattr(props, asset_type.lower())
@@ -136,8 +140,11 @@ def add_asset_to_library(self, context, asset, asset_type, asset_desc):
     # save asset in individual file
     bpy.data.libraries.write(
         os.path.join(asset_desc['FilePath']),
-        {asset},
+        {asset, preview_img},
         fake_user=True)
+
+    # delete external image
+    os.remove(asset_desc['PreviewImagePath'])
 
     # change asset name back to pretty name
     asset.name = asset_desc['Name']
