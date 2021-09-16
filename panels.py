@@ -64,7 +64,7 @@ class MT_PT_AM_Main_Panel(Panel):
         for cat in child_cats:
             row = layout.row()
             op = row.operator(
-                "view3d.mt_asset_bar_2",
+                "view3d.mt_asset_bar",
                 text=os.path.basename(cat),
                 icon="FILE_FOLDER")
             op.current_category_path = cat
