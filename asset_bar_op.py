@@ -117,22 +117,13 @@ class MT_OT_AM_Asset_Bar_2(Operator):
         Returns:
             image (bpy.types.Image): Blender image
         """
-        # create uuid if none exists
-        if not unique_id:
-            unique_id = str(uuid.uuid4())
+        newImage = bpy.data.images.new(
+            name=unique_id,
+            width=preview.image_size[0],
+            height=preview.image_size[1])
 
-        # see if hashed image already exists and return it
-        try:
-            return {'image': bpy.data.images[unique_id], 'unique_id': unique_id}
-        except KeyError:
-            # else copy image from preview to ordinary image
-            newImage = bpy.data.images.new(
-                name=unique_id,
-                width=preview.image_size[0],
-                height=preview.image_size[1])
-
-            newImage.pixels = preview.image_pixels_float
-            return {'image': newImage, 'unique_id': unique_id}
+        newImage.pixels = preview.image_pixels_float
+        return newImage
 
 
     def init_assets(self, context, reset_index=True):
