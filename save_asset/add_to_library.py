@@ -1,5 +1,4 @@
-"""Contains helper fiunctions for adding assets to MakeTile library..."""
-
+"""Contains helper functions for adding assets to MakeTile library..."""
 import os
 import json
 import bpy
@@ -211,6 +210,7 @@ def save_as_blender_asset(asset, asset_desc, tags):
         asset_desc (dict): asset description
         tags (list[str]): list of tags
     """
+    asset_data = asset.asset_data
     # Clear any existing asset data and then mark as asset
     asset.asset_clear()
     asset.asset_mark()
@@ -221,11 +221,11 @@ def save_as_blender_asset(asset, asset_desc, tags):
         bpy.ops.ed.lib_id_load_custom_preview(ctx, filepath=asset_desc['PreviewImagePath'])
 
     # set asset description
-    asset.asset_data.description = asset_desc['Description']
+    asset_data.description = asset_desc['Description']
 
     # set asset tags
     for tag in tags:
-        asset.asset_data.tags.new(tag, skip_if_exists=True)
+        asset_data.tags.new(tag, skip_if_exists=True)
 
 def draw_object_context_menu_items(self, context):
     """Add save options to object right click context menu."""

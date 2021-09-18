@@ -212,10 +212,6 @@ def register():
         description="Creator of the asset",
         default="")
 
-    bpy.types.AssetMetaData.mt_preview_hash = StringProperty(
-        name="Preview Image Hash",
-        description="Hash of the preview image used as a name."
-    )
 
     bpy.types.Object.mt_preview_img = PointerProperty(
         name="Preview Image",

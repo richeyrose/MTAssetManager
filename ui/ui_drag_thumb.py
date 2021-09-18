@@ -8,12 +8,12 @@ from ..spawn import spawn_object, spawn_collection, spawn_material
 
 class MT_AM_UI_Drag_Thumb(MT_UI_AM_Widget):
     """Draggable thumbnail of asset used for spawning into scene."""
-    def __init__(self, x, y, width, height, asset, asset_bar, op):
+    def __init__(self, x, y, width, height, thumb, asset_bar, op):
         self.x = x
         self.y = y
-        self.width = asset.width
-        self.height = asset.height
-        self.asset = asset
+        self.width = thumb.width
+        self.height = thumb.height
+        self.asset = thumb
         self.asset_bar = asset_bar
         self.op = op
 
@@ -23,7 +23,7 @@ class MT_AM_UI_Drag_Thumb(MT_UI_AM_Widget):
         self.drag_offset_x = 0
         self.drag_offset_y = 0
 
-        self._preview_image = asset.preview_image
+        self._preview_image = thumb.preview_image
 
     def init(self, context):
         self.context = context

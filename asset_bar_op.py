@@ -1,5 +1,5 @@
 import os
-import uuid
+import ntpath
 import bpy
 from bpy.app.handlers import persistent
 from math import floor
@@ -125,6 +125,26 @@ class MT_OT_AM_Asset_Bar(Operator):
         newImage.pixels = preview.image_pixels_float
         return newImage
 
+    def get_assets(self, data_from, data_to, filename, full_names, existing_items, asset_type):
+        """Link assets to blender file.
+
+        Args:
+            data_from (library object): data_from library object from bpy.data.libraries.load
+            data_to (library object): data_from library object from bpy.data.libraries.load
+            filename (str): filename
+            full_names (list): a list of datablock.full_names of this datablock type
+            existing_items (list): list of existing items of this datablock type
+            asset_type (str): Asset type to get.
+        """
+        for item in getattr(data_from, asset_type):
+            name_full = str(item + ' [' + filename + ']')
+            if name_full not in full_names:
+                getattr(data_to, asset_type).append(item)
+            else:
+                for item in getattr(bpy.data, asset_type):
+                    if item.name_full == name_full:
+                        existing_items.append(item)
+                        break
 
     def init_assets(self, context, reset_index=True):
         """Initialise assets based on current active category.
@@ -136,43 +156,31 @@ class MT_OT_AM_Asset_Bar(Operator):
         path = self.current_category_path
         current_assets = []
 
-        # To ensure we're not missing assets with duplicate name we need to
-        # combine library name + the type + the name when deciding whether to
-        # link an asset in
-
-        linked_paths = [lib.filepath for lib in bpy.data.libraries]
-
         # get all assets in current directory
         for file in os.listdir(path):
             if file.endswith(".blend"):
-                existing_colls = []
-                existing_obs = []
-                existing_mats = []
                 filepath = os.path.join(path, file)
 
-                # check whether we've already linked to this file previously
-                already_linked = False
-                for linked_path in linked_paths:
-                    if os.path.samefile(linked_path, filepath):
-                        already_linked = True
-                        break
+                existing_datablocks = {
+                    'objects': [],
+                    'collections': [],
+                    'materials': []}
+
+                # full names include the filenames for library linked data blocks
+                full_names = {
+                    'objects': [ob.name_full for ob in bpy.data.objects],
+                    'collections': [coll.name_full for coll in bpy.data.collections],
+                    'materials': [mat.name_full for mat in bpy.data.materials]}
 
                 with bpy.data.libraries.load(filepath, assets_only=True, link=True) as (data_from, data_to):
-                    # we do this check because we may have different assets with the same name in multiple files
-                    if already_linked:
-                        data_to.objects = [obj for obj in data_from.objects if obj not in bpy.data.objects]
-                        data_to.collections = [coll for coll in data_from.collections if coll not in bpy.data.collections]
-                        data_to.materials = [mat for mat in data_from.materials if mat not in bpy.data.materials]
-                    else:
-                        data_to.objects = data_from.objects
-                        data_to.collections = data_from.collections
-                        data_to.materials = data_from.materials
+                    # link objects
+                    filename = ntpath.basename(filepath)
+                    data_types = ['objects', 'collections', 'materials']
+                    for t in data_types:
+                        self.get_assets(data_from, data_to, filename, full_names[t], existing_datablocks[t], t)
 
-                    existing_obs = [bpy.data.objects[obj] for obj in data_from.objects if obj in bpy.data.objects]
-                    existing_colls = [bpy.data.collections[coll] for coll in data_from.collections if coll in bpy.data.collections]
-                    existing_mats = [bpy.data.materials[mat] for mat in data_from.materials if mat in bpy.data.materials]
+                all_items = data_to.collections + data_to.objects + data_to.materials + existing_datablocks['collections'] + existing_datablocks['objects'] + existing_datablocks['materials']
 
-                all_items = data_to.collections + data_to.objects + data_to.materials + existing_obs + existing_colls + existing_mats
                 for i in all_items:
                     current_assets.append(i)
 
