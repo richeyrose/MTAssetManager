@@ -210,10 +210,11 @@ def save_as_blender_asset(asset, asset_desc, tags):
         asset_desc (dict): asset description
         tags (list[str]): list of tags
     """
-    asset_data = asset.asset_data
+
     # Clear any existing asset data and then mark as asset
     asset.asset_clear()
     asset.asset_mark()
+    asset_data = asset.asset_data
 
     # set asset preview
     ctx = {'id': asset}
