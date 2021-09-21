@@ -45,33 +45,35 @@ def append_material(context, asset, link=False):
 
 
 def append_object(context, asset, link=False):
-    """Append object to the scene based on passed in MakeTile Asset description.
+    """Append object to the scene based on passed in MakeTile Asset.
 
     Args:
         context (bpy.context): context
-        asset (dict): MakeTile asset description
+        asset (dict): MakeTile asset
         link (bool, optional): Whether to link or append asset. Defaults to False.
 
     Returns:
         bpy.types.Object: object
     """
-    filepath = asset["FilePath"]
-
-    # used to ensure we only add unique materials
-    existing_mats = bpy.data.materials.keys()
-
-    # used to ensure we set add a fake user on secondary objects, like those referred
-    # to in modifiers, if they are added to the scene. If we don't do this then when
-    # we resave an object it won't save the associated objects (as of 2.82a)
-    existing_obs = bpy.data.objects.keys()
-
-    if os.path.exists(filepath) and os.path.isfile(filepath):
+    obj = asset.asset
+    if not link:
+        # we need to append the object in order to ensure we bring through all linked datablocks
+        # (i.e. in modifiers) and make them local
+        lib = obj.library
+        filepath = lib.filepath
+        name = obj.name
+        # unlink existing library
+        bpy.data.libraries.remove(lib)
+        # used to ensure we only add unique materials
+        existing_mats = bpy.data.materials.keys()
+        # used to ensure we set add a fake user on secondary objects, like those referred
+        # to in modifiers, if they are added to the scene. If we don't do this then when
+        # we resave an object it won't save the associated objects (as of 2.82a)
+        existing_obs = bpy.data.objects.keys()
         asset_found = False
-        # load asset
-        with bpy.data.libraries.load(filepath, link=link) as (data_from, data_to):
-            if asset['Slug'] in data_from.objects:
-                data_to.objects = [asset['Slug']]
-                asset_found = True
+        with bpy.data.libraries.load(filepath) as (data_from, data_to):
+            data_to.objects = [name]
+            asset_found = True
 
         if asset_found:
             # the object that corresponds to the asset['Slug']
@@ -106,14 +108,20 @@ def append_object(context, asset, link=False):
 
                     # remove duplicate material
                     bpy.data.materials.remove(bpy.data.materials[mat])
-
-            # rename object to pretty name
-            obj.name = asset["Name"]
+            # reinitialise asset bar
+            context.scene.mt_am_props.assets_updated = True
 
             return obj
-
-    return None
-
+        return False
+    else:
+        try:
+            # link our imported object to current collection
+            context.collection.objects.link(obj)
+            return obj
+        except RuntimeError:
+            #TODO turn this into a pop up with "Do you want to append instead?"" and "Don't show this message again" options
+            context.scene.mt_am_props.asset_bar.op.report({'INFO'}, obj.name + " already linked to scene.")
+            return False
 
 def append_collection(context, asset, link=False):
     """Append collection to scene based on passed in asset description.

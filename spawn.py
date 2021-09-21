@@ -41,7 +41,7 @@ def spawn_object(context, asset, x, y):
     # push an undo action to the stack
     bpy.ops.ed.undo_push()
 
-    return obj
+    return True
 
 
 def spawn_collection(context, asset, x, y):

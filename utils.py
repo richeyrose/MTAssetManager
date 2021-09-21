@@ -8,7 +8,7 @@ def material_is_unique(material, materials):
     Parameters
     material : bpy.types.Material
         material to check for uniqueness
-
+    materials[list]: List of bpy.types.Material
     Returns
     Boolean
         True if material is unique

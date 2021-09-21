@@ -1,5 +1,5 @@
 import gpu
-import bgl
+from bpy.types import Object, Collection, Material
 
 from gpu_extras.batch import batch_for_shader
 from .ui_widget import MT_UI_AM_Widget
@@ -82,17 +82,20 @@ class MT_AM_UI_Drag_Thumb(MT_UI_AM_Widget):
             self._dragging = False
             self.asset.remove_drag_thumb(self)
             if not self.asset_bar.hovered:
+                if type(self.asset.asset) == Object:
+                    if spawn_object(self.context, self.asset, x, y):
+                        return True
                 # spawn asset at cursor location
-                asset_desc = self.asset.asset_desc
-                if asset_desc['Type'] == 'OBJECTS':
-                    if spawn_object(self.context, self.asset.asset_desc, x, y):
-                        return True
-                elif asset_desc['Type'] == 'COLLECTIONS':
-                    if spawn_collection(self.context, self.asset.asset_desc, x, y):
-                        return True
-                else:
-                    if spawn_material(self.context, self.asset.asset_desc, x, y):
-                        return True
+                # asset_desc = self.asset.asset_desc
+                # if asset_desc['Type'] == 'OBJECTS':
+                #     if spawn_object(self.context, self.asset.asset_desc, x, y):
+                #         return True
+                # elif asset_desc['Type'] == 'COLLECTIONS':
+                #     if spawn_collection(self.context, self.asset.asset_desc, x, y):
+                #         return True
+                # else:
+                #     if spawn_material(self.context, self.asset.asset_desc, x, y):
+                #         return True
         return False
 
     def _set_origin(self, x, y):
