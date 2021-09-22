@@ -10,23 +10,20 @@ from .utils import dedupe
 
 
 def mt_am_initialise_on_activation(dummy):
-    """Call the first time the depsgraph is updated after add-on activation.
-
-    Sets up asset cache .json files
-    """
+    """Call the first time the depsgraph is updated after add-on activation."""
     bpy.app.handlers.depsgraph_update_pre.remove(mt_am_initialise_on_activation)
     create_properties()
 
 @persistent
 def mt_am_initialise_on_load(dummy):
+    """Call when new file is loaded."""
     create_properties()
 
 def create_properties():
     """Create custom properties."""
     prefs = get_prefs()
     props = bpy.context.scene.mt_am_props
-    props.current_path = prefs.current_library_path
-
+    props.library_path = prefs.library_path
     bar_props = bpy.context.scene.mt_bar_props
     bar_props['hovered_asset'] = None
     bar_props['selected_asset'] = None

@@ -74,7 +74,7 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
         update=update_user_assetspath
     )
 
-    current_library_path: StringProperty(
+    library_path: StringProperty(
         name="Current Library",
         default=user_assets_path,
         subtype='DIR_PATH')

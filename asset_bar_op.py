@@ -225,11 +225,11 @@ class MT_OT_AM_Asset_Bar(Operator):
     def update_sidebar(self, context):
         am_props = context.scene.mt_am_props
 
-        # update parent category path
+        # update parent path
         context.scene.mt_am_props.parent_path = os.path.abspath(
             os.path.join(self.current_path, os.pardir))
 
-        #update current category path
+        #update current path
         context.scene.mt_am_props.current_path = self.current_path
 
     def register_asset_bar_draw_handler(self, args, context):
@@ -271,14 +271,6 @@ class MT_OT_AM_Asset_Bar(Operator):
         props = context.scene.mt_am_props
         self.unregister_handlers(context)
         props.current_path = prefs.current_library_path
-        # reset categories for side bar
-        # props.active_category = None
-        # props.parent_category = ""
-
-        # # get child categories and update side bar
-        # props['child_cats'] = get_child_cats(
-        #     props.categories,
-        #     "")
         return {"FINISHED"}
 
     def draw_callback_asset_bar(self, op, context):
@@ -303,8 +295,8 @@ class MT_OT_AM_Asset_Bar(Operator):
         except AttributeError:
             return False
 
-class MT_OT_AM_Return_To_Parent_2(Operator):
-    bl_idname = "view3d.mt_ret_to_parent_2"
+class MT_OT_AM_Return_To_Parent(Operator):
+    bl_idname = "view3d.mt_ret_to_parent"
     bl_label = "MakeTile return to parent"
     bl_description = "Move up a category level"
     bl_options = {'INTERNAL'}

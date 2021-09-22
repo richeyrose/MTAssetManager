@@ -5,6 +5,11 @@ from bpy.props import StringProperty, BoolProperty, EnumProperty, PointerPropert
 from .preferences import get_prefs
 
 class MT_PT_AM_Props(PropertyGroup):
+    def update_library_path(self, context):
+        prefs = get_prefs()
+        self.current_path = self.library_path
+        prefs.library_path = self.library_path
+
     assets_updated: BoolProperty(
         name="Assets Updated",
         default=False,
@@ -27,6 +32,13 @@ class MT_PT_AM_Props(PropertyGroup):
         name="Parent Path",
         subtype='DIR_PATH',
         description="Path to the parent of the current asset folder."
+    )
+
+    library_path: StringProperty(
+        name="Library Path",
+        subtype='DIR_PATH',
+        description="Library Path.",
+        update=update_library_path
     )
 
     cut: bpy.props.BoolProperty(
