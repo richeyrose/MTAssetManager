@@ -20,7 +20,7 @@ class MT_OT_AM_Asset_Bar(Operator):
     bl_description = "Display asset bar"
     bl_options = {'REGISTER'}
 
-    current_category_path: StringProperty(
+    current_path: StringProperty(
         name="Category Path",
         subtype='DIR_PATH',
         description="Path to the current category"
@@ -45,7 +45,7 @@ class MT_OT_AM_Asset_Bar(Operator):
         # update side bar
         self.update_sidebar(context)
 
-        if props.current_category_path:
+        if props.current_path:
             # Check to see if we are already displaying asset bar
             # and add asset bar draw handler and modal handler if not
             if not MT_OT_AM_Asset_Bar.asset_bar:
@@ -153,7 +153,7 @@ class MT_OT_AM_Asset_Bar(Operator):
             context (bpy.context): context
             reset_index (bool, optional): Whether to reset the asset bar index to 0. Defaults to True.
         """
-        path = self.current_category_path
+        path = self.current_path
         current_assets = []
 
         # get all assets in current directory
@@ -226,11 +226,11 @@ class MT_OT_AM_Asset_Bar(Operator):
         am_props = context.scene.mt_am_props
 
         # update parent category path
-        context.scene.mt_am_props.parent_category_path = os.path.abspath(
-            os.path.join(self.current_category_path, os.pardir))
+        context.scene.mt_am_props.parent_path = os.path.abspath(
+            os.path.join(self.current_path, os.pardir))
 
         #update current category path
-        context.scene.mt_am_props.current_category_path = self.current_category_path
+        context.scene.mt_am_props.current_path = self.current_path
 
     def register_asset_bar_draw_handler(self, args, context):
         """Register the draw handler for the asset bar.
@@ -312,7 +312,7 @@ class MT_OT_AM_Return_To_Parent_2(Operator):
         props = context.scene.mt_am_props
         bpy.ops.view3d.mt_asset_bar(
             'INVOKE_DEFAULT',
-            current_category_path=props.parent_category_path)
+            current_path=props.parent_path)
         return {'FINISHED'}
 
 @persistent

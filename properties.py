@@ -2,6 +2,7 @@ import math
 import bpy
 from bpy.types import PropertyGroup
 from bpy.props import StringProperty, BoolProperty, EnumProperty, PointerProperty
+from .preferences import get_prefs
 
 class MT_PT_AM_Props(PropertyGroup):
     assets_updated: BoolProperty(
@@ -16,16 +17,16 @@ class MT_PT_AM_Props(PropertyGroup):
         description="The parent of the current active category."
     )
 
-    current_category_path: StringProperty(
-        name="Current Category Path",
+    current_path: StringProperty(
+        name="Current Path",
         subtype='DIR_PATH',
-        description="Path to the current category"
+        description="Path to the current asset folder."
     )
 
-    parent_category_path: StringProperty(
-        name="Parent Category Path",
+    parent_path: StringProperty(
+        name="Parent Path",
         subtype='DIR_PATH',
-        description="Path to the parent of the current category"
+        description="Path to the parent of the current asset folder."
     )
 
     cut: bpy.props.BoolProperty(
@@ -235,6 +236,12 @@ def register():
     )
 
 def unregister():
+    del bpy.types.Material.mt_preview_img
+    del bpy.types.Collection.mt_preview_img
+    del bpy.types.Object.mt_preview_img
+    del bpy.types.AssetMetaData.mt_URI
+    del bpy.types.AssetMetaData.mt_author
+    del bpy.types.AssetMetaData.mt_license
     del bpy.types.Scene.mt_am_spawn_props
     del bpy.types.Scene.mt_bar_props
     del bpy.types.Scene.mt_am_props

@@ -11,6 +11,7 @@ class ASSETBROWSER_PT_custom_name(asset_utils.AssetMetaDataPanel, Panel):
     bl_label = "MakeTile Properties"
     bl_space_type = "FILE_BROWSER"
     bl_region_type = 'TOOL_PROPS'
+    bl_description = "Display custom MakeTile asset properties"
 
     def draw(self, context):
         layout=self.layout
@@ -33,31 +34,22 @@ class MT_PT_AM_Main_Panel(Panel):
     def draw(self, context):
         props = context.scene.mt_am_props
         prefs = get_prefs()
+        lib_path = prefs.current_library_path
         layout = self.layout
         child_cats = []
 
-        # display return to parent button
-        if props.parent_category_path and props.current_category_path != prefs.user_assets_path:
+        # display return to parent button if we're not in the library root
+        if props.parent_path and props.current_path != lib_path:
             op = layout.operator(
                 'view3d.mt_ret_to_parent_2',
-                text=os.path.basename(props.parent_category_path),
+                text=os.path.basename(props.parent_path),
                 icon='FILE_PARENT')
 
-        if props.current_category_path == prefs.user_assets_path:
-            path = prefs.user_assets_path
-            child_cats = [
-                os.path.join(path,'collections'),
-                os.path.join(path,'objects'),
-                os.path.join(path,'materials')]
-        else:
-            try:
-                [f.path for f in os.scandir(props.current_category_path) if f.is_dir()]
-            except FileNotFoundError:
-                path = prefs.user_assets_path
-                child_cats = [
-                    os.path.join(path,'collections'),
-                    os.path.join(path,'objects'),
-                    os.path.join(path,'materials')]
+        # get list of subfolders
+        try:
+            child_cats = [f.path for f in os.scandir(props.current_path) if f.is_dir()]
+        except FileNotFoundError:
+            child_cats = [f.path for f in os.scandir(lib_path) if f.is_dir()]
 
         for cat in child_cats:
             row = layout.row()
@@ -65,9 +57,7 @@ class MT_PT_AM_Main_Panel(Panel):
                 "view3d.mt_asset_bar",
                 text=os.path.basename(cat),
                 icon="FILE_FOLDER")
-            op.current_category_path = cat
-
-
+            op.current_path = cat
 
     # def draw(self, context):
     #     props = context.scene.mt_am_props

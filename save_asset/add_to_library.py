@@ -119,8 +119,8 @@ def construct_asset_description(props, asset_type, asset, **kwargs):
     prefs = get_prefs()
     # check if we're in a sub category that contains assets of the correct type.
     # If not add the object to the root category for its type
-    if props.current_category_path:
-        asset_save_path = props.current_category_path
+    if props.current_path:
+        asset_save_path = props.current_path
     else:
         asset_save_path = os.path.join(
             prefs.user_assets_path,
