@@ -212,6 +212,9 @@ def register():
         description="Creator of the asset",
         default="")
 
+    bpy.types.AssetMetaData.mt_URI = StringProperty(
+        name="URI",
+        default="")
 
     bpy.types.Object.mt_preview_img = PointerProperty(
         name="Preview Image",

@@ -13,7 +13,7 @@ from .add_to_library import (
     check_category_type,
     add_asset_to_library,
     construct_asset_description,
-    save_as_blender_asset)
+    mark_as_asset)
 from ..preferences import get_prefs
 from .preview_rendering import render_collection_preview
 from ..utils import tagify
@@ -45,10 +45,18 @@ class MT_OT_Set_Object_Bool_Type(Operator):
         default=""
     )
 
-    License: StringProperty(
+    License: EnumProperty(
+        items=[
+            ("ARR", "All Rights Reserved", ""),
+            ("CCBY", "Attribution (CC BY)", ""),
+            ("CCBYSA", "Attribution-ShareAlike (CC BY-SA)", ""),
+            ("CCBYND", "Attribution-NoDerivs (CC BY-ND)", ""),
+            ("CCBYNC", "Attribution-NonCommercial (CC BY-NC)", ""),
+            ("CCBYNCSA", "Attribution-NonCommercial-ShareAlike (CC BY-NC-SA)", ""),
+            ("CCBYNCND", "Attribution-NonCommercial-NoDerivs (CC BY-NC-ND)", "")],
         name="License",
-        default="All Rights Reserved"
-    )
+        description="License for asset use",
+        default="ARR")
 
     Tags: StringProperty(
         name="Tags",
@@ -199,10 +207,18 @@ class MT_OT_Add_Collection_To_Library(Operator):
         default=""
     )
 
-    License: StringProperty(
+    License: EnumProperty(
+        items=[
+            ("ARR", "All Rights Reserved", ""),
+            ("CCBY", "Attribution (CC BY)", ""),
+            ("CCBYSA", "Attribution-ShareAlike (CC BY-SA)", ""),
+            ("CCBYND", "Attribution-NoDerivs (CC BY-ND)", ""),
+            ("CCBYNC", "Attribution-NonCommercial (CC BY-NC)", ""),
+            ("CCBYNCSA", "Attribution-NonCommercial-ShareAlike (CC BY-NC-SA)", ""),
+            ("CCBYNCND", "Attribution-NonCommercial-NoDerivs (CC BY-NC-ND)", "")],
         name="License",
-        default="All Rights Reserved"
-    )
+        description="License for asset use",
+        default="ARR")
 
     Tags: StringProperty(
         name="Tags",
@@ -343,7 +359,7 @@ def add_collection_to_library(self, context):
             collection)
     if img:
         if hasattr(collection, 'asset_data'):
-            save_as_blender_asset(collection, asset_desc, tags)
+            mark_as_asset(collection, asset_desc, tags)
 
         add_asset_to_library(
             self,

@@ -1,5 +1,6 @@
 """Contains helper functions for adding assets to MakeTile library..."""
 import os
+from pathlib import Path
 import json
 import bpy
 from ..utils import slugify, tagify, find_and_rename
@@ -76,7 +77,7 @@ def draw_save_props_menu(self, context):
     layout.prop(self, 'Tags')
 
 
-def add_asset_to_library(self, context, asset, asset_type, asset_desc, preview_img = None):
+def add_asset_to_library(self, asset, asset_desc, preview_img = None):
     """Add the passed in asset to the asset library.
 
     Args:
@@ -87,112 +88,59 @@ def add_asset_to_library(self, context, asset, asset_type, asset_desc, preview_i
     Returns:
         dict: asset_desc
     """
-    asset = asset.id_data
-    props = context.scene.mt_am_props
-    prefs = get_prefs()
-    assets_path = prefs.user_assets_path
+    imagepath = os.path.join(asset_desc['FilePath'], asset_desc['PreviewImageName'])
+    assetpath = os.path.join(asset_desc['FilePath'], asset_desc['FileName'])
 
-    # save asset preview image to asset
-    asset.mt_preview_img = preview_img
-    preview_img.pack()
+    if preview_img:
+        # save asset preview image to asset
+        asset.mt_preview_img = preview_img
+        preview_img.pack()
 
-    # in memory list of assets of asset_type
-    assets = getattr(props, asset_type.lower())
-
-    asset_save_path = os.path.join(
-        assets_path,
-        asset_type.lower()
-    )
-
-    json_path = os.path.join(
-        assets_path,
-        "data"
-    )
-
-    # update current objects list
-    assets = assets.append(asset_desc)
-
-    if not os.path.exists(json_path):
-        os.makedirs(json_path)
-
-    # open user asset description file and then write description to file
-    file_assets = []
-    json_file = os.path.join(json_path, asset_type.lower() + '.json')
-
-    if os.path.exists(json_file):
-        with open(json_file) as read_file:
-            file_assets = json.load(read_file)
-
-    file_assets.append(asset_desc)
-
-    # write description to .json file
-    with open(json_file, "w") as write_file:
-        json.dump(file_assets, write_file, indent=4)
-
-    # save asset to library file
-    if not os.path.exists(asset_save_path):
-        os.makedirs(asset_save_path)
-
-    # change asset name to asset slug
-    asset.name = asset_desc['Slug']
 
     # save asset in individual file
+    if not os.path.exists(asset_desc['FilePath']):
+        os.makedirs(asset_desc['FilePath'])
+
     bpy.data.libraries.write(
-        os.path.join(asset_desc['FilePath']),
+        assetpath,
         {asset, preview_img},
         fake_user=True)
 
-    # delete external image
-    os.remove(asset_desc['PreviewImagePath'])
+    # # delete external image
+    if os.path.exists(imagepath):
+        os.remove(imagepath)
 
-    # change asset name back to pretty name
-    asset.name = asset_desc['Name']
-
-    self.report({'INFO'}, asset_desc['Name'] + " added to Library.")
+    self.report({'INFO'}, asset.name + " added to Library.")
 
     return asset_desc
 
 
-def construct_asset_description(props, asset_type, assets_path, asset, **kwargs):
+def construct_asset_description(props, asset_type, asset, **kwargs):
+    prefs = get_prefs()
     # check if we're in a sub category that contains assets of the correct type.
     # If not add the object to the root category for its type
-    if props.active_category is None:
-        category = asset_type.lower()
+    if props.current_category_path:
+        asset_save_path = props.current_category_path
     else:
-        category = check_category_type(props.active_category, asset_type)
+        asset_save_path = os.path.join(
+            prefs.user_assets_path,
+            asset_type.lower())
 
-    # in memory list of assets of asset_type
-    assets = getattr(props, asset_type.lower())
-
-    asset_save_path = os.path.join(
-        assets_path,
-        asset_type.lower()
-    )
-
+    # create a unique (within this directory) slug for our file
     slug = slugify(asset.name)
-    current_slugs = [asset['Slug'] for asset in assets]
+
+    # list of .blend file stem names in asset_save_path:
+    blends = [f for f in os.listdir(asset_save_path) if os.path.isfile(os.path.join(asset_save_path, f)) and f.endswith(".blend")]
+    stems = [Path(blend).stem for blend in blends]
 
     # check if slug already exists and increment and rename if not.
-    new_slug = find_and_rename(slug, current_slugs)
-
-    pretty_name = asset.name  # when we reimport an asset we will rename it to this
-
-    filepath = os.path.join(
-        asset_save_path,
-        new_slug + '.blend')
-
-    imagepath = os.path.join(
-        asset_save_path,
-        new_slug + '.png')
+    new_slug = find_and_rename(slug, stems)
 
     # construct dict for saving to .json cache file
     asset_desc = {
-        "Name": pretty_name,
         "Slug": new_slug,
-        "Category": category,
         "FileName": new_slug + '.blend',
-        "FilePath": filepath,
-        "PreviewImagePath": imagepath,
+        "FilePath": asset_save_path,
         "PreviewImageName": new_slug + '.png',
         "Type": asset_type.upper()}
 
@@ -202,7 +150,7 @@ def construct_asset_description(props, asset_type, assets_path, asset, **kwargs)
     return asset_desc
 
 
-def save_as_blender_asset(asset, asset_desc, tags):
+def mark_as_asset(asset, asset_desc, tags):
     """Save asset as blender asset for blender's internal asset browser.
 
     Args:
@@ -218,8 +166,9 @@ def save_as_blender_asset(asset, asset_desc, tags):
 
     # set asset preview
     ctx = {'id': asset}
-    if os.path.isfile(asset_desc['PreviewImagePath']):
-        bpy.ops.ed.lib_id_load_custom_preview(ctx, filepath=asset_desc['PreviewImagePath'])
+    imagepath = os.path.join(asset_desc['FilePath'], asset_desc['PreviewImageName'])
+    if os.path.isfile(imagepath):
+        bpy.ops.ed.lib_id_load_custom_preview(ctx, filepath=imagepath)
 
     # set asset description
     asset_data.description = asset_desc['Description']
@@ -228,6 +177,11 @@ def save_as_blender_asset(asset, asset_desc, tags):
     for tag in tags:
         asset_data.tags.new(tag, skip_if_exists=True)
 
+    # set custom Maketile asset props
+    asset_data.mt_author = asset_desc['Author']
+    asset_data.mt_license = asset_desc['License']
+    asset_data.mt_URI = asset_desc['URI']
+
 def draw_object_context_menu_items(self, context):
     """Add save options to object right click context menu."""
     layout = self.layout
@@ -235,9 +189,6 @@ def draw_object_context_menu_items(self, context):
     try:
         if context.active_object.type in ['MESH']:
             layout.separator()
-            layout.operator(
-                "object.add_active_object_to_library",
-                text="Save active object to MakeTile Library")
             layout.operator(
                 "object.add_selected_objects_to_library",
                 text="Save all selected objects to MakeTile Library")

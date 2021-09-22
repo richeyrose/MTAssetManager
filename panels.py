@@ -7,9 +7,6 @@ from bpy_extras import (
     asset_utils,
 )
 
-def list_subfolders_with_paths(path):
-    return [f.path for f in os.scandir(path) if f.is_dir()]
-
 class ASSETBROWSER_PT_custom_name(asset_utils.AssetMetaDataPanel, Panel):
     bl_label = "MakeTile Properties"
     bl_space_type = "FILE_BROWSER"
@@ -22,6 +19,7 @@ class ASSETBROWSER_PT_custom_name(asset_utils.AssetMetaDataPanel, Panel):
         if active_asset:
             layout.prop(active_asset, 'mt_author')
             layout.prop(active_asset, 'mt_license')
+            layout.prop(active_asset, 'mt_URI')
 
 class MT_PT_AM_Main_Panel(Panel):
     """Asset N Menu UI panel."""
@@ -53,7 +51,7 @@ class MT_PT_AM_Main_Panel(Panel):
                 os.path.join(path,'materials')]
         else:
             try:
-                child_cats = list_subfolders_with_paths(props.current_category_path)
+                [f.path for f in os.scandir(props.current_category_path) if f.is_dir()]
             except FileNotFoundError:
                 path = prefs.user_assets_path
                 child_cats = [

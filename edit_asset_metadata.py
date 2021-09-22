@@ -43,10 +43,18 @@ class MT_OT_AM_Edit_Asset_Metadata(Operator):
         default=""
     )
 
-    License: StringProperty(
+    License: EnumProperty(
+        items=[
+            ("ARR", "All Rights Reserved", ""),
+            ("CCBY", "Attribution (CC BY)", ""),
+            ("CCBYSA", "Attribution-ShareAlike (CC BY-SA)", ""),
+            ("CCBYND", "Attribution-NoDerivs (CC BY-ND)", ""),
+            ("CCBYNC", "Attribution-NonCommercial (CC BY-NC)", ""),
+            ("CCBYNCSA", "Attribution-NonCommercial-ShareAlike (CC BY-NC-SA)", ""),
+            ("CCBYNCND", "Attribution-NonCommercial-NoDerivs (CC BY-NC-ND)", "")],
         name="License",
-        default="All Rights Reserved"
-    )
+        description="License for asset use",
+        default="ARR")
 
     Tags: StringProperty(
         name="Tags"
