@@ -15,101 +15,17 @@ def mt_am_initialise_on_activation(dummy):
     Sets up asset cache .json files
     """
     bpy.app.handlers.depsgraph_update_pre.remove(mt_am_initialise_on_activation)
-    prefs = get_prefs()
-    props = bpy.context.scene.mt_am_props
     create_properties()
-
-    # we store our asset library .json files in the users directory not the add-on directory
-    # We do this because otherwise if the user removes the addon they will delete all
-    # the metadata that describes the assets
-    user_data_path = os.path.join(
-        prefs.user_assets_path,
-        "data"
-    )
-
-    default_data_path = os.path.join(
-        prefs.default_assets_path,
-        "data"
-    )
-
-    # Write the absolute filepath to the default assets included with the asset manager
-    # to our asset description file
-    asset_types = ['objects', 'collections', 'materials']
-    set_asset_desc_filepaths(prefs.default_assets_path, asset_types)
-
-    # Create user asset and categories files if none exist and update existing one with
-    # new bundled assets if they do.
-    asset_types.append('categories')
-
-    # check data directory exists
-    if not os.path.exists(user_data_path):
-        os.makedirs(user_data_path)
-
-    for name in asset_types:
-        filename = name + '.json'
-        # if user asset file doesn't exist create it
-        if not os.path.exists(os.path.join(user_data_path, filename)):
-            shutil.copy2(os.path.join(default_data_path, filename), user_data_path)
-        # else update existing asset file with new bundled assets
-        else:
-            # load asset descs from user file
-            with open(os.path.join(user_data_path, filename)) as json_file:
-                descs = json.load(json_file)
-            # append the asset descs from asset manager file
-            with open(os.path.join(default_data_path, filename)) as json_file:
-                descs.extend(json.load(json_file))
-            # deduplicate
-            descs = list(dedupe(descs, key=lambda d: d['Slug']))
-            # write data file
-            with open(os.path.join(user_data_path, filename), "w") as write_file:
-                json.dump(descs, write_file, indent=4)
-
-    load_asset_descriptions(props, asset_types)
 
 @persistent
 def mt_am_initialise_on_load(dummy):
-    props = bpy.context.scene.mt_am_props
     create_properties()
-    asset_types = ['objects', 'collections', 'materials']
-    load_asset_descriptions(props, asset_types)
-
-def set_asset_desc_filepaths(assets_path, asset_types):
-    """Stores the path to the associated asset type in asset description .json file
-
-    Args:
-        assets_path (str): path to assets folder
-        asset_types (str): type of asset
-    """
-    for asset_type in asset_types:
-        json_file = os.path.join(
-            assets_path,
-            "data",
-            asset_type + ".json")
-
-        if os.path.exists(json_file):
-            with open(json_file) as read_file:
-                assets = json.load(read_file)
-
-            for asset in assets:
-                asset["FilePath"] = os.path.join(
-                    assets_path,
-                    asset_type,
-                    asset["FileName"])
-                asset["PreviewImagePath"] = os.path.join(
-                    assets_path,
-                    asset_type,
-                    asset["PreviewImageName"])
-
-            with open(json_file, "w") as write_file:
-                json.dump(assets, write_file, indent=4)
-
 
 def create_properties():
     """Create custom properties."""
     prefs = get_prefs()
     props = bpy.context.scene.mt_am_props
-    # props.active_category = None
-    props.parent_category = ""
+    props.current_path = prefs.current_library_path
 
     bar_props = bpy.context.scene.mt_bar_props
     bar_props['hovered_asset'] = None
@@ -117,12 +33,13 @@ def create_properties():
     bar_props['dragged_asset'] = None
     bar_props['missing_preview_image'] = load_missing_preview_image()
 
-    categories = load_categories()
-    props.categories = categories  # all categories
-    props.child_cats = categories  # child categories of active category
-
 
 def load_missing_preview_image():
+    """Load the image used for assets with no preview.
+
+    Returns:
+        bpy.types.Image: Image
+    """
     prefs = get_prefs()
     no_image_path = os.path.join(
         prefs.default_assets_path,
@@ -133,29 +50,6 @@ def load_missing_preview_image():
     if os.path.exists(no_image_path):
         return bpy.data.images.load(no_image_path, check_existing=True)
     return None
-
-
-def load_asset_descriptions(props, asset_types):
-    """Load asset descriptions from .json file.
-
-    Args:
-        props (mt_am_props): asset manager props
-        asset_types (list[str]): list of asset types
-    """
-    prefs = get_prefs()
-    descs = []
-    for a_type in asset_types:
-        json_path = os.path.join(
-            prefs.user_assets_path,
-            "data",
-            a_type + ".json")
-
-        if os.path.exists(json_path):
-            with open(json_path) as json_file:
-                descs = (json.load(json_file))
-
-        setattr(props, a_type, descs)
-
 
 bpy.app.handlers.depsgraph_update_pre.append(mt_am_initialise_on_activation)
 bpy.app.handlers.load_post.append(mt_am_initialise_on_load)

@@ -267,17 +267,18 @@ class MT_OT_AM_Asset_Bar(Operator):
         Returns:
             operator return value {'FINISHED'}: Operator return
         """
+        prefs = get_prefs()
         props = context.scene.mt_am_props
         self.unregister_handlers(context)
-
+        props.current_path = prefs.current_library_path
         # reset categories for side bar
-        props.active_category = None
-        props.parent_category = ""
+        # props.active_category = None
+        # props.parent_category = ""
 
-        # get child categories and update side bar
-        props['child_cats'] = get_child_cats(
-            props.categories,
-            "")
+        # # get child categories and update side bar
+        # props['child_cats'] = get_child_cats(
+        #     props.categories,
+        #     "")
         return {"FINISHED"}
 
     def draw_callback_asset_bar(self, op, context):

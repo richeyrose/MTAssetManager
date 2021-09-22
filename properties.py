@@ -11,11 +11,11 @@ class MT_PT_AM_Props(PropertyGroup):
         description="Set to true when you add, remove or update an asset"
     )
 
-    parent_category: bpy.props.StringProperty(
-        name="Parent Category",
-        default="",
-        description="The parent of the current active category."
-    )
+    # parent_category: bpy.props.StringProperty(
+    #     name="Parent Category",
+    #     default="",
+    #     description="The parent of the current active category."
+    # )
 
     current_path: StringProperty(
         name="Current Path",
@@ -35,31 +35,31 @@ class MT_PT_AM_Props(PropertyGroup):
         description="Whether we are in asset cut mode."
     )
 
-    _categories = []
-    _child_cats = []
-    _objects = []
-    _materials = []
-    _collections = []
-    _current_asset_desc = None
+    # _categories = []
+    # _child_cats = []
+    # _objects = []
+    # _materials = []
+    # _collections = []
+    # _current_asset_desc = None
     _asset_bar = []
-    _copied_assets = None
-    _active_category = None
+    # _copied_assets = None
+    # _active_category = None
 
-    @property
-    def active_category(self):
-        return MT_PT_AM_Props._active_category
+    # @property
+    # def active_category(self):
+    #     return MT_PT_AM_Props._active_category
 
-    @active_category.setter
-    def active_category(self, value):
-        MT_PT_AM_Props._active_category = value
+    # @active_category.setter
+    # def active_category(self, value):
+    #     MT_PT_AM_Props._active_category = value
 
-    @property
-    def copied_assets(self):
-        return MT_PT_AM_Props._copied_assets
+    # @property
+    # def copied_assets(self):
+    #     return MT_PT_AM_Props._copied_assets
 
-    @copied_assets.setter
-    def copied_assets(self, value):
-        MT_PT_AM_Props._copied_assets = value
+    # @copied_assets.setter
+    # def copied_assets(self, value):
+    #     MT_PT_AM_Props._copied_assets = value
 
     @property
     def asset_bar(self):
@@ -69,53 +69,53 @@ class MT_PT_AM_Props(PropertyGroup):
     def asset_bar(self, value):
         MT_PT_AM_Props._asset_bar = value
 
-    @property
-    def current_asset_desc(self):
-        return MT_PT_AM_Props._current_asset_desc
+    # @property
+    # def current_asset_desc(self):
+    #     return MT_PT_AM_Props._current_asset_desc
 
-    @current_asset_desc.setter
-    def current_asset_desc(self, value):
-        MT_PT_AM_Props._current_asset_desc = value
+    # @current_asset_desc.setter
+    # def current_asset_desc(self, value):
+    #     MT_PT_AM_Props._current_asset_desc = value
 
-    @property
-    def categories(self):
-        return MT_PT_AM_Props._categories
+    # @property
+    # def categories(self):
+    #     return MT_PT_AM_Props._categories
 
-    @categories.setter
-    def categories(self, value):
-        MT_PT_AM_Props._categories = value
+    # @categories.setter
+    # def categories(self, value):
+    #     MT_PT_AM_Props._categories = value
 
-    @property
-    def child_cats(self):
-        return MT_PT_AM_Props._child_cats
+    # @property
+    # def child_cats(self):
+    #     return MT_PT_AM_Props._child_cats
 
-    @child_cats.setter
-    def child_cats(self, value):
-        MT_PT_AM_Props._child_cats = value
+    # @child_cats.setter
+    # def child_cats(self, value):
+    #     MT_PT_AM_Props._child_cats = value
 
-    @property
-    def objects(self):
-        return MT_PT_AM_Props._objects
+    # @property
+    # def objects(self):
+    #     return MT_PT_AM_Props._objects
 
-    @objects.setter
-    def objects(self, value):
-        MT_PT_AM_Props._objects = value
+    # @objects.setter
+    # def objects(self, value):
+    #     MT_PT_AM_Props._objects = value
 
-    @property
-    def materials(self):
-        return MT_PT_AM_Props._materials
+    # @property
+    # def materials(self):
+    #     return MT_PT_AM_Props._materials
 
-    @materials.setter
-    def materials(self, value):
-        MT_PT_AM_Props._materials = value
+    # @materials.setter
+    # def materials(self, value):
+    #     MT_PT_AM_Props._materials = value
 
-    @property
-    def collections(self):
-        return MT_PT_AM_Props._collections
+    # @property
+    # def collections(self):
+    #     return MT_PT_AM_Props._collections
 
-    @collections.setter
-    def collections(self, value):
-        MT_PT_AM_Props._collections = value
+    # @collections.setter
+    # def collections(self, value):
+    #     MT_PT_AM_Props._collections = value
 
 
 class MT_PT_AM_Bar_Props(PropertyGroup):
