@@ -16,12 +16,6 @@ class MT_PT_AM_Props(PropertyGroup):
         description="Set to true when you add, remove or update an asset"
     )
 
-    # parent_category: bpy.props.StringProperty(
-    #     name="Parent Category",
-    #     default="",
-    #     description="The parent of the current active category."
-    # )
-
     current_path: StringProperty(
         name="Current Path",
         subtype='DIR_PATH',

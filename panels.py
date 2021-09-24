@@ -36,7 +36,14 @@ class MT_PT_AM_Main_Panel(Panel):
         layout = self.layout
         child_cats = []
 
-        layout.prop(props, 'library_path')
+        layout.label(text="Library")
+        layout.prop(props, 'library_path', text="")
+
+        if not props.asset_bar:
+            op = layout.operator("view3d.mt_asset_bar")
+            op.current_path = props.current_path
+        else:
+            layout.operator("view3d.mt_hide_asset_bar")
 
         # display return to parent button if we're not in the library root
         if not os.path.samefile(props.current_path, props.library_path):
@@ -51,6 +58,10 @@ class MT_PT_AM_Main_Panel(Panel):
         except FileNotFoundError:
             child_cats = [f.path for f in os.scandir(props.library_path) if f.is_dir()]
 
+        row = layout.row()
+        row.label(text='Subfolders')
+        row.operator('scene.mt_am_add_subfolder', text="", icon='ADD')
+
         for cat in child_cats:
             row = layout.row()
             op = row.operator(
@@ -59,42 +70,5 @@ class MT_PT_AM_Main_Panel(Panel):
                 icon="FILE_FOLDER")
             op.current_path = cat
 
-    # def draw(self, context):
-    #     props = context.scene.mt_am_props
-    #     active_category = props.active_category
-    #     layout = self.layout
-
-    #     # Check to see if props['child_cats'] is set.
-    #     # If not we are in one of the root categories of objects, collections, materials
-    #     try:
-    #         child_cats = props['child_cats']
-    #         if active_category is None and len(child_cats) == 0:
-    #             child_cats = load_categories()
-    #     except KeyError:
-    #         child_cats = load_categories()
-
-    #     # If we're not in a root category then display the return to parent button
-    #     if active_category is not None:
-    #         op = layout.operator(
-    #             'view3d.mt_ret_to_parent',
-    #             text=active_category['Name'],
-    #             icon='FILE_PARENT')
-
-    #         # also draw the add category button
-    #         row = layout.row()
-    #         row.label(text='Categories')
-    #         row.operator('scene.mt_am_add_category', text="", icon='ADD')
-    #     else:
-    #         layout.label(text='Categories')
-
-    #     # Draw list of child categories
-    #     for cat in child_cats:
-    #         cat_text = cat["Name"]
-    #         row = layout.row()
-    #         op = row.operator("view3d.mt_asset_bar", text=cat_text, icon="FILE_FOLDER")
-    #         op.category_slug = cat["Slug"]
-
-    #         # if we're not in one of the root categories give option to delete category
-    #         if cat["Parent"]:
-    #             del_op = row.operator("view3d.mt_delete_category", text="", icon="REMOVE")
-    #             del_op.category_slug = cat["Slug"]
+            del_op = row.operator("scene.mt_am_delete_subfolder", text="", icon="REMOVE")
+            del_op.folder_name = cat

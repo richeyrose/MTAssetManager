@@ -13,6 +13,24 @@ from .ui.ui_asset import MT_AM_UI_Asset
 from .ui.ui_nav_arrow import MT_UI_AM_Left_Nav_Arrow, MT_UI_AM_Right_Nav_Arrow
 from .app_handlers import create_properties
 
+class MT_OT_AM_Hide_Asset_Bar(Operator):
+    """Operator for hiding the MakeTile Asset bar"""
+    bl_idname = "view3d.mt_hide_asset_bar"
+    bl_label = "Hide Asset Bar"
+    bl_description = "Hide the asset bar"
+    bl_options = {"REGISTER"}
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene.mt_am_props.asset_bar
+
+    def execute(self, context):
+        """Remove the asset bar from the viewport."""
+
+        asset_bar=context.scene.mt_am_props.asset_bar
+        asset_bar.op.finish(context)
+        return {'FINISHED'}
+
 class MT_OT_AM_Asset_Bar(Operator):
     """Operator for displaying the MakeTile Asset bar"""
     bl_idname = "view3d.mt_asset_bar"
@@ -267,10 +285,7 @@ class MT_OT_AM_Asset_Bar(Operator):
         Returns:
             operator return value {'FINISHED'}: Operator return
         """
-        prefs = get_prefs()
-        props = context.scene.mt_am_props
         self.unregister_handlers(context)
-        props.current_path = prefs.current_library_path
         return {"FINISHED"}
 
     def draw_callback_asset_bar(self, op, context):

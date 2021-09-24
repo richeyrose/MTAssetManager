@@ -3,9 +3,9 @@ import os
 import json
 import bpy
 from bpy.props import StringProperty
-from .utils import slugify
 from .preferences import get_prefs
 from .delete_from_library import delete_assets
+from .lib.send2trash import send2trash
 
 # TODO #1 Create a rename category operator
 def get_descendent_cats(category):
@@ -209,81 +209,52 @@ class MT_OT_Delete_Category(bpy.types.Operator):
         return context.window_manager.invoke_confirm(self, event)
 
 
-class MT_OT_Add_Folder(bpy.types.Operator):
-    """Add a new folder."""
-    bl_idname = "scene.mt_am_add_folder"
-    bl_label = "Add Category"
-    bl_description = "Add a new Category"
+class MT_OT_Delete_Subfolder(bpy.types.Operator):
+    """Delete a subfolder."""
+    bl_idname = "scene.mt_am_delete_subfolder"
+    bl_label = "Delete Subfolder"
+    bl_description = "Delete a Subfolder"
     bl_options = {"REGISTER"}
 
-    new_cat_name: StringProperty(
+    folder_name: StringProperty(
         name="Name",
         default=""
     )
 
     def execute(self, context):
-        prefs = get_prefs()
+        """Delete a folder."""
         props = context.scene.mt_am_props
-        parent_slug = props.active_category["Slug"]
-        name = self.new_cat_name
+        current_folder = props.current_path
+        to_delete = os.path.join(current_folder, self.folder_name)
+        if os.path.isdir(to_delete):
+            try:
+                send2trash(to_delete)
+            except OSError as err:
+                self.report({'INFO'}, str(err))
+        return {'FINISHED'}
 
-        return{'FINISHED'}
-
-class MT_OT_Add_Category(bpy.types.Operator):
-    """Add a new category."""
-    bl_idname = "scene.mt_am_add_category"
-    bl_label = "Add Category"
-    bl_description = "Add a new Category"
+class MT_OT_Add_Subfolder(bpy.types.Operator):
+    """Add a new subfolder."""
+    bl_idname = "scene.mt_am_add_subfolder"
+    bl_label = "Add Subfolder"
+    bl_description = "Add a new Subfolder"
     bl_options = {"REGISTER"}
 
-    new_cat_name: StringProperty(
+    new_folder_name: StringProperty(
         name="Name",
         default=""
     )
 
     def execute(self, context):
         """Add a new category."""
-        prefs = get_prefs()
         props = context.scene.mt_am_props
-        parent_slug = props.active_category["Slug"]
-        name = self.new_cat_name
-        categories = props.categories
-        parent_cat = get_category(categories, parent_slug)
-        name = name.strip()
+        current_folder = props.current_path
 
-        # check sub category doesn't already exist
-        found = False
-        for child in parent_cat["Children"]:
-            if name in child["Name"]:
-                found = True
-                self.report({'INFO'}, "Category already exists")
-                return {'CANCELLED'}
-
-        if not found:
-            new_cat = {
-                "Name": name,
-                "Slug": parent_slug + "\\" + slugify(name),
-                "Parent": parent_slug,
-                "Contains": parent_cat["Contains"],
-                "Children": []}
-
-            append_category(categories, parent_slug, new_cat)
-
-            # update sidebar
-            props['child_cats'] = get_child_cats(
-                categories,
-                parent_slug)
-
-            # Write categories.json file
-            json_file = os.path.join(
-                prefs.user_assets_path,
-                "data",
-                "categories.json")
-
-            if os.path.exists(json_file):
-                with open(json_file, "w") as write_file:
-                    json.dump(categories, write_file, indent=4)
-            return {'FINISHED'}
+        try:
+            os.mkdir(os.path.join(current_folder, self.new_folder_name))
+        except OSError as err:
+            self.report({'INFO'}, str(err))
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         """Call when user accesses operator via menu."""
@@ -292,4 +263,4 @@ class MT_OT_Add_Category(bpy.types.Operator):
     def draw(self, context):
         """Draw modal pop up."""
         layout = self.layout
-        layout.prop(self, 'new_cat_name')
+        layout.prop(self, 'new_folder_name')
