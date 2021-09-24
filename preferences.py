@@ -20,13 +20,26 @@ import os
 import shutil
 import bpy
 from .system import makedir, abspath, get_addon_path, get_addon_name
+from bpy.types import PropertyGroup
 from bpy.props import (
     StringProperty,
     FloatVectorProperty,
     FloatProperty,
     IntProperty,
-    BoolProperty)
+    BoolProperty,
+    CollectionProperty)
 
+class MT_PT_AM_Libraries(PropertyGroup):
+    name: StringProperty(
+        name="Name",
+        description="Library Name"
+    )
+
+    path: StringProperty(
+        name="Path",
+        subtype='DIR_PATH',
+        description="Path to Library."
+    )
 
 class MT_AM_Prefs(bpy.types.AddonPreferences):
     bl_idname = __package__
@@ -78,6 +91,12 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
         name="Current Library",
         default=user_assets_path,
         subtype='DIR_PATH')
+
+    libraries: CollectionProperty(
+        name="Libraries",
+        type=MT_PT_AM_Libraries,
+        description="Saved Libraries."
+    )
 
     old_path: StringProperty(
         name="Old Path",

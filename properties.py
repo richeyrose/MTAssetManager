@@ -1,8 +1,10 @@
 import math
 import bpy
 from bpy.types import PropertyGroup
-from bpy.props import StringProperty, BoolProperty, EnumProperty, PointerProperty
+from bpy.props import StringProperty, BoolProperty, EnumProperty, PointerProperty, CollectionProperty
 from .preferences import get_prefs
+
+
 
 class MT_PT_AM_Props(PropertyGroup):
     def update_library_path(self, context):

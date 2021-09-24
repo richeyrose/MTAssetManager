@@ -2,6 +2,7 @@ import re
 import os
 import json
 import bpy
+from bpy.types import Operator
 from bpy.props import StringProperty
 from .preferences import get_prefs
 from .delete_from_library import delete_assets
@@ -159,7 +160,7 @@ def append_category(categories, parent_slug, new_cat):
     return found
 
 
-class MT_OT_Delete_Category(bpy.types.Operator):
+class MT_OT_Delete_Category(Operator):
     """Delete an existing category and the assets and subcategories it contains."""
 
     bl_idname = "view3d.mt_delete_category"
@@ -208,8 +209,25 @@ class MT_OT_Delete_Category(bpy.types.Operator):
         """Call when user accesses operator via menu."""
         return context.window_manager.invoke_confirm(self, event)
 
+class MT_OT_Save_Library(Operator):
+    bl_idname = "scene.mt_am_save_library"
+    bl_label = "Save Library Path"
+    bl_description = "Save a Library Path so you can use it again."
+    bl_options = {"REGISTER"}
 
-class MT_OT_Delete_Subfolder(bpy.types.Operator):
+    library_path: StringProperty(
+        name="Path",
+        subtype='DIR_PATH',
+        default=""
+    )
+
+    library_name: StringProperty(
+        name="Name",
+        default=""
+    )
+
+
+class MT_OT_Delete_Subfolder(Operator):
     """Delete a subfolder."""
     bl_idname = "scene.mt_am_delete_subfolder"
     bl_label = "Delete Subfolder"
@@ -233,7 +251,7 @@ class MT_OT_Delete_Subfolder(bpy.types.Operator):
                 self.report({'INFO'}, str(err))
         return {'FINISHED'}
 
-class MT_OT_Add_Subfolder(bpy.types.Operator):
+class MT_OT_Add_Subfolder(Operator):
     """Add a new subfolder."""
     bl_idname = "scene.mt_am_add_subfolder"
     bl_label = "Add Subfolder"
