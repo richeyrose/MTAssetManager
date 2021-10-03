@@ -92,11 +92,11 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
         default=user_assets_path,
         subtype='DIR_PATH')
 
-    libraries: CollectionProperty(
-        name="Libraries",
-        type=MT_Library,
-        description="Saved Libraries."
-    )
+    # libraries: CollectionProperty(
+    #     name="Libraries",
+    #     type=MT_Library,
+    #     description="Saved Libraries."
+    # )
 
     old_path: StringProperty(
         name="Old Path",
