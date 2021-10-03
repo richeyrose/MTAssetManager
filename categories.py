@@ -7,207 +7,208 @@ from bpy.props import StringProperty
 from .preferences import get_prefs
 from .delete_from_library import delete_assets
 from .lib.send2trash import send2trash
+from .utils import path_leaf
 
-# TODO #1 Create a rename category operator
-def get_descendent_cats(category):
-    """Return all descendents of category as a flat list.
+# # TODO #1 Create a rename category operator
+# def get_descendent_cats(category):
+#     """Return all descendents of category as a flat list.
 
-    Args:
-        category (dict): category dict
+#     Args:
+#         category (dict): category dict
 
-    Returns:
-        list[dict{Name,
-            Slug,
-            Parent,
-            Children[list[categories]]}]: flat list of categories
-    """
-    descendents = []
-    for child in category['Children']:
-        descendents.append(child)
-        descendents.extend(get_descendent_cats(child))
-    return descendents
-
-
-def get_child_cats(categories, category_slug):
-    """Return children of category.
-
-    Args:
-        categories (list[categories]): categories
-        category_slug (string): category
-
-    Returns:
-        list[dict{Name,
-            Slug,
-            Parent,
-            Children[list[categories]]}]: list of categories
-    """
-    if category_slug == '':
-        return categories
-    children = []
-    for cat in categories:
-        if cat['Slug'] == category_slug:
-            return cat['Children']
-        else:
-            children = get_child_cats(cat['Children'], category_slug)
-        if children:
-            return children
-    return children
+#     Returns:
+#         list[dict{Name,
+#             Slug,
+#             Parent,
+#             Children[list[categories]]}]: flat list of categories
+#     """
+#     descendents = []
+#     for child in category['Children']:
+#         descendents.append(child)
+#         descendents.extend(get_descendent_cats(child))
+#     return descendents
 
 
-def get_parent_cat_slug(categories, category_slug):
-    """Return parent slug of category.
+# def get_child_cats(categories, category_slug):
+#     """Return children of category.
 
-    Args:
-        categories (list[categories]): categories
-        category_slug (string): category slug
+#     Args:
+#         categories (list[categories]): categories
+#         category_slug (string): category
 
-    Returns:
-        string: slug
-    """
-    if category_slug == "":
-        return ""
-    parent = ""
-    for cat in categories:
-        if cat['Slug'] == category_slug:
-            return cat['Parent']
-        else:
-            parent = get_parent_cat_slug(cat['Children'], category_slug)
-        if parent:
-            return parent
-    return parent
-
-
-def get_category(categories, category_slug):
-    """Return the category.
-
-    Args:
-        categories (list[categories]): categories
-        category_slug (string): category slug
-
-    Returns:
-        dict{Name,
-            Slug,
-            Parent,
-            Children[list[categories]]}: category
-    """
-    if category_slug == "":
-        return None
-    ret_cat = None
-    for cat in categories:
-        if cat['Slug'] == category_slug:
-            return cat
-        else:
-            ret_cat = get_category(cat['Children'], category_slug)
-        if ret_cat:
-            return ret_cat
-    return ret_cat
+#     Returns:
+#         list[dict{Name,
+#             Slug,
+#             Parent,
+#             Children[list[categories]]}]: list of categories
+#     """
+#     if category_slug == '':
+#         return categories
+#     children = []
+#     for cat in categories:
+#         if cat['Slug'] == category_slug:
+#             return cat['Children']
+#         else:
+#             children = get_child_cats(cat['Children'], category_slug)
+#         if children:
+#             return children
+#     return children
 
 
+# def get_parent_cat_slug(categories, category_slug):
+#     """Return parent slug of category.
 
-def delete_category(categories, category_slug, prefs):
-    """Delete the category and all child categories.
+#     Args:
+#         categories (list[categories]): categories
+#         category_slug (string): category slug
 
-    Args:
-        categories (list[categories]): categories
-        category_slug (string): category slug
-        prefs (dict): AssetManager prefs
-    """
-    for cat in categories:
-        if cat['Slug'] == category_slug:
-            categories.remove(cat)
-            break
-        else:
-            delete_category(cat['Children'], category_slug, prefs)
-
-    # Update categories.json file
-    json_file = os.path.join(
-        prefs.user_assets_path,
-        "data",
-        "categories.json")
-
-    if os.path.exists(json_file):
-        with open(json_file, "w") as write_file:
-            json.dump(categories, write_file, indent=4)
+#     Returns:
+#         string: slug
+#     """
+#     if category_slug == "":
+#         return ""
+#     parent = ""
+#     for cat in categories:
+#         if cat['Slug'] == category_slug:
+#             return cat['Parent']
+#         else:
+#             parent = get_parent_cat_slug(cat['Children'], category_slug)
+#         if parent:
+#             return parent
+#     return parent
 
 
-def load_categories():
-    """Load categories from .json file."""
-    prefs = get_prefs()
-    categories = []
-    json_path = os.path.join(
-        prefs.user_assets_path,
-        "data",
-        "categories.json"
-    )
+# def get_category(categories, category_slug):
+#     """Return the category.
 
-    if os.path.exists(json_path):
-        with open(json_path) as json_file:
-            categories = json.load(json_file)
+#     Args:
+#         categories (list[categories]): categories
+#         category_slug (string): category slug
 
-    return categories
-
-
-def append_category(categories, parent_slug, new_cat):
-    found = False
-    for cat in categories:
-        if cat['Slug'] == parent_slug:
-            cat['Children'].append(new_cat)
-            return True
-        else:
-            found = append_category(cat['Children'], parent_slug, new_cat)
-        if found:
-            return found
-    return found
+#     Returns:
+#         dict{Name,
+#             Slug,
+#             Parent,
+#             Children[list[categories]]}: category
+#     """
+#     if category_slug == "":
+#         return None
+#     ret_cat = None
+#     for cat in categories:
+#         if cat['Slug'] == category_slug:
+#             return cat
+#         else:
+#             ret_cat = get_category(cat['Children'], category_slug)
+#         if ret_cat:
+#             return ret_cat
+#     return ret_cat
 
 
-class MT_OT_Delete_Category(Operator):
-    """Delete an existing category and the assets and subcategories it contains."""
 
-    bl_idname = "view3d.mt_delete_category"
-    bl_label = "Delete the category and all assets it contains?"
-    bl_description = "Warning, this cannot be Undone!"
-    bl_options = {'INTERNAL'}
+# def delete_category(categories, category_slug, prefs):
+#     """Delete the category and all child categories.
 
-    category_slug: StringProperty(
-        name="Category")
+#     Args:
+#         categories (list[categories]): categories
+#         category_slug (string): category slug
+#         prefs (dict): AssetManager prefs
+#     """
+#     for cat in categories:
+#         if cat['Slug'] == category_slug:
+#             categories.remove(cat)
+#             break
+#         else:
+#             delete_category(cat['Children'], category_slug, prefs)
 
-    def execute(self, context):
-        prefs = get_prefs()
-        props = context.scene.mt_am_props
-        category = get_category(props.active_category["Children"], self.category_slug)
+#     # Update categories.json file
+#     json_file = os.path.join(
+#         prefs.user_assets_path,
+#         "data",
+#         "categories.json")
 
-        try:
-            asset_type = category["Contains"].lower()
-            asset_descs = getattr(props, asset_type)
-
-            # construct list containing all sub categories
-            descendent_cats = get_descendent_cats(category)
-            descendent_cats.append(category)
-            category_slugs = [cat["Slug"] for cat in descendent_cats]
-
-            # get all assets
-            selected_assets = [desc for desc in asset_descs if desc["Category"] in category_slugs]
-            delete_assets(selected_assets, prefs, props, asset_type, True)
-        except TypeError:
-            pass
-
-        # delete categories
-        delete_category(props.categories, self.category_slug, prefs)
-
-        # update sidebar
-        props['child_cats'] = get_child_cats(
-            props.categories,
-            props.active_category["Slug"])
-
-        # update asset bar
-        props.assets_updated = True
+#     if os.path.exists(json_file):
+#         with open(json_file, "w") as write_file:
+#             json.dump(categories, write_file, indent=4)
 
 
-        return {'FINISHED'}
+# def load_categories():
+#     """Load categories from .json file."""
+#     prefs = get_prefs()
+#     categories = []
+#     json_path = os.path.join(
+#         prefs.user_assets_path,
+#         "data",
+#         "categories.json"
+#     )
 
-    def invoke(self, context, event):
-        """Call when user accesses operator via menu."""
-        return context.window_manager.invoke_confirm(self, event)
+#     if os.path.exists(json_path):
+#         with open(json_path) as json_file:
+#             categories = json.load(json_file)
+
+#     return categories
+
+
+# def append_category(categories, parent_slug, new_cat):
+#     found = False
+#     for cat in categories:
+#         if cat['Slug'] == parent_slug:
+#             cat['Children'].append(new_cat)
+#             return True
+#         else:
+#             found = append_category(cat['Children'], parent_slug, new_cat)
+#         if found:
+#             return found
+#     return found
+
+
+# class MT_OT_Delete_Category(Operator):
+#     """Delete an existing category and the assets and subcategories it contains."""
+
+#     bl_idname = "view3d.mt_delete_category"
+#     bl_label = "Delete the category and all assets it contains?"
+#     bl_description = "Warning, this cannot be Undone!"
+#     bl_options = {'INTERNAL'}
+
+#     category_slug: StringProperty(
+#         name="Category")
+
+#     def execute(self, context):
+#         prefs = get_prefs()
+#         props = context.scene.mt_am_props
+#         category = get_category(props.active_category["Children"], self.category_slug)
+
+#         try:
+#             asset_type = category["Contains"].lower()
+#             asset_descs = getattr(props, asset_type)
+
+#             # construct list containing all sub categories
+#             descendent_cats = get_descendent_cats(category)
+#             descendent_cats.append(category)
+#             category_slugs = [cat["Slug"] for cat in descendent_cats]
+
+#             # get all assets
+#             selected_assets = [desc for desc in asset_descs if desc["Category"] in category_slugs]
+#             delete_assets(selected_assets, prefs, props, asset_type, True)
+#         except TypeError:
+#             pass
+
+#         # delete categories
+#         delete_category(props.categories, self.category_slug, prefs)
+
+#         # update sidebar
+#         props['child_cats'] = get_child_cats(
+#             props.categories,
+#             props.active_category["Slug"])
+
+#         # update asset bar
+#         props.assets_updated = True
+
+
+#         return {'FINISHED'}
+
+#     def invoke(self, context, event):
+#         """Call when user accesses operator via menu."""
+#         return context.window_manager.invoke_confirm(self, event)
 
 
 
@@ -219,7 +220,7 @@ class MT_OT_Save_Library(Operator):
 
     library_name: StringProperty(
         name="Name",
-        default=""
+        default="Library"
     )
 
     library_path: StringProperty(
@@ -231,13 +232,26 @@ class MT_OT_Save_Library(Operator):
     def execute(self, context):
         prefs = get_prefs()
         props= context.scene.mt_am_props
-        libs = prefs.libraries
+        libs = context.preferences.filepaths.asset_libraries
 
-        new_lib = libs.add()
-        new_lib.name = self.library_name
-        new_lib.path = props.current_path
-        self.library_name = ""
-        self.report({'INFO'}, "Library Added")
+        # check if library already exists
+        for lib in libs:
+            try:
+                if os.path.samefile(props.current_path, lib.path):
+                    self.report({'INFO'}, "Library Already Exists")
+                    return {'CANCELLED'}
+            # skip libraries with no paths
+            except OSError:
+                pass
+
+        # save library
+        if not self.library_name:
+            self.library_name = path_leaf(props.current_path)
+
+        bpy.ops.preferences.asset_library_add()
+        libs[-1].name = self.library_name
+        libs[-1].path = props.current_path
+        self.report({'INFO'}, "Library" + libs[-1].name + "Added")
         return {'FINISHED'}
 
     def draw(self, context):
