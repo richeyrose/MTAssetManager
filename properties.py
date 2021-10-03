@@ -1,16 +1,32 @@
 import math
+import os
 import bpy
 from bpy.types import PropertyGroup
 from bpy.props import StringProperty, BoolProperty, EnumProperty, PointerProperty, CollectionProperty
 from .preferences import get_prefs
 
-
-
 class MT_PT_AM_Props(PropertyGroup):
+    def library_enum_items(self, context):
+        enum_items = []
+
+        if context is None:
+            return enum_items
+
+        libs = context.preferences.filepaths.asset_libraries
+
+        for lib in libs:
+            if os.path.isdir(lib.path):
+                enum_items.append((lib.name, lib.name, ""))
+
+        return enum_items
+
     def update_library_path(self, context):
         prefs = get_prefs()
         self.current_path = self.library_path
         prefs.library_path = self.library_path
+
+    def update_libraries_enum(self, context):
+        self.library_path = self.current_path = context.preferences.filepaths.asset_libraries[self.libraries].path
 
     assets_updated: BoolProperty(
         name="Assets Updated",
@@ -35,6 +51,12 @@ class MT_PT_AM_Props(PropertyGroup):
         subtype='DIR_PATH',
         description="Library Path.",
         update=update_library_path
+    )
+
+    libraries: EnumProperty(
+        name="Libraries",
+        items=library_enum_items,
+        update=update_libraries_enum
     )
 
     cut: bpy.props.BoolProperty(

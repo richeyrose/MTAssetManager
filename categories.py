@@ -209,23 +209,45 @@ class MT_OT_Delete_Category(Operator):
         """Call when user accesses operator via menu."""
         return context.window_manager.invoke_confirm(self, event)
 
+
+
 class MT_OT_Save_Library(Operator):
     bl_idname = "scene.mt_am_save_library"
     bl_label = "Save Library Path"
     bl_description = "Save a Library Path so you can use it again."
     bl_options = {"REGISTER"}
 
-    library_path: StringProperty(
-        name="Path",
-        subtype='DIR_PATH',
-        default=""
-    )
-
     library_name: StringProperty(
         name="Name",
         default=""
     )
 
+    library_path: StringProperty(
+        name="Folder",
+        subtype='DIR_PATH',
+        default=""
+    )
+
+    def execute(self, context):
+        prefs = get_prefs()
+        props= context.scene.mt_am_props
+        libs = prefs.libraries
+
+        new_lib = libs.add()
+        new_lib.name = self.library_name
+        new_lib.path = props.current_path
+        self.library_name = ""
+        self.report({'INFO'}, "Library Added")
+        return {'FINISHED'}
+
+    def draw(self, context):
+        """Draw modal pop up."""
+        layout = self.layout
+        layout.prop(self, 'library_name')
+
+    def invoke(self, context, event):
+        """Call when user accesses operator via menu."""
+        return context.window_manager.invoke_props_dialog(self)
 
 class MT_OT_Delete_Subfolder(Operator):
     """Delete a subfolder."""

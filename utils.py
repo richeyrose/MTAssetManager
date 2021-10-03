@@ -1,6 +1,11 @@
 import re
 import bpy
+import ntpath
 
+def path_leaf(path):
+    """Return the basename of a path, stripping it of slashes etc."""
+    head, tail = ntpath.split(path)
+    return tail or ntpath.basename(head)
 
 def material_is_unique(material, materials):
     """Check whether the passed in material already exists.
@@ -75,7 +80,7 @@ def find_vertex_group_of_face(face, mesh, excluded_vert_groups):
     # get all vertex groups polygon belongs to
     all_groups = [g.group for v in face.vertices for g in mesh.vertices[v].groups if g.group not in excluded_vert_groups]
 
-    if len(all_groups) is 0:
+    if len(all_groups) == 0:
         return None
 
     # find the most frequent (mode) of all vertex groups verts in this face is in
@@ -187,7 +192,7 @@ def rchop(s, suffix):
 def tagify(tag_string):
     """Return passed in string as list of tags."""
     tags = []
-    if len(tag_string) is not 0:
+    if len(tag_string) != 0:
         tags = tag_string.split(",")
         tags = [tag.strip() for tag in tags]
         tags = [tag.lower() for tag in tags]

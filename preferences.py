@@ -29,7 +29,7 @@ from bpy.props import (
     BoolProperty,
     CollectionProperty)
 
-class MT_PT_AM_Libraries(PropertyGroup):
+class MT_Library(PropertyGroup):
     name: StringProperty(
         name="Name",
         description="Library Name"
@@ -94,7 +94,7 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
 
     libraries: CollectionProperty(
         name="Libraries",
-        type=MT_PT_AM_Libraries,
+        type=MT_Library,
         description="Saved Libraries."
     )
 

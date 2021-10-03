@@ -1,5 +1,7 @@
 import bpy
 import os
+from .utils import path_leaf
+
 from bpy.types import Panel
 from .categories import load_categories
 from .preferences import get_prefs
@@ -22,22 +24,22 @@ class ASSETBROWSER_PT_custom_name(asset_utils.AssetMetaDataPanel, Panel):
             layout.prop(active_asset, 'mt_license')
             layout.prop(active_asset, 'mt_URI')
 
-class MT_PT_AM_Main_Panel(Panel):
-    """Asset N Menu UI panel."""
 
+
+class MT_PT_AM_Main_Panel:
     bl_category = "Asset Manager"
-    bl_idname = "MT_PT_AM_Main_Panel"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
+
+class MT_PT_AM_Bar_Panel(MT_PT_AM_Main_Panel, Panel):
+    bl_idname = "MT_PT_AM_Main_Panel"
     bl_label = "Assets"
+    bl_order = 1
 
     def draw(self, context):
         props = context.scene.mt_am_props
         layout = self.layout
         child_cats = []
-
-        layout.label(text="Library")
-        layout.prop(props, 'library_path', text="")
 
         if not props.asset_bar:
             op = layout.operator("view3d.mt_asset_bar")
@@ -72,3 +74,24 @@ class MT_PT_AM_Main_Panel(Panel):
 
             del_op = row.operator("scene.mt_am_delete_subfolder", text="", icon="REMOVE")
             del_op.folder_name = cat
+
+class MT_PT_AM_Library_Select_Panel(MT_PT_AM_Main_Panel, Panel):
+    """Library Selection Sub Panel"""
+    bl_idname = "MT_PT_AM_Library_Select_Panel"
+    bl_label = "Library"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_order = 0
+
+    def draw(self, context):
+        props = context.scene.mt_am_props
+        layout = self.layout
+
+        layout.label(text="Choose Library")
+        layout.prop(props, 'libraries', text="")
+
+        layout.label(text="New Library")
+        row=layout.row()
+        op = row.operator('scene.mt_am_save_library', text="", icon='FILE_NEW')
+        op.library_path = props.current_path
+        op.library_name = path_leaf(props.current_path)
+        row.prop(props, 'library_path', text="")
