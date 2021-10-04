@@ -1,10 +1,6 @@
-import bpy
 import os
 from .utils import path_leaf
-
 from bpy.types import Panel
-from .categories import load_categories
-from .preferences import get_prefs
 from bpy_extras import (
     asset_utils,
 )

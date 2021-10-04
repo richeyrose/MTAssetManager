@@ -26,8 +26,7 @@ from bpy.props import (
     FloatVectorProperty,
     FloatProperty,
     IntProperty,
-    BoolProperty,
-    CollectionProperty)
+    BoolProperty)
 
 class MT_Library(PropertyGroup):
     name: StringProperty(
@@ -47,6 +46,7 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
     user_path = os.path.expanduser('~')
     export_path = os.path.join(user_path, 'MakeTile')
     user_assets_path = os.path.join(user_path, 'MakeTile')
+    default_assets_path = os.path.join(addon_path, "assets")
 
     def update_user_assetspath(self, context):
         """Update the user assets path."""
@@ -76,7 +76,7 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
         name="Default Asset Libraries",
         description="Path to Default Asset Libraries",
         subtype='DIR_PATH',
-        default=os.path.join(addon_path, "assets")
+        default=default_assets_path
     )
 
     user_assets_path: StringProperty(
@@ -91,12 +91,6 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
         name="Current Library",
         default=user_assets_path,
         subtype='DIR_PATH')
-
-    # libraries: CollectionProperty(
-    #     name="Libraries",
-    #     type=MT_Library,
-    #     description="Saved Libraries."
-    # )
 
     old_path: StringProperty(
         name="Old Path",

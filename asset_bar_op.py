@@ -2,16 +2,11 @@ import os
 import ntpath
 import bpy
 from bpy.app.handlers import persistent
-from math import floor
 from bpy.types import Operator
 from bpy.props import StringProperty
 from .preferences import get_prefs
-from .categories import get_child_cats, get_parent_cat_slug, get_category, load_categories
-from .assets import get_assets_by_cat, append_preview_images
 from .ui.ui_bar import MT_UI_AM_Asset_Bar
 from .ui.ui_asset import MT_AM_UI_Asset
-from .ui.ui_nav_arrow import MT_UI_AM_Left_Nav_Arrow, MT_UI_AM_Right_Nav_Arrow
-from .app_handlers import create_properties
 
 class MT_OT_AM_Hide_Asset_Bar(Operator):
     """Operator for hiding the MakeTile Asset bar"""

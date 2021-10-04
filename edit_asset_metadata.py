@@ -5,7 +5,6 @@ from bpy.types import Operator
 from bpy.props import StringProperty
 from bpy.props import EnumProperty
 from .preferences import get_prefs
-from .categories import get_child_cats
 from .utils import tagify
 
 class MT_OT_AM_Edit_Asset_Metadata(Operator):
