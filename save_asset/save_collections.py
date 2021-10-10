@@ -3,7 +3,7 @@
 import os
 import bpy
 from bpy.types import Operator
-from bpy.props import StringProperty, EnumProperty, BoolProperty
+from bpy.props import StringProperty, EnumProperty
 from ..collections import (
     get_object_owning_collections,
     activate_collection,

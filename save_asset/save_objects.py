@@ -1,10 +1,8 @@
 """This module contains classes and functions for saving objects to the MakeTile library."""
 import os
 from bpy.types import Operator
-from bpy.props import StringProperty, EnumProperty
 from .add_to_library import (
     draw_save_props_menu,
-    check_category_type,
     add_asset_to_library,
     construct_asset_description,
     mark_as_asset,

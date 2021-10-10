@@ -1,59 +1,24 @@
 """This module contains classes and functions for saving materials to the MakeTile library."""
 import os
 from bpy.types import Operator
-from bpy.props import StringProperty, EnumProperty, BoolProperty
+from bpy.props import EnumProperty, BoolProperty
 from .add_to_library import create_preview_obj_enums
 from .add_to_library import (
     draw_save_props_menu,
-    check_category_type,
     add_asset_to_library,
     construct_asset_description,
-    mark_as_asset)
+    mark_as_asset,MT_Save_To_Library)
 from ..preferences import get_prefs
 from .preview_rendering import render_material_preview
 from ..utils import tagify
 
 
-class MT_OT_AM_Add_Material_To_Library(Operator):
+class MT_OT_AM_Add_Material_To_Library(Operator, MT_Save_To_Library):
     """Add active material to library."""
 
     bl_idname = "material.mt_ot_am_add_material_to_library"
     bl_label = "Add active material to library"
     bl_description = "Adds the active material to the MakeTile Library"
-
-    Description: StringProperty(
-        name="Description",
-        default=""
-    )
-
-    URI: StringProperty(
-        name="URI",
-        default=""
-    )
-
-    Author: StringProperty(
-        name="Author",
-        default=""
-    )
-
-    License: EnumProperty(
-        items=[
-            ("ARR", "All Rights Reserved", ""),
-            ("CCBY", "Attribution (CC BY)", ""),
-            ("CCBYSA", "Attribution-ShareAlike (CC BY-SA)", ""),
-            ("CCBYND", "Attribution-NoDerivs (CC BY-ND)", ""),
-            ("CCBYNC", "Attribution-NonCommercial (CC BY-NC)", ""),
-            ("CCBYNCSA", "Attribution-NonCommercial-ShareAlike (CC BY-NC-SA)", ""),
-            ("CCBYNCND", "Attribution-NonCommercial-NoDerivs (CC BY-NC-ND)", "")],
-        name="License",
-        description="License for asset use",
-        default="ARR")
-
-    Tags: StringProperty(
-        name="Tags",
-        description="Comma seperated list",
-        default=""
-    )
 
     DisplacementMaterial: BoolProperty(
         name="Displacement Material",
@@ -86,13 +51,11 @@ class MT_OT_AM_Add_Material_To_Library(Operator):
         material = context.active_object.active_material
         props = context.scene.mt_am_props
         prefs = get_prefs()
-        assets_path = prefs.user_assets_path
         asset_type = "MATERIALS"
+        tags = tagify(self.Tags)
 
         if self.DisplacementMaterial:
             material['mt_material'] = True
-
-        tags = tagify(self.Tags)
 
         kwargs = {
             "Description": self.Description,
@@ -101,49 +64,47 @@ class MT_OT_AM_Add_Material_To_Library(Operator):
             "License": self.License,
             "Tags": tags}
 
-        asset_desc = construct_asset_description(
-            props,
-            asset_type,
-            assets_path,
-            material,
-            **kwargs)
-
         scene_path = os.path.join(
             prefs.default_assets_path,
             "previews",
             "preview_scenes.blend")
 
+        asset_desc = construct_asset_description(
+            props,
+            asset_type,
+            material,
+            **kwargs)
+
         # Preview object should be a choice between wall, floor, roof, base etc.
         # TODO implement mini base and roof preview objects
         preview_obj = self.PreviewObject
 
+        imagepath = os.path.join(
+            asset_desc['FilePath'],
+            asset_desc['PreviewImageName'])
+
         img = render_material_preview(
                 self,
                 context,
-                asset_desc['PreviewImagePath'],
+                imagepath,
                 scene_path,
                 prefs.preview_scene,
                 material,
                 preview_obj)
-        if img:
-            # save asset data for Blender asset browser
-            if hasattr(material, 'asset_data'):
-                mark_as_asset(material, asset_desc, tags)
 
-            add_asset_to_library(
-                self,
-                context,
-                material,
-                asset_type,
-                asset_desc,
-                img)
+        # save asset data for Blender asset browser
+        if hasattr(material, 'asset_data'):
+            mark_as_asset(material, asset_desc, tags)
 
-            props.assets_updated = True
+        add_asset_to_library(
+            self,
+            material,
+            asset_desc,
+            img)
 
-            return {'FINISHED'}
+        props.assets_updated = True
 
-        return {'CANCELLED'}
-
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         """Call when operator invoked from UI."""
