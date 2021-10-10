@@ -10,10 +10,10 @@ from ..collections import (
     get_all_descendent_collections)
 from .add_to_library import (
     draw_save_props_menu,
-    check_category_type,
     add_asset_to_library,
     construct_asset_description,
-    mark_as_asset)
+    mark_as_asset,
+    MT_Save_To_Library)
 from ..preferences import get_prefs
 from .preview_rendering import render_collection_preview
 from ..utils import tagify
@@ -104,7 +104,7 @@ class MT_OT_Set_Object_Bool_Type(Operator):
             row.prop(obj.mt_object_props, "boolean_order", text="")
 
 
-class MT_OT_Add_Collection_To_Library(Operator):
+class MT_OT_Add_Collection_To_Library(Operator, MT_Save_To_Library):
     """Add the active object's owning collection to the MakeTile Library."""
 
     bl_idname = "collection.add_collection_to_library"
@@ -112,7 +112,8 @@ class MT_OT_Add_Collection_To_Library(Operator):
     bl_description = "Adds the active object's owning collection to the MakeTile Library"
 
     def create_root_object_enums(self, context):
-        """Return an enum list constructed out of a list of objects in a collection that don't have parents.
+        """Return an enum list constructed out of a list of objects in a collection
+        that don't have parents.
 
         Args:
             context (bpy.Context): context
@@ -187,43 +188,10 @@ class MT_OT_Add_Collection_To_Library(Operator):
         """
         activate_collection(self.OwningCollection)
 
+
     Name: StringProperty(
         name="Name",
         default="Collection"
-    )
-
-    Description: StringProperty(
-        name="Description",
-        default=""
-    )
-
-    URI: StringProperty(
-        name="URI",
-        default=""
-    )
-
-    Author: StringProperty(
-        name="Author",
-        default=""
-    )
-
-    License: EnumProperty(
-        items=[
-            ("ARR", "All Rights Reserved", ""),
-            ("CCBY", "Attribution (CC BY)", ""),
-            ("CCBYSA", "Attribution-ShareAlike (CC BY-SA)", ""),
-            ("CCBYND", "Attribution-NoDerivs (CC BY-ND)", ""),
-            ("CCBYNC", "Attribution-NonCommercial (CC BY-NC)", ""),
-            ("CCBYNCSA", "Attribution-NonCommercial-ShareAlike (CC BY-NC-SA)", ""),
-            ("CCBYNCND", "Attribution-NonCommercial-NoDerivs (CC BY-NC-ND)", "")],
-        name="License",
-        description="License for asset use",
-        default="ARR")
-
-    Tags: StringProperty(
-        name="Tags",
-        description="Comma seperated list",
-        default=""
     )
 
     RootObject: EnumProperty(
@@ -336,7 +304,6 @@ def add_collection_to_library(self, context):
     asset_desc = construct_asset_description(
         props,
         asset_type,
-        assets_path,
         collection,
         **kwargs)
 
@@ -349,28 +316,27 @@ def add_collection_to_library(self, context):
         "previews",
         "preview_scenes.blend")
 
+    imagepath = os.path.join(
+        asset_desc['FilePath'],
+        asset_desc['PreviewImageName'])
 
     img = render_collection_preview(
             self,
             context,
-            asset_desc['PreviewImagePath'],
+            imagepath,
             scene_path,
             prefs.preview_scene,
             collection)
-    if img:
-        if hasattr(collection, 'asset_data'):
-            mark_as_asset(collection, asset_desc, tags)
 
-        add_asset_to_library(
-            self,
-            context,
-            collection,
-            asset_type,
-            asset_desc,
-            img)
+    if hasattr(collection, 'asset_data'):
+        mark_as_asset(collection, asset_desc, tags)
 
-        props.assets_updated = True
+    add_asset_to_library(
+        self,
+        collection,
+        asset_desc,
+        img)
 
-        return {'FINISHED'}
+    props.assets_updated = True
 
-    return {'CANCELLED'}
+    return {'FINISHED'}

@@ -20,8 +20,6 @@ class ASSETBROWSER_PT_custom_name(asset_utils.AssetMetaDataPanel, Panel):
             layout.prop(active_asset, 'mt_license')
             layout.prop(active_asset, 'mt_URI')
 
-
-
 class MT_PT_AM_Main_Panel:
     bl_category = "Asset Manager"
     bl_space_type = "VIEW_3D"
@@ -49,6 +47,8 @@ class MT_PT_AM_Bar_Panel(MT_PT_AM_Main_Panel, Panel):
                 'view3d.mt_ret_to_parent',
                 text=os.path.basename(props.parent_path),
                 icon='FILE_PARENT')
+        # show label for current folder
+        layout.label(text=props.current_path)
 
         # get list of subfolders
         try:

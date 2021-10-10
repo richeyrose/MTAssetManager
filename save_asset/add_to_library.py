@@ -3,8 +3,45 @@ import os
 from pathlib import Path
 import json
 import bpy
+from bpy.props import StringProperty, EnumProperty
 from ..utils import slugify, tagify, find_and_rename
 from ..preferences import get_prefs
+
+class MT_Save_To_Library:
+    """Mixin for save operators."""
+    Description: StringProperty(
+        name="Description",
+        default=""
+    )
+
+    URI: StringProperty(
+        name="URI",
+        default=""
+    )
+
+    Author: StringProperty(
+        name="Author",
+        default=""
+    )
+
+    License: EnumProperty(
+        items=[
+            ("ARR", "All Rights Reserved", ""),
+            ("CCBY", "Attribution (CC BY)", ""),
+            ("CCBYSA", "Attribution-ShareAlike (CC BY-SA)", ""),
+            ("CCBYND", "Attribution-NoDerivs (CC BY-ND)", ""),
+            ("CCBYNC", "Attribution-NonCommercial (CC BY-NC)", ""),
+            ("CCBYNCSA", "Attribution-NonCommercial-ShareAlike (CC BY-NC-SA)", ""),
+            ("CCBYNCND", "Attribution-NonCommercial-NoDerivs (CC BY-NC-ND)", "")],
+        name="License",
+        description="License for asset use",
+        default="ARR")
+
+    Tags: StringProperty(
+        name="Tags",
+        description="Comma seperated list",
+        default=""
+    )
 
 
 def create_preview_obj_enums(self, context):

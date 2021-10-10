@@ -36,7 +36,7 @@ def create_libraries():
 
     if not exists:
         bpy.ops.preferences.asset_library_add()
-        libs[-1].name = "User MakeTile"
+        libs[-1].name = "MakeTile"
         libs[-1].path = user_assets_path
 
 def mt_am_initialise_on_activation(dummy):

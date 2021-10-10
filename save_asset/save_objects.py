@@ -7,51 +7,18 @@ from .add_to_library import (
     check_category_type,
     add_asset_to_library,
     construct_asset_description,
-    mark_as_asset)
+    mark_as_asset,
+    MT_Save_To_Library)
 from ..preferences import get_prefs
 from .preview_rendering import render_object_preview
 from ..utils import tagify
 
-class MT_OT_AM_Add_Multiple_Objects_To_Library(Operator):
+class MT_OT_AM_Add_Multiple_Objects_To_Library(Operator, MT_Save_To_Library):
     """Add all selected mesh objects to the MakeTile Library."""
 
     bl_idname = "object.add_selected_objects_to_library"
     bl_label = "Add selected objects to library"
     bl_description = "Adds selected objects to the MakeTile Library"
-
-    Description: StringProperty(
-        name="Description",
-        default=""
-    )
-
-    URI: StringProperty(
-        name="URI",
-        default=""
-    )
-
-    Author: StringProperty(
-        name="Author",
-        default=""
-    )
-
-    License: EnumProperty(
-        items=[
-            ("ARR", "All Rights Reserved", ""),
-            ("CCBY", "Attribution (CC BY)", ""),
-            ("CCBYSA", "Attribution-ShareAlike (CC BY-SA)", ""),
-            ("CCBYND", "Attribution-NoDerivs (CC BY-ND)", ""),
-            ("CCBYNC", "Attribution-NonCommercial (CC BY-NC)", ""),
-            ("CCBYNCSA", "Attribution-NonCommercial-ShareAlike (CC BY-NC-SA)", ""),
-            ("CCBYNCND", "Attribution-NonCommercial-NoDerivs (CC BY-NC-ND)", "")],
-        name="License",
-        description="License for asset use",
-        default="ARR")
-
-    Tags: StringProperty(
-        name="Tags",
-        description="Comma seperated list",
-        default=""
-    )
 
     @classmethod
     def poll(cls, context):
