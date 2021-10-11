@@ -253,8 +253,6 @@ def add_collection_to_library(self, context):
     obj = context.active_object
     props = context.scene.mt_am_props
     prefs = get_prefs()
-    assets_path = prefs.user_assets_path
-    asset_type = "COLLECTIONS"
     collection = bpy.data.collections[self.OwningCollection]
     root_obj_name = self.RootObject
 
@@ -303,7 +301,6 @@ def add_collection_to_library(self, context):
 
     asset_desc = construct_asset_description(
         props,
-        asset_type,
         collection,
         **kwargs)
 

@@ -33,7 +33,6 @@ class MT_OT_AM_Add_Multiple_Objects_To_Library(Operator, MT_Save_To_Library):
         obs = [ob for ob in context.selected_editable_objects if ob.type == 'MESH']
         props = context.scene.mt_am_props
         prefs = get_prefs()
-        asset_type = "OBJECTS"
         tags = tagify(self.Tags)
 
         kwargs = {
@@ -51,7 +50,6 @@ class MT_OT_AM_Add_Multiple_Objects_To_Library(Operator, MT_Save_To_Library):
         for obj in obs:
             asset_desc = construct_asset_description(
                 props,
-                asset_type,
                 obj,
                 **kwargs)
 

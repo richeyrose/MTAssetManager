@@ -51,7 +51,6 @@ class MT_OT_AM_Add_Material_To_Library(Operator, MT_Save_To_Library):
         material = context.active_object.active_material
         props = context.scene.mt_am_props
         prefs = get_prefs()
-        asset_type = "MATERIALS"
         tags = tagify(self.Tags)
 
         if self.DisplacementMaterial:
@@ -71,7 +70,6 @@ class MT_OT_AM_Add_Material_To_Library(Operator, MT_Save_To_Library):
 
         asset_desc = construct_asset_description(
             props,
-            asset_type,
             material,
             **kwargs)
 

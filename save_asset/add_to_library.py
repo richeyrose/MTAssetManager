@@ -1,7 +1,6 @@
 """Contains helper functions for adding assets to MakeTile library..."""
 import os
 from pathlib import Path
-import json
 import bpy
 from bpy.props import StringProperty, EnumProperty
 from ..utils import slugify, tagify, find_and_rename
@@ -42,7 +41,6 @@ class MT_Save_To_Library:
         description="Comma seperated list",
         default=""
     )
-
 
 def create_preview_obj_enums(self, context):
     """Create a blender enum list of objects that can be used for rendering material previews.
@@ -152,16 +150,8 @@ def add_asset_to_library(self, asset, asset_desc, preview_img = None):
     return asset_desc
 
 
-def construct_asset_description(props, asset_type, asset, **kwargs):
-    prefs = get_prefs()
-    # check if we're in a sub category that contains assets of the correct type.
-    # If not add the object to the root category for its type
-    if props.current_path:
-        asset_save_path = props.current_path
-    else:
-        asset_save_path = os.path.join(
-            prefs.user_assets_path,
-            asset_type.lower())
+def construct_asset_description(props, asset, **kwargs):
+    asset_save_path = props.current_path
 
     # create a unique (within this directory) slug for our file
     slug = slugify(asset.name)
@@ -178,8 +168,7 @@ def construct_asset_description(props, asset_type, asset, **kwargs):
         "Slug": new_slug,
         "FileName": new_slug + '.blend',
         "FilePath": asset_save_path,
-        "PreviewImageName": new_slug + '.png',
-        "Type": asset_type.upper()}
+        "PreviewImageName": new_slug + '.png'}
 
     for key, value in kwargs.items():
         asset_desc[key] = value
