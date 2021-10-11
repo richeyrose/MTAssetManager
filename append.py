@@ -2,7 +2,6 @@ import os
 import bpy
 from .utils import material_is_unique
 
-
 def append_material(context, asset, link=False):
     """Append material to scene.
 
@@ -16,18 +15,21 @@ def append_material(context, asset, link=False):
     Returns:
         bpy.types.Material: Material
     """
-    filepath = asset['FilePath']
+    mat = asset.asset
 
-    if os.path.exists(filepath) and os.path.isfile(filepath):
+    if not link:
+        lib = mat.library
+        filepath = lib.filepath
+        name = mat.name
+
+        bpy.data.libraries.remove(lib)
+        existing_mats = bpy.data.materials.keys()
         asset_found = False
-        # load asset
-        with bpy.data.libraries.load(filepath, link=link) as (data_from, data_to):
-            if asset['Slug'] in data_from.materials:
-                data_to.materials = [asset['Slug']]
-                asset_found = True
+        with bpy.data.libraries.load(filepath) as (data_from, data_to):
+            data_to.materials = [name]
+            asset_found = True
 
         imported_mat = data_to.materials[0]
-        imported_mat.name = asset["Name"]  # rename material to use pretty name
 
         if asset_found:
             # check if material is unique
@@ -37,10 +39,11 @@ def append_material(context, asset, link=False):
             # if not unique remove newly added material and return original material
             if not unique:
                 bpy.data.materials.remove(imported_mat)
+                context.scene.mt_am_props.assets_updated = True
                 return matched_material
 
+            context.scene.mt_am_props.assets_updated = True
             return imported_mat
-
     return None
 
 
