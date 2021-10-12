@@ -111,8 +111,9 @@ def append_object(context, asset, link=False):
 
                     # remove duplicate material
                     bpy.data.materials.remove(bpy.data.materials[mat])
+
             # reinitialise asset bar
-            #context.scene.mt_am_props.assets_updated = True
+            context.scene.mt_am_props.assets_updated = True
 
             return obj
         return False
@@ -202,6 +203,6 @@ def append_collection(context, asset, link=False):
                 # remove duplicate material
                 bpy.data.materials.remove(bpy.data.materials[mat])
         # reinitialise asset bar
-        # context.scene.mt_am_props.assets_updated = True
+        context.scene.mt_am_props.assets_updated = True
         return collection
     return None

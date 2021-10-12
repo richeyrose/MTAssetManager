@@ -1,12 +1,15 @@
 import os
 import ntpath
+import pathlib
 import bpy
 from bpy.app.handlers import persistent
-from bpy.types import Operator
+from bpy.types import Operator, Object, Collection, Material
 from bpy.props import StringProperty
 from .preferences import get_prefs
 from .ui.ui_bar import MT_UI_AM_Asset_Bar
 from .ui.ui_asset import MT_AM_UI_Asset
+from .utils import absolute_file_paths
+
 
 class MT_OT_AM_Hide_Asset_Bar(Operator):
     """Operator for hiding the MakeTile Asset bar"""
@@ -69,6 +72,7 @@ class MT_OT_AM_Asset_Bar(Operator):
                 self.register_asset_bar_draw_handler(args, context)
                 # add the modal handler that handles events
                 context.window_manager.modal_handler_add(self)
+
             # initialise assets
             self.init_assets(context)
             return {'RUNNING_MODAL'}
@@ -166,36 +170,69 @@ class MT_OT_AM_Asset_Bar(Operator):
             context (bpy.context): context
             reset_index (bool, optional): Whether to reset the asset bar index to 0. Defaults to True.
         """
-        path = self.current_path
+
+        current_path = self.current_path = context.scene.mt_am_props.current_path
         current_assets = []
 
-        # get all assets in current directory
-        for file in os.listdir(path):
-            if file.endswith(".blend"):
-                filepath = os.path.join(path, file)
+        # list of existing linked library files in current directory
+        libs = []
+        for lib in bpy.data.libraries:
+            if os.path.samefile(pathlib.Path(lib.filepath).parent, current_path):
+                libs.append(lib)
 
-                existing_datablocks = {
-                    'objects': [],
-                    'collections': [],
-                    'materials': []}
+        #libs = [lib for lib in bpy.data.libraries if os.path.samefile(pathlib.Path(lib.filepath).parent, current_path)]
 
-                # full names include the filenames for library linked data blocks
-                full_names = {
-                    'objects': [ob.name_full for ob in bpy.data.objects],
-                    'collections': [coll.name_full for coll in bpy.data.collections],
-                    'materials': [mat.name_full for mat in bpy.data.materials]}
+        lib_filepaths = [lib.filepath for lib in libs]
 
-                with bpy.data.libraries.load(filepath, assets_only=True, link=True) as (data_from, data_to):
-                    # link objects
-                    filename = ntpath.basename(filepath)
-                    data_types = ['objects', 'collections', 'materials']
-                    for t in data_types:
-                        self.get_assets(data_from, data_to, filename, full_names[t], existing_datablocks[t], t)
+        for lib in libs:
+            for id in lib.users_id:
+                if type(id) in [Collection, Object, Material]:
+                    current_assets.append(id)
 
-                all_items = data_to.collections + data_to.objects + data_to.materials + existing_datablocks['collections'] + existing_datablocks['objects'] + existing_datablocks['materials']
+        # list of files in current directory
+        files = [file for file in absolute_file_paths(current_path) if file.endswith(".blend")]
 
-                for i in all_items:
-                    current_assets.append(i)
+        # set of new files
+        new_files = set(lib_filepaths) ^ set(files)
+
+        # load new files
+        for file in new_files:
+            with bpy.data.libraries.load(file, assets_only=True, link=True) as (data_from, data_to):
+                data_to.objects = data_from.objects
+                data_to.collections = data_from.collections
+                data_to.materials = data_from.materials
+
+            all_assets = data_to.objects + data_to.materials + data_to.collections
+            for i in all_assets:
+                current_assets.append(i)
+
+        # # get all assets in current directory
+        # for file in os.listdir(current_path):
+        #     if file.endswith(".blend"):
+        #         filepath = os.path.join(current_path, file)
+
+        #         existing_datablocks = {
+        #             'objects': [],
+        #             'collections': [],
+        #             'materials': []}
+
+        #         # full names include the filenames for library linked data blocks
+        #         full_names = {
+        #             'objects': [ob.name_full for ob in bpy.data.objects],
+        #             'collections': [coll.name_full for coll in bpy.data.collections],
+        #             'materials': [mat.name_full for mat in bpy.data.materials]}
+
+        #         with bpy.data.libraries.load(filepath, assets_only=True, link=True) as (data_from, data_to):
+        #             # link objects
+        #             filename = ntpath.basename(filepath)
+        #             data_types = ['objects', 'collections', 'materials']
+        #             for t in data_types:
+        #                 self.get_assets(data_from, data_to, filename, full_names[t], existing_datablocks[t], t)
+
+        #         all_items = data_to.collections + data_to.objects + data_to.materials + existing_datablocks['collections'] + existing_datablocks['objects'] + existing_datablocks['materials']
+
+        #         for i in all_items:
+        #             current_assets.append(i)
 
         # instantiate a thumbnail for each asset in current assets
         prefs = get_prefs()

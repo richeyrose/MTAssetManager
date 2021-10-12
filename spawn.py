@@ -70,9 +70,10 @@ def spawn_collection(context, asset, x, y):
         obj.select_set(False)
 
     #collection, root_object = append_collection(context, asset)
-    collection = append_collection(context, asset)
-
-    if not collection:
+    try:
+        collection = append_collection(context, asset)
+    except ReferenceError:
+        print('Append Collection Failed')
         return None
 
     # select the root object
