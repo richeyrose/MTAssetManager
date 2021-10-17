@@ -170,9 +170,15 @@ def spawn_material(context, asset, x, y):
             # assign material to vertex group
             assign_mat_to_vert_group(vertex_group, hit_obj, mat)
         else:
-            # append material
-            hit_obj.data.materials.append(mat)
-
+            if mat.name not in hit_obj.data.materials:
+                # if there is 1 material slot fill it with our appended material and add a new mat slot with old material
+                if len(hit_obj.material_slots) == 1:
+                    old_mat = hit_obj.material_slots[0].material
+                    hit_obj.material_slots[0].material = mat
+                    hit_obj.data.materials.append(old_mat)
+                else:
+                    # just append material
+                    hit_obj.data.materials.append(mat)
         # push an undo action to the stack
         bpy.ops.ed.undo_push()
     return mat
