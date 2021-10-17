@@ -1,6 +1,35 @@
 import bpy
 from .utils import material_is_unique
 
+def append_material(context, filepath, asset_name):
+    """Append material. Checks to see if material already exists in scene.
+
+    Args:
+        context (bpy.context): context
+        filepath (str): filepath to library file containing material
+        asset_name (str): name of material
+
+    Returns:
+        bpy.types.Material: material
+    """
+    with bpy.data.libraries.load(filepath) as (data_from, data_to):
+        data_to.materials = [asset_name]
+
+    imported_mat = data_to.materials[0]
+
+    # check if material is unique
+    materials = [material for material in bpy.data.materials if material != imported_mat]
+    unique, matched_material = material_is_unique(imported_mat, materials)
+
+    # if not unique remove newly added material and return original material
+    if not unique:
+        bpy.data.materials.remove(imported_mat)
+        context.scene.mt_am_props.assets_updated = True
+        return matched_material
+
+    context.scene.mt_am_props.assets_updated = True
+    return imported_mat
+
 def append_asset(context, asset, asset_type='object', link=False):
     """Append asset to the scene.
 
@@ -24,23 +53,7 @@ def append_asset(context, asset, asset_type='object', link=False):
         bpy.data.libraries.remove(lib)
 
         if asset_type == 'material':
-            with bpy.data.libraries.load(filepath) as (data_from, data_to):
-                data_to.materials = [name]
-
-            imported_mat = data_to.materials[0]
-
-            # check if material is unique
-            materials = [material for material in bpy.data.materials if material != imported_mat]
-            unique, matched_material = material_is_unique(imported_mat, materials)
-
-            # if not unique remove newly added material and return original material
-            if not unique:
-                bpy.data.materials.remove(imported_mat)
-                context.scene.mt_am_props.assets_updated = True
-                return matched_material
-
-            context.scene.mt_am_props.assets_updated = True
-            return imported_mat
+            return append_material(context, filepath, name)
 
         # used to ensure we only add unique materials
         existing_mats = bpy.data.materials.keys()
