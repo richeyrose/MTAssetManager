@@ -16,7 +16,10 @@ def copy_default_asset_library():
     for t in asset_types:
         src = os.path.join(default_assets_path, t)
         dst = os.path.join(user_assets_path, t)
-        shutil.copytree(src, dst, dirs_exist_ok=True)
+        try:
+            shutil.copytree(src, dst, dirs_exist_ok=True)
+        except FileNotFoundError as e:
+            print(e)
 
 def create_libraries():
     """Add the user asset path as asset library."""
