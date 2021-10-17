@@ -7,7 +7,6 @@ import bpy
 from .preferences import get_prefs
 from bpy.types import Operator
 from .utils import find_and_rename
-from .append import append_asset
 
 # TODO: #7 fix copy asset for collections
 class MT_OT_AM_Cut_Asset(Operator):
