@@ -170,7 +170,7 @@ class MT_OT_AM_Asset_Bar(Operator):
             context (bpy.context): context
             reset_index (bool, optional): Whether to reset the asset bar index to 0. Defaults to True.
         """
-        #TODO currently not clearing old thumbnails when moving up a category
+
         current_path = self.current_path = context.scene.mt_am_props.current_path
         current_assets = []
 
@@ -206,33 +206,33 @@ class MT_OT_AM_Asset_Bar(Operator):
             for i in all_assets:
                 current_assets.append(i)
 
-        # get all assets in current directory
-        for file in os.listdir(current_path):
-            if file.endswith(".blend"):
-                filepath = os.path.join(current_path, file)
+        # # get all assets in current directory
+        # for file in os.listdir(current_path):
+        #     if file.endswith(".blend"):
+        #         filepath = os.path.join(current_path, file)
 
-                existing_datablocks = {
-                    'objects': [],
-                    'collections': [],
-                    'materials': []}
+        #         existing_datablocks = {
+        #             'objects': [],
+        #             'collections': [],
+        #             'materials': []}
 
-                # full names include the filenames for library linked data blocks
-                full_names = {
-                    'objects': [ob.name_full for ob in bpy.data.objects],
-                    'collections': [coll.name_full for coll in bpy.data.collections],
-                    'materials': [mat.name_full for mat in bpy.data.materials]}
+        #         # full names include the filenames for library linked data blocks
+        #         full_names = {
+        #             'objects': [ob.name_full for ob in bpy.data.objects],
+        #             'collections': [coll.name_full for coll in bpy.data.collections],
+        #             'materials': [mat.name_full for mat in bpy.data.materials]}
 
-                with bpy.data.libraries.load(filepath, assets_only=True, link=True) as (data_from, data_to):
-                    # link objects
-                    filename = ntpath.basename(filepath)
-                    data_types = ['objects', 'collections', 'materials']
-                    for t in data_types:
-                        self.get_assets(data_from, data_to, filename, full_names[t], existing_datablocks[t], t)
+        #         with bpy.data.libraries.load(filepath, assets_only=True, link=True) as (data_from, data_to):
+        #             # link objects
+        #             filename = ntpath.basename(filepath)
+        #             data_types = ['objects', 'collections', 'materials']
+        #             for t in data_types:
+        #                 self.get_assets(data_from, data_to, filename, full_names[t], existing_datablocks[t], t)
 
-                all_items = data_to.collections + data_to.objects + data_to.materials + existing_datablocks['collections'] + existing_datablocks['objects'] + existing_datablocks['materials']
+        #         all_items = data_to.collections + data_to.objects + data_to.materials + existing_datablocks['collections'] + existing_datablocks['objects'] + existing_datablocks['materials']
 
-                for i in all_items:
-                    current_assets.append(i)
+        #         for i in all_items:
+        #             current_assets.append(i)
 
         # instantiate a thumbnail for each asset in current assets
         prefs = get_prefs()

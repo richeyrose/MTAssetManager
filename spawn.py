@@ -80,42 +80,42 @@ def spawn_collection(context, asset, x, y):
     #context.view_layer.objects.active = root_object
     #root_object.select_set(True)
 
-    # context.view_layer.update()
+    context.view_layer.update()
 
-    # # get objects with no parents in collection
-    # orphans = [obj for obj in collection.objects if not obj.parent]
+    # get objects with no parents in collection
+    orphans = [obj for obj in collection.objects if not obj.parent]
 
-    # # if there is more than one orphan objects in the collection create a temporary empty and parent the orphans to it
-    # if len(orphans) > 1:
-    #     empty = bpy.data.objects.new(collection.name + '_root', None)
-    #     collection.objects.link(empty)
+    # if there is more than one orphan objects in the collection create a temporary empty and parent the orphans to it
+    if len(orphans) > 1:
+        empty = bpy.data.objects.new(collection.name + '_root', None)
+        collection.objects.link(empty)
 
-    #     # parent orphans to root_obj
-    #     for orphan in orphans:
-    #         orphan.parent = empty
-    #         orphan.matrix_parent_inverse = empty.matrix_world.inverted
+        # parent orphans to root_obj
+        for orphan in orphans:
+            orphan.parent = empty
+            orphan.matrix_parent_inverse = empty.matrix_world.inverted
 
-    #     # set root location and rotation
-    #     empty.location = location
-    #     empty.rotation_euler = rotation
+        # set root location and rotation
+        empty.location = location
+        empty.rotation_euler = rotation
 
-    #     # update view_layer to ensure changes are registered
-    #     context.view_layer.update()
+        # update view_layer to ensure changes are registered
+        context.view_layer.update()
 
-    #     # apply transformation
-    #     for orphan in orphans:
-    #         matrixcopy = orphan.matrix_world.copy()
-    #         orphan.parent = None
-    #         orphan.matrix_world = matrixcopy
+        # apply transformation
+        for orphan in orphans:
+            matrixcopy = orphan.matrix_world.copy()
+            orphan.parent = None
+            orphan.matrix_world = matrixcopy
 
-    #     # remove temporary empty
-    #     bpy.data.objects.remove(empty)
+        # remove temporary empty
+        bpy.data.objects.remove(empty)
 
-    # # otherwise set the root object loc and rot
-    # else:
-    #     for orphan in orphans:
-    #         orphan.location = location
-    #         orphan.rotation_euler = rotation
+    # otherwise set the root object loc and rot
+    else:
+        for orphan in orphans:
+            orphan.location = location
+            orphan.rotation_euler = rotation
 
     # push an undo action to the stack
     bpy.ops.ed.undo_push()
