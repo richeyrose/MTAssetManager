@@ -7,7 +7,7 @@ import bpy
 from .preferences import get_prefs
 from bpy.types import Operator
 from .utils import find_and_rename
-from .append import append_collection, append_material, append_object
+from .append import append_asset
 
 # TODO: #7 fix copy asset for collections
 class MT_OT_AM_Cut_Asset(Operator):
@@ -73,7 +73,7 @@ class MT_OT_AM_Paste_Asset(Operator):
                     asset_descs.append(new_asset_desc)
 
                     # load asset into Blender
-                    asset = append_object(context, asset_desc)
+                    asset = append_asset(context, asset_desc)
 
                     # give it a unique slug
                     asset.name = new_asset_desc["Slug"]

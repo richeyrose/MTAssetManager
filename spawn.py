@@ -1,7 +1,7 @@
 import bpy
 from .raycast import mouse_raycast, floor_raycast
 from .utils import find_vertex_group_of_face, assign_mat_to_vert_group
-from .append import append_collection, append_material, append_object
+from .append import append_asset
 
 def spawn_object(context, asset, x, y):
     """Spawn an object at the cursor based on the passed in asset description.
@@ -28,7 +28,7 @@ def spawn_object(context, asset, x, y):
     for obj in context.selected_objects:
         obj.select_set(False)
 
-    obj = append_object(context, asset)
+    obj = append_asset(context, asset)
 
     # set object location and rotation to hit point
     obj.location = location
@@ -71,7 +71,8 @@ def spawn_collection(context, asset, x, y):
 
     #collection, root_object = append_collection(context, asset)
     try:
-        collection = append_collection(context, asset)
+        #collection = append_collection(context, asset)
+        collection = append_asset(context, asset, 'collection')
     except ReferenceError:
         print('Append Collection Failed')
         return None
@@ -136,7 +137,7 @@ def spawn_material(context, asset, x, y):
         bpy.types.Material: material
     """
     coords = (x, y)
-    mat = append_material(context, asset)
+    mat = append_asset(context, asset, 'material')
 
     if not mat:
         return None
