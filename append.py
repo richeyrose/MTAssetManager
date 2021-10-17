@@ -127,6 +127,7 @@ def append_object(context, asset, link=False):
             context.scene.mt_am_props.asset_bar.op.report({'INFO'}, obj.name + " already linked to scene.")
             return False
 
+
 def append_collection(context, asset, link=False):
     """Append collection to scene based on passed in asset description.
 
@@ -144,9 +145,11 @@ def append_collection(context, asset, link=False):
     if not link:
         lib = col.library
         filepath = lib.filepath
-        name = col.name
-        # unlink existing library
+        col_name = col.name
+
+        # unlink existing library so we can relink it in append mode
         bpy.data.libraries.remove(lib)
+
         # used to ensure we only add unique materials
         existing_mats = bpy.data.materials.keys()
 
@@ -154,18 +157,11 @@ def append_collection(context, asset, link=False):
         # to in modifiers, if they are added to the scene. If we don't do this then when
         # we resave an object it won't save the associated objects (as of 2.82a)
         existing_obs = bpy.data.objects.keys()
-        asset_found = False
 
-        with bpy.data.libraries.load(filepath) as (data_from, data_to):
-            data_to.collections = [name]
-            # if asset['RootObject'] in data_from.objects:
-            #     data_to.objects = [asset['RootObject']]
-                # asset_found = True
+        with bpy.data.libraries.load(filepath, assets_only=True, link=False) as (data_from, data_to):
+            data_to.collections = [col_name]
 
-            # if asset_found:
-                # the collection that corresponds to the asset['Slug']
         collection = data_to.collections[0]
-        #root_object = data_to.objects[0]
 
         # link collection to scene
         context.scene.collection.children.link(collection)
@@ -202,7 +198,9 @@ def append_collection(context, asset, link=False):
 
                 # remove duplicate material
                 bpy.data.materials.remove(bpy.data.materials[mat])
+
         # reinitialise asset bar
         context.scene.mt_am_props.assets_updated = True
         return collection
+
     return None
