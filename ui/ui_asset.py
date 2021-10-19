@@ -11,18 +11,6 @@ from ..app_handlers import load_missing_preview_image
 class MT_AM_UI_Asset(MT_UI_AM_Widget):
     def __init__(self, x, y, width, height, asset, asset_bar, index, op):
         super().__init__(x, y, width, height)
-        # self._asset_desc = asset
-        # self._name = asset["Name"]
-        # self._slug = asset["Slug"]
-        # self._category = asset["Category"]
-        # self._filepath = asset["FilePath"]
-        # self._preview_image_path = asset["PreviewImagePath"]
-        # self._description = asset["Description"]
-        # self._URI = asset["URI"]
-        # self._author = asset["Author"]
-        # self._license = asset["License"]
-        # self._type = asset["Type"]
-        # self._tags = asset["Tags"]
         self.asset = asset
         self._metadata = asset.asset_data
         self._name = asset.name

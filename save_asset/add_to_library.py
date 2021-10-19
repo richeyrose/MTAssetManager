@@ -8,6 +8,11 @@ from ..preferences import get_prefs
 
 class MT_Save_To_Library:
     """Mixin for save operators."""
+    Name: StringProperty(
+        name="Name",
+        default=""
+    )
+
     Description: StringProperty(
         name="Description",
         default=""
@@ -223,10 +228,8 @@ def draw_object_context_menu_items(self, context):
                 text="Save active material to MakeTile Library"
             )
         if context.active_object.type in ['MESH', 'EMPTY']:
-            layout.operator(
-                "collection.add_collection_to_library",
-                text="Save active object's owning collection to MakeTile Library"
-            )
+            op = layout.operator("collection.add_collection_to_library")
+            op.Name = context.collection.name
     except AttributeError:
         pass
 

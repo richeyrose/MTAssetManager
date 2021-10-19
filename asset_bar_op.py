@@ -163,6 +163,7 @@ class MT_OT_AM_Asset_Bar(Operator):
                         existing_items.append(item)
                         break
 
+    #TODO work out why when we reinitialise assets the order of assets changes in the asset bar.
     def init_assets(self, context, reset_index=True):
         """Initialise assets based on current active category.
 

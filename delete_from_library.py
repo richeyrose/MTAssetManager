@@ -8,11 +8,11 @@ from .lib.send2trash import send2trash
 
 
 class MT_OT_AM_Delete_Selected_Assets_from_Library(Operator):
-    """Delete all selected assets from the MakeTile library and optionally from disk."""
+    """Delete all selected assets."""
 
     bl_idname = "object.delete_selected_assets_from_library"
     bl_label = "Delete Selected Assets"
-    bl_description = "Delete all selected assets from the MakeTile library and optionally from disk."
+    bl_description = "Delete all selected assets."
 
     def __init__(self):
         props = bpy.context.scene.mt_am_props
@@ -25,7 +25,6 @@ class MT_OT_AM_Delete_Selected_Assets_from_Library(Operator):
         return len(selected_assets) > 0
 
     def execute(self, context):
-        prefs = get_prefs()
         props = context.scene.mt_am_props
 
         for asset in self.selected_assets:
@@ -49,6 +48,7 @@ class MT_OT_AM_Delete_Selected_Assets_from_Library(Operator):
         return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
+        """Draw modal pop up."""
         layout = self.layout
         layout.label(text="Delete " + str(len(self.selected_assets)) + " Assets?")
-        layout.label(text="Warning this will delete both the assets and their containing files!")
+        layout.label(text="Warning this will delete both the assets and the file!")

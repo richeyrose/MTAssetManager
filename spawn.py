@@ -122,7 +122,7 @@ def spawn_collection(context, asset, x, y):
 
     return collection
 
-#TODO change so replaces material where there is no vertex group rather than just add it to list
+# TODO spawn_material this is a bit inelegent as we could check if material is in scene earlier.
 def spawn_material(context, asset, x, y):
     """Spawns a material into the scene and adds it to the object under the cursor.
 
@@ -178,7 +178,6 @@ def spawn_material(context, asset, x, y):
                     hit_obj.material_slots[0].material = mat
                     hit_obj.data.materials.append(old_mat)
                 else:
-                    # just append material
                     hit_obj.data.materials.append(mat)
         # push an undo action to the stack
         bpy.ops.ed.undo_push()

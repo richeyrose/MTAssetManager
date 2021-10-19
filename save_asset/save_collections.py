@@ -109,7 +109,7 @@ class MT_OT_Add_Collection_To_Library(Operator, MT_Save_To_Library):
 
     bl_idname = "collection.add_collection_to_library"
     bl_label = "Add Collection To Library"
-    bl_description = "Adds the active object's owning collection to the MakeTile Library"
+    bl_description = "Add the active object's owning collection to the MakeTile Library"
 
     def create_root_object_enums(self, context):
         """Return an enum list constructed out of a list of objects in a collection
