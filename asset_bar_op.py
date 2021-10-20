@@ -1,4 +1,5 @@
 import os
+from operator import itemgetter, attrgetter
 import ntpath
 import pathlib
 import bpy
@@ -163,7 +164,7 @@ class MT_OT_AM_Asset_Bar(Operator):
                         existing_items.append(item)
                         break
 
-    #TODO work out why when we reinitialise assets the order of assets changes in the asset bar.
+
     def init_assets(self, context, reset_index=True):
         """Initialise assets based on current active category.
 
@@ -171,9 +172,10 @@ class MT_OT_AM_Asset_Bar(Operator):
             context (bpy.context): context
             reset_index (bool, optional): Whether to reset the asset bar index to 0. Defaults to True.
         """
-
+        props = context.scene.mt_am_props
         current_path = self.current_path = context.scene.mt_am_props.current_path
         current_assets = []
+        asset_filter = props.asset_filter
 
         # list of existing linked library files in current directory
         # libs = [lib for lib in bpy.data.libraries if os.path.samefile(pathlib.Path(lib.filepath).parent, current_path)]
@@ -192,8 +194,17 @@ class MT_OT_AM_Asset_Bar(Operator):
                 bpy.data.libraries.remove(lib)
             else:
                 for id in lib.users_id:
-                    if type(id) in [Collection, Object, Material]:
-                        if id.asset_data:
+                    if asset_filter == 'NONE':
+                        if type(id) in [Collection, Object, Material] and id.asset_data:
+                            current_assets.append(id)
+                    elif asset_filter == 'MATERIAL':
+                        if type(id) == Material and id.asset_data:
+                            current_assets.append(id)
+                    elif asset_filter == 'OBJECT':
+                        if type(id) == Object and id.asset_data:
+                            current_assets.append(id)
+                    elif asset_filter == 'COLLECTION':
+                        if type(id) == Collection and id.asset_data:
                             current_assets.append(id)
 
         # list of files in current directory
@@ -205,13 +216,28 @@ class MT_OT_AM_Asset_Bar(Operator):
         # load new files
         for file in new_files:
             with bpy.data.libraries.load(file, assets_only=True, link=True) as (data_from, data_to):
-                data_to.objects = data_from.objects
-                data_to.collections = data_from.collections
-                data_to.materials = data_from.materials
+                if asset_filter == 'NONE':
+                    data_to.objects = data_from.objects
+                    data_to.collections = data_from.collections
+                    data_to.materials = data_from.materials
+                elif asset_filter == 'MATERIAL':
+                    data_to.materials = data_from.materials
+                elif asset_filter == 'COLLECTION':
+                    data_to.collections = data_from.collections
+                elif asset_filter == 'OBJECT':
+                    data_to.objects = data_from.objects
 
             all_assets = data_to.objects + data_to.materials + data_to.collections
             for i in all_assets:
                 current_assets.append(i)
+
+        # sort assets
+        sort_by = props.asset_sort_by
+        reverse = props.asset_reverse_sort
+        if sort_by == "ALPHABETICAL":
+            current_assets.sort(key=attrgetter('name'), reverse=reverse)
+        elif sort_by == "MODIFIED":
+            current_assets.sort(key=lambda asset: os.path.getmtime(asset.library.filepath), reverse=reverse)
 
         # instantiate a thumbnail for each asset in current assets
         prefs = get_prefs()
@@ -229,10 +255,7 @@ class MT_OT_AM_Asset_Bar(Operator):
             assets.append(new_asset)
 
         try:
-            # reset asset indexes.
-            # We don't want to do this if we are reinitialising
-            # assets after we've added, removed or updated one as we want the
-            # asset bar to remain at its current index
+            # Control first asset displayed in asset bar
             if reset_index:
                 self.asset_bar.first_asset_index = 0
         except AttributeError:

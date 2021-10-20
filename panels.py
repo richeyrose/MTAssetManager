@@ -33,13 +33,25 @@ class MT_PT_AM_Bar_Panel(MT_PT_AM_Main_Panel, Panel):
     def draw(self, context):
         props = context.scene.mt_am_props
         layout = self.layout
-        child_cats = []
+        subfolder = []
 
+        # show / hide asset bar
         if not props.asset_bar:
             op = layout.operator("view3d.mt_asset_bar")
             op.current_path = props.current_path
         else:
             layout.operator("view3d.mt_hide_asset_bar")
+
+        # filter by
+        layout.label(text="Filter By")
+        row = layout.row()
+        row.prop(props, 'asset_filter', text="")
+
+        # sort by
+        layout.label(text="Sort By")
+        row = layout.row()
+        row.prop(props, 'asset_sort_by', text="")
+        row.prop(props, 'asset_reverse_sort')
 
         # display return to parent button if we're not in the library root
         if not os.path.samefile(props.current_path, props.library_path):
@@ -48,28 +60,29 @@ class MT_PT_AM_Bar_Panel(MT_PT_AM_Main_Panel, Panel):
                 text=os.path.basename(props.parent_path),
                 icon='FILE_PARENT')
         # show label for current folder
+        layout.label(text="Current Path")
         layout.label(text=props.current_path)
 
         # get list of subfolders
         try:
-            child_cats = [f.path for f in os.scandir(props.current_path) if f.is_dir()]
+            subfolder = [f.path for f in os.scandir(props.current_path) if f.is_dir()]
         except FileNotFoundError:
-            child_cats = [f.path for f in os.scandir(props.library_path) if f.is_dir()]
+            subfolder = [f.path for f in os.scandir(props.library_path) if f.is_dir()]
 
         row = layout.row()
         row.label(text='Subfolders')
         row.operator('scene.mt_am_add_subfolder', text="", icon='ADD')
 
-        for cat in child_cats:
+        for subfolder in subfolder:
             row = layout.row()
             op = row.operator(
                 "view3d.mt_asset_bar",
-                text=os.path.basename(cat),
+                text=os.path.basename(subfolder),
                 icon="FILE_FOLDER")
-            op.current_path = cat
+            op.current_path = subfolder
 
             del_op = row.operator("scene.mt_am_delete_subfolder", text="", icon="REMOVE")
-            del_op.folder_name = cat
+            del_op.folder_name = subfolder
 
 class MT_PT_AM_Library_Select_Panel(MT_PT_AM_Main_Panel, Panel):
     """Library Selection Sub Panel"""

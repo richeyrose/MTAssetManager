@@ -28,6 +28,10 @@ class MT_PT_AM_Props(PropertyGroup):
     def update_libraries_enum(self, context):
         self.library_path = self.current_path = context.preferences.filepaths.asset_libraries[self.libraries].path
 
+    def update_assets(self, context):
+        props = context.scene.mt_am_props
+        props.assets_updated = True
+
     assets_updated: BoolProperty(
         name="Assets Updated",
         default=False,
@@ -57,6 +61,34 @@ class MT_PT_AM_Props(PropertyGroup):
         name="Libraries",
         items=library_enum_items,
         update=update_libraries_enum
+    )
+
+    asset_sort_by: EnumProperty(
+        name="Sort By",
+        items=[
+            ("ALPHABETICAL", "Alphabetical", "Sort Alphabetically"),
+            ("MODIFIED", "Modified", "Sort by last Modified")],
+        description="Property to sort by",
+        default="ALPHABETICAL",
+        update=update_assets
+    )
+
+    asset_reverse_sort: BoolProperty(
+        name="Reverse",
+        default=False,
+        description="Reverse Sort",
+        update=update_assets
+    )
+
+    asset_filter: EnumProperty(
+        name="Filter",
+        items=[
+            ("OBJECT", "Object", "Filter by Object"),
+            ("MATERIAL", "Material", "Filter by Material"),
+            ("COLLECTION", "Collection", "Filter by Collection"),
+            ("NONE", "None", "Remove Filter")],
+        default="NONE",
+        update=update_assets
     )
 
     cut: bpy.props.BoolProperty(
