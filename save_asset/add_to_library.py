@@ -212,33 +212,3 @@ def mark_as_asset(asset, asset_desc, tags):
     asset_data.mt_author = asset_desc['Author']
     asset_data.mt_license = asset_desc['License']
     asset_data.mt_URI = asset_desc['URI']
-
-def draw_object_context_menu_items(self, context):
-    """Add save options to object right click context menu."""
-    layout = self.layout
-    layout.operator_context = 'INVOKE_DEFAULT'
-    try:
-        if context.active_object.type in ['MESH']:
-            layout.separator()
-            layout.operator(
-                "object.add_selected_objects_to_library",
-                text="Save all selected objects to MakeTile Library")
-            layout.operator(
-                "material.mt_ot_am_add_material_to_library",
-                text="Save active material to MakeTile Library"
-            )
-        if context.active_object.type in ['MESH', 'EMPTY']:
-            op = layout.operator("collection.add_collection_to_library")
-            op.Name = context.collection.name
-    except AttributeError:
-        pass
-
-
-def register():
-    """Register aditional options in object context (right click) menu."""
-    bpy.types.VIEW3D_MT_object_context_menu.append(draw_object_context_menu_items)
-
-
-def unregister():
-    """UnRegister."""
-    bpy.types.VIEW3D_MT_object_context_menu.remove(draw_object_context_menu_items)
