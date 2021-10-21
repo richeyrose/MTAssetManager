@@ -42,9 +42,7 @@ class MT_OT_AM_Add_Material_To_Library(Operator, MT_Save_To_Library):
         Returns:
             Bool: boolean
         """
-        if context.object is not None:
-            return context.object.active_material is not None
-        return False
+        return context.active_object and context.active_object.active_material
 
     def execute(self, context):
         """Add the active material to the MakeTile Library."""
