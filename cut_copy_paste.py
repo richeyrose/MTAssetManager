@@ -15,18 +15,31 @@ class MT_OT_AM_Cut_Asset(Operator):
     bl_label = "Cut Asset"
     bl_description = "Cut Asset"
 
+    @classmethod
+    def poll(cls, context):
+        props = context.scene.mt_am_props
+        if props.asset_bar:
+            selected_assets = [asset for asset in props.asset_bar.assets if asset.selected]
+            return len(selected_assets) > 0
+
     def execute(self, context):
         props = context.scene.mt_am_props
         props.cut = True
         props.copied_assets = [asset.asset_desc for asset in props.asset_bar.assets if asset.selected]
         return {'FINISHED'}
 
-
 class MT_OT_AM_Copy_Asset(Operator):
     """Copy an asset in the asset bar."""
     bl_idname = "object.mt_copy_asset"
     bl_label = "Copy Asset"
     bl_description = "Copy Asset"
+
+    @classmethod
+    def poll(cls, context):
+        props = context.scene.mt_am_props
+        if props.asset_bar:
+            selected_assets = [asset for asset in props.asset_bar.assets if asset.selected]
+            return len(selected_assets) > 0
 
     def execute(self, context):
         props = context.scene.mt_am_props

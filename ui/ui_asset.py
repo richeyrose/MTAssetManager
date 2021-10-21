@@ -27,12 +27,11 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
 
         self.context = bpy.context
         self._preview_image = self.get_preview_image(self.context)
-        # self._preview_image = asset.mt_preview_img
         self.prefs = get_prefs()
         self._drag_thumb = None
 
     def get_preview_image(self, context):
-        """Return the preview image for an asset. If no preview image is foun returns a generic
+        """Return the preview image for an asset. If no preview image is found returns a generic
         no preview image found image.
 
         Args:
@@ -50,12 +49,6 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
             except KeyError:
                 missing_image = context.scene.mt_bar_props['missing_preview_image'] = load_missing_preview_image()
                 return missing_image
-        # filename = os.path.split(os.path.normpath(self._preview_image_path))[1]
-        # try:
-        #     return bpy.data.images[filename]
-        # except KeyError:
-        #     try:
-        #         return bar_props['missing_preview_image']
 
     def handle_event(self, event):
         """Handle Mouse Events.
@@ -82,13 +75,13 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
                 self._mouse_down = False
                 return self.mouse_up(x, y)
 
-        elif event.type == 'RIGHTMOUSE':
-            if event.value == 'PRESS':
-                self._right_mouse_down = True
-                return self.right_mouse_down(x, y)
-            elif event.value == 'RELEASE':
-                self._right_mouse_down = False
-                return self.right_mouse_up(x, y)
+        # elif event.type == 'RIGHTMOUSE':
+        #     if event.value == 'PRESS':
+        #         self._right_mouse_down = True
+        #         return self.right_mouse_down(x, y)
+        #     elif event.value == 'RELEASE':
+        #         self._right_mouse_down = False
+        #         return self.right_mouse_up(x, y)
 
         elif event.type == 'MOUSEMOVE':
             hovered = self.is_hovered(x, y)
@@ -268,16 +261,16 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
             return True
         return False
 
-    def right_mouse_down(self, x, y):
-        if self._draw and self.hovered:
-            # store current asset description for edit asset metadata operator
-            bpy.context.scene.mt_am_props.current_asset_desc = self.asset_desc
-            if not self.selected:
-                self.asset_bar.deselect_all()
-                self.selected = True
-            bpy.ops.wm.call_menu(name=MT_AM_Edit_Asset_Menu.bl_idname)
-            return True
-        return False
+    # def right_mouse_down(self, x, y):
+    #     if self._draw and self.hovered:
+    #         # store current asset description for edit asset metadata operator
+    #         bpy.context.scene.mt_am_props.current_asset_desc = self.asset_desc
+    #         if not self.selected:
+    #             self.asset_bar.deselect_all()
+    #             self.selected = True
+    #         bpy.ops.wm.call_menu(name=MT_AM_Edit_Asset_Menu.bl_idname)
+    #         return True
+    #     return False
 
     def delete_assets(self):
         """Call appropriate delete asset operator if we are hovered over asset bar."""
@@ -306,33 +299,33 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
         """
         self.asset_bar.drag_thumbs.remove(thumb)
 
-class MT_AM_Edit_Asset_Menu(bpy.types.Menu):
-    bl_label = "Edit Asset"
-    bl_idname = "AM_MT_edit_asset_menu"
+# class MT_AM_Edit_Asset_Menu(bpy.types.Menu):
+#     bl_label = "Edit Asset"
+#     bl_idname = "AM_MT_edit_asset_menu"
 
-    def draw(self, context):
-        props = context.scene.mt_am_props
-        layout = self.layout
+#     def draw(self, context):
+#         props = context.scene.mt_am_props
+#         layout = self.layout
 
-        layout.operator_context = 'INVOKE_DEFAULT'
+#         layout.operator_context = 'INVOKE_DEFAULT'
 
-        layout.operator("object.mt_cut_asset")
-        # layout.operator("object.mt_copy_asset")
-        layout.operator("object.mt_paste_asset")
-        layout.operator("object.delete_selected_assets_from_library")
+#         layout.operator("object.mt_cut_asset")
+#         # layout.operator("object.mt_copy_asset")
+#         layout.operator("object.mt_paste_asset")
+#         layout.operator("object.delete_selected_assets_from_library")
 
-        layout.separator()
+#         layout.separator()
 
-        asset_desc = bpy.context.scene.mt_am_props.current_asset_desc
-        op = layout.operator("object.mt_am_edit_asset_metadata")
-        op.Name = asset_desc["Name"]
-        op.FilePath = asset_desc["FilePath"]
-        op.PreviewImagePath = asset_desc["PreviewImagePath"]
-        op.Description = asset_desc["Description"]
-        op.URI = asset_desc["URI"]
-        op.Author = asset_desc["Author"]
-        op.License = asset_desc["License"]
-        op.Tags = ", ".join(asset_desc["Tags"])
+#         asset_desc = bpy.context.scene.mt_am_props.current_asset_desc
+#         op = layout.operator("object.mt_am_edit_asset_metadata")
+#         op.Name = asset_desc["Name"]
+#         op.FilePath = asset_desc["FilePath"]
+#         op.PreviewImagePath = asset_desc["PreviewImagePath"]
+#         op.Description = asset_desc["Description"]
+#         op.URI = asset_desc["URI"]
+#         op.Author = asset_desc["Author"]
+#         op.License = asset_desc["License"]
+#         op.Tags = ", ".join(asset_desc["Tags"])
 
 
 
