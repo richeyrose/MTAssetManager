@@ -21,8 +21,9 @@ class MT_OT_AM_Delete_Selected_Assets_from_Library(Operator):
     @classmethod
     def poll(cls, context):
         props = context.scene.mt_am_props
-        selected_assets = [asset for asset in props.asset_bar.assets if asset.selected]
-        return len(selected_assets) > 0
+        if props.asset_bar:
+            selected_assets = [asset for asset in props.asset_bar.assets if asset.selected]
+            return len(selected_assets) > 0
 
     def execute(self, context):
         props = context.scene.mt_am_props
