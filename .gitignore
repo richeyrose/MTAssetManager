@@ -3,3 +3,7 @@
 *.pyc
 *.code-workspace
 *.png
+assets/data/collections.json
+assets/data/materials.json
+assets/data/objects.json
+docs/notes.txt
