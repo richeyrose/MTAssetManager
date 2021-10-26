@@ -24,12 +24,15 @@ def material_is_unique(material, materials):
 
     """
     found = []
-    # remove digits from end of material name
-    mat_name = material.name.rstrip('0123456789. ')
+    # slugify material name and strip digits
+    mat_name = slugify(material.name.rstrip('0123456789. '))
 
-    # check if material shares a name with another material (minus numeric suffix)
+    # # remove digits from end of material name
+    # mat_name = material.name.rstrip('0123456789. ')
+
+    # check if material shares a name with another material
     for mat in materials:
-        stripped_name = mat.name.rstrip('0123456789. ')
+        stripped_name = slugify(mat.name.rstrip('0123456789. '))
         if stripped_name == mat_name:
             found.append(mat)
 

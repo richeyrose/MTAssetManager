@@ -47,6 +47,14 @@ class MT_OT_AM_Add_Material_To_Library(Operator, MT_Save_To_Library):
     def execute(self, context):
         """Add the active material to the MakeTile Library."""
         material = context.active_object.active_material
+        # pack images into material
+        nodes = material.node_tree.nodes
+        for node in nodes:
+            try:
+                node.image.pack()
+            except AttributeError:
+                pass
+
         props = context.scene.mt_am_props
         prefs = get_prefs()
         tags = tagify(self.Tags)
