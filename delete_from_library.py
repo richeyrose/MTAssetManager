@@ -61,8 +61,14 @@ def delete_assets(selected_assets, prefs, props, asset_type, delete_from_disk=Tr
     """
     asset_descs = getattr(props, asset_type)
     for asset in selected_assets:
-        # remove item from in memory list
+        # remove item from in memory asset manager list
         asset_descs.remove(asset)
+        try:
+            # unlink file
+            lib = bpy.data.libraries[asset["FileName"]]
+            bpy.data.libraries.remove(lib)
+        except KeyError:
+            pass
         # delete preview image
         if os.path.exists(asset["PreviewImagePath"]):
             os.remove(asset["PreviewImagePath"])
