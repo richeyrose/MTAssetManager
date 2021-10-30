@@ -166,7 +166,7 @@ class MT_OT_AM_Asset_Bar(Operator):
 
 
     def init_assets(self, context, reset_index=True):
-        """Initialise assets based on current active category.
+        """Initialise assets based on current active directory.
 
         Args:
             context (bpy.context): context
@@ -176,9 +176,6 @@ class MT_OT_AM_Asset_Bar(Operator):
         current_path = self.current_path = context.scene.mt_am_props.current_path
         current_assets = []
         asset_filter = props.asset_filter
-
-        # list of existing linked library files in current directory
-        # libs = [lib for lib in bpy.data.libraries if os.path.samefile(pathlib.Path(lib.filepath).parent, current_path)]
 
         libs = []
         for lib in bpy.data.libraries:

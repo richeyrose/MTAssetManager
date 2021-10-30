@@ -1,6 +1,7 @@
 import os
 import gpu
 import bpy
+import blf
 
 from gpu_extras.batch import batch_for_shader
 from .ui_widget import MT_UI_AM_Widget
@@ -172,6 +173,19 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
                 self.hover_shader.uniform_float("color", (self.prefs.asset_bar_item_hover_color))
                 gpu.state.blend_set('ALPHA')
                 self.hover_panel.draw(self.hover_shader)
+
+            # draw asset name at bottom of thumbnail
+            blf.position(0, self.x + 10, self.y + 5, 0)
+            blf.size(0, 14, 72)
+            blf.color(0, 1, 0.627, 0.157, 1)
+            blf.enable(0, blf.CLIPPING)
+            blf.clipping(0, self.x, self.y, self.x + self.width - 5, self.y + self.height - 5)
+            blf.draw(0, self.asset.name)
+            blf.disable(0, blf.CLIPPING)
+            # draw asset type symbol in top right of thumbnail
+
+
+
 
         else:
             self._draw = False
