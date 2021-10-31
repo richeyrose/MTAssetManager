@@ -117,13 +117,13 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
 
         indices = ((0, 1, 2), (2, 1, 3))
 
-        x = self.x + self.width - 32
-        y = self.y + self.height - 32
+        x = self.x + self.width - 20
+        y = self.y + self.height - 20
         coords = [
             (x, y),
-            (x + 32, y),
-            (x, y + 32),
-            (x + 32, y + 32)]
+            (x + 20, y),
+            (x, y + 20),
+            (x + 20, y + 20)]
 
         # UV Tiling
         crop = (0, 0, 1, 1)
@@ -141,7 +141,7 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
             {"pos": coords, "texCoord": uvs},
             indices=indices)
 
-    def update(self):
+    def update_thumb(self):
         """Update thumbnail location.
 
         Args:
@@ -175,6 +175,23 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
             {"pos": coords, "texCoord": uvs},
             indices=indices)
 
+    def update_text_box(self, x, y):
+        self._set_origin()
+        # bottom left, top left, top right, bottom right
+        indices = ((0, 1, 2), (0, 2, 3))
+        verts = (
+            (self.x, self.y),
+            (self.x, self.y + 20),
+            (self.x + self.width, self.y + 20),
+            (self.x + self.width, self.y))
+
+        self.text_box_shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
+        self.text_box = batch_for_shader(
+            self.text_box_shader,
+            'TRIS',
+            {"pos": verts},
+            indices=indices)
+
     def draw(self):
         """Draw Asset Thumnails.
         """
@@ -195,7 +212,7 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
                 gpu.state.blend_set('NONE')
 
             # draw thumbnail image
-            self.update()
+            self.update_thumb()
             gpu.state.blend_set('ALPHA')
             self.shader.bind()
             image = self._preview_image
@@ -203,7 +220,7 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
             self.shader.uniform_sampler("image", tex)
             self.batch_panel.draw(self.shader)
 
-            # draw thumbnail icon
+            # draw asset type icon in top right
             self.update_icon()
             gpu.state.blend_set('ALPHA')
             self.shader.bind()
@@ -216,24 +233,27 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
             if self.hovered:
                 self.update_hover(self.x, self.y)
                 self.hover_shader.bind()
-                # self.hover_shader.uniform_float("color", self.prefs.asset_bar_item_hover_color)
-                self.hover_shader.uniform_float("color", (self.prefs.asset_bar_item_hover_color))
+                self.hover_shader.uniform_float(
+                    "color",
+                    (self.prefs.asset_bar_item_hover_color))
                 gpu.state.blend_set('ALPHA')
                 self.hover_panel.draw(self.hover_shader)
+
+            # draw text box at bottom of thumbnail
+            self.update_text_box(self.x, self.y)
+            self.text_box_shader.bind()
+            self.text_box_shader.uniform_float("color", (0, 0, 0, 0.5))
+            gpu.state.blend_set('ALPHA')
+            self.text_box.draw(self.text_box_shader)
 
             # draw asset name at bottom of thumbnail
             blf.position(0, self.x + 10, self.y + 5, 0)
             blf.size(0, 14, 72)
-            blf.color(0, 1, 0.627, 0.157, 1)
+            blf.color(0, 1, 1, 1, 0.8)
             blf.enable(0, blf.CLIPPING)
             blf.clipping(0, self.x, self.y, self.x + self.width - 5, self.y + self.height - 5)
             blf.draw(0, self.asset.name)
             blf.disable(0, blf.CLIPPING)
-
-            # draw asset type symbol in top right of thumbnail
-
-
-
 
         else:
             self._draw = False
