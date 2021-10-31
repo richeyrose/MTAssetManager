@@ -18,10 +18,6 @@ def draw_object_context_menu_items(self, context):
     layout.separator()
     # cut, copy, paste, delete assets
     layout.operator("object.delete_selected_assets_from_library")
-    layout.operator("object.mt_cut_asset")
-    layout.operator("object.mt_copy_asset")
-    layout.operator("object.mt_paste_asset")
-
 
 def register():
     """Register aditional options in object context (right click) menu."""
