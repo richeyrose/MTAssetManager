@@ -66,12 +66,14 @@ def create_properties():
         if os.path.exists(filepath):
             return bpy.data.images.load(filepath, check_existing=True)
 
-    icons_path = os.path.join(prefs.default_assets_path, "misc")
+    icons_path = os.path.join(prefs.default_assets_path, "misc", "icons.blend")
+    with bpy.data.libraries.load(icons_path, link=True) as (data_from, data_to):
+        data_to.images = data_from.images
 
-    bar_props.object_icon = load_icon(os.path.join(icons_path, 'object_data.png'))
-    bar_props.collection_icon = load_icon(os.path.join(icons_path, 'outliner_collection.png'))
-    bar_props.material_icon = load_icon(os.path.join(icons_path, 'material.png'))
-    bar_props.missing_preview_icon = load_icon(os.path.join(icons_path, 'no_image.png'))
+    bar_props.object_icon = bpy.data.images['object_data.png']
+    bar_props.collection_icon = bpy.data.images['outliner_collection.png']
+    bar_props.material_icon = bpy.data.images['material.png']
+    bar_props.missing_preview_icon = bpy.data.images['no_image.png']
 
 bpy.app.handlers.depsgraph_update_pre.append(mt_am_initialise_on_activation)
 bpy.app.handlers.load_post.append(mt_am_initialise_on_load)
