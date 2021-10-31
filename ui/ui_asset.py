@@ -7,7 +7,7 @@ from gpu_extras.batch import batch_for_shader
 from .ui_widget import MT_UI_AM_Widget
 from .ui_drag_thumb import MT_AM_UI_Drag_Thumb
 from ..preferences import get_prefs
-from ..app_handlers import load_missing_preview_image
+from bpy.types import Object, Material, Collection
 
 class MT_AM_UI_Asset(MT_UI_AM_Widget):
     def __init__(self, x, y, width, height, asset, asset_bar, index, op):
@@ -28,6 +28,7 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
 
         self.context = bpy.context
         self._preview_image = self.get_preview_image(self.context)
+        self.type_icon = self.get_type_icon(self.context)
         self.prefs = get_prefs()
         self._drag_thumb = None
 
@@ -45,11 +46,19 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
         if self.asset.mt_preview_img:
             return self.asset.mt_preview_img
         else:
-            try:
-                return bar_props['missing_preview_image']
-            except KeyError:
-                missing_image = context.scene.mt_bar_props['missing_preview_image'] = load_missing_preview_image()
-                return missing_image
+            return bar_props.missing_preview_icon
+
+    def get_type_icon(self, context):
+        bar_props = context.scene.mt_bar_props
+        if type(self.asset) == Collection:
+            return bar_props.collection_icon
+        elif type(self.asset) == Material:
+            return bar_props.material_icon
+        elif type(self.asset) == Object:
+            return bar_props.object_icon
+        else:
+            return bar_props.missing_preview_icon
+
 
     def handle_event(self, event):
         """Handle Mouse Events.
@@ -102,6 +111,35 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
             return self.delete_assets()
 
         return False
+
+    def update_icon(self):
+        self._set_origin()
+
+        indices = ((0, 1, 2), (2, 1, 3))
+
+        x = self.x + self.width - 32
+        y = self.y + self.height - 32
+        coords = [
+            (x, y),
+            (x + 32, y),
+            (x, y + 32),
+            (x + 32, y + 32)]
+
+        # UV Tiling
+        crop = (0, 0, 1, 1)
+
+        uvs = [(crop[0], crop[1]),
+               (crop[2], crop[1]),
+               (crop[0], crop[3]),
+               (crop[2], crop[3])]
+
+        self.shader = gpu.shader.from_builtin('2D_IMAGE')
+
+        self.batch_icon = batch_for_shader(
+            self.shader,
+            'TRIS',
+            {"pos": coords, "texCoord": uvs},
+            indices=indices)
 
     def update(self):
         """Update thumbnail location.
@@ -165,6 +203,15 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
             self.shader.uniform_sampler("image", tex)
             self.batch_panel.draw(self.shader)
 
+            # draw thumbnail icon
+            self.update_icon()
+            gpu.state.blend_set('ALPHA')
+            self.shader.bind()
+            image = self.type_icon
+            tex = gpu.texture.from_image(image)
+            self.shader.uniform_sampler("image", tex)
+            self.batch_icon.draw(self.shader)
+
             # draw hovered transparency
             if self.hovered:
                 self.update_hover(self.x, self.y)
@@ -182,6 +229,7 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
             blf.clipping(0, self.x, self.y, self.x + self.width - 5, self.y + self.height - 5)
             blf.draw(0, self.asset.name)
             blf.disable(0, blf.CLIPPING)
+
             # draw asset type symbol in top right of thumbnail
 
 

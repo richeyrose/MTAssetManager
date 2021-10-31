@@ -139,6 +139,29 @@ class MT_PT_AM_Bar_Props(PropertyGroup):
         default=0
     )
 
+    object_icon: PointerProperty(
+        type=bpy.types.Image,
+        name="Object Icon",
+        description="Icon to display on objects in asset bar."
+    )
+
+    collection_icon: PointerProperty(
+        type=bpy.types.Image,
+        name="Collection Icon",
+        description="Icon to display on collections in asset bar."
+    )
+
+    material_icon: PointerProperty(
+        type=bpy.types.Image,
+        name="Material Icon",
+        description="Icon to display on materials in asset bar."
+    )
+
+    missing_preview_icon: PointerProperty(
+        type=bpy.types.Image,
+        name="Missing Preview Icon",
+        description="Icon to display when there is a missing preview image."
+    )
 
 class MT_PT_AM_Object_Spawn_Props(PropertyGroup):
     randomize_rotation: bpy.props.BoolProperty(

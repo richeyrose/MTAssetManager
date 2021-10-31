@@ -61,25 +61,17 @@ def create_properties():
     bar_props['hovered_asset'] = None
     bar_props['selected_asset'] = None
     bar_props['dragged_asset'] = None
-    bar_props['missing_preview_image'] = load_missing_preview_image()
 
+    def load_icon(filepath):
+        if os.path.exists(filepath):
+            return bpy.data.images.load(filepath, check_existing=True)
 
-def load_missing_preview_image():
-    """Load the image used for assets with no preview.
+    icons_path = os.path.join(prefs.default_assets_path, "misc")
 
-    Returns:
-        bpy.types.Image: Image
-    """
-    prefs = get_prefs()
-    no_image_path = os.path.join(
-        prefs.default_assets_path,
-        "misc",
-        "no_image.png"
-    )
-
-    if os.path.exists(no_image_path):
-        return bpy.data.images.load(no_image_path, check_existing=True)
-    return None
+    bar_props.object_icon = load_icon(os.path.join(icons_path, 'object_data.png'))
+    bar_props.collection_icon = load_icon(os.path.join(icons_path, 'outliner_collection.png'))
+    bar_props.material_icon = load_icon(os.path.join(icons_path, 'material.png'))
+    bar_props.missing_preview_icon = load_icon(os.path.join(icons_path, 'no_image.png'))
 
 bpy.app.handlers.depsgraph_update_pre.append(mt_am_initialise_on_activation)
 bpy.app.handlers.load_post.append(mt_am_initialise_on_load)
