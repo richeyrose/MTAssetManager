@@ -247,7 +247,15 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
             self.text_box.draw(self.text_box_shader)
 
             # draw asset name at bottom of thumbnail
-            blf.position(0, self.x + 10, self.y + 5, 0)
+            text = self.asset.name
+            text_dims = blf.dimensions(0, text)
+            box_dims = self.width - 10
+            if text_dims[0] <= box_dims:
+                text_start = self.x + (self.width / 2) - (text_dims[0] / 2)
+            else:
+                text_start = self.x + 10
+
+            blf.position(0, text_start, self.y + 5, 0)
             blf.size(0, 14, 72)
             blf.color(0, 1, 1, 1, 0.8)
             blf.enable(0, blf.CLIPPING)
