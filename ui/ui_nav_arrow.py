@@ -14,7 +14,6 @@ class MT_UI_AM_Nav_Arrow(MT_UI_AM_Widget):
         self.height = self._asset_bar.height
         self.width = self.prefs.asset_bar_nav_button_width
         self._set_origin()
-        self.bg_color = self.prefs.asset_bar_nav_button_color
         self.update(self.x, self.y)
 
     def draw(self):
@@ -29,7 +28,6 @@ class MT_UI_AM_Nav_Arrow(MT_UI_AM_Widget):
             self.hover_shader.uniform_float("color", self.prefs.asset_bar_item_hover_color)
             gpu.state.blend_set('ALPHA')
             self.hover_panel.draw(self.hover_shader)
-            gpu.state.blend_set('NONE')
 
     def _set_origin(self):
         pass

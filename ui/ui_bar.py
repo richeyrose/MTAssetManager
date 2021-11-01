@@ -28,7 +28,6 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
         # initialise the asset bar
         self.context = context
         self.set_asset_bar_dimensions()
-        self.bg_color = self.prefs.asset_bar_bg_color
         self.update(self.x, self.y)
 
         # initialise the nav arrows

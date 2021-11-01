@@ -242,7 +242,7 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
             # draw text box at bottom of thumbnail
             self.update_text_box(self.x, self.y)
             self.text_box_shader.bind()
-            self.text_box_shader.uniform_float("color", (0, 0, 0, 0.5))
+            self.text_box_shader.uniform_float("color", (0, 0, 0, 0.8))
             gpu.state.blend_set('ALPHA')
             self.text_box.draw(self.text_box_shader)
 

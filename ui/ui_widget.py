@@ -7,7 +7,7 @@ class MT_UI_AM_Widget:
         self.y = y  # y origin
         self.width = width
         self.height = height
-        self._bg_color = (0.8, 0.8, 0.8, 1.0)
+        self._bg_color = (0.1, 0.1, 0.1, 0.5)
         self.hovered = False  # whether the mouse is over the widget
         self._mouse_down = False
         self._right_mouse_down = False
@@ -21,8 +21,7 @@ class MT_UI_AM_Widget:
         # draw the panel
         gpu.state.blend_set('ALPHA')
         self.batch_panel.draw(self.shader)
-        # reset alpha
-        gpu.state.blend_set('NONE')
+
 
     def init(self, context):
         self.context = context
@@ -70,7 +69,11 @@ class MT_UI_AM_Widget:
             (self.x + self.width, self.y))
 
         self.shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
-        self.batch_panel = batch_for_shader(self.shader, 'TRIS', {"pos": verts}, indices=indices)
+        self.batch_panel = batch_for_shader(
+            self.shader,
+            'TRIS',
+            {"pos": verts},
+            indices=indices)
 
 
     def update_hover(self, x, y):
@@ -84,7 +87,11 @@ class MT_UI_AM_Widget:
             (self.x + self.width, self.y))
 
         self.hover_shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
-        self.hover_panel = batch_for_shader(self.hover_shader, 'TRIS', {"pos": verts}, indices=indices)
+        self.hover_panel = batch_for_shader(
+            self.hover_shader,
+            'TRIS',
+            {"pos": verts},
+            indices=indices)
 
     def update_selected(self, x, y):
         self._set_origin()
