@@ -221,15 +221,6 @@ def register():
         description="License for asset use",
         default="ARR")
 
-    bpy.types.AssetMetaData.mt_author = StringProperty(
-        name="Author",
-        description="Creator of the asset",
-        default="")
-
-    bpy.types.AssetMetaData.mt_URI = StringProperty(
-        name="URI",
-        default="")
-
     bpy.types.Object.mt_preview_img = PointerProperty(
         name="Preview Image",
         type=bpy.types.Image,
@@ -252,8 +243,6 @@ def unregister():
     del bpy.types.Material.mt_preview_img
     del bpy.types.Collection.mt_preview_img
     del bpy.types.Object.mt_preview_img
-    del bpy.types.AssetMetaData.mt_URI
-    del bpy.types.AssetMetaData.mt_author
     del bpy.types.AssetMetaData.mt_license
     del bpy.types.Scene.mt_am_spawn_props
     del bpy.types.Scene.mt_bar_props
