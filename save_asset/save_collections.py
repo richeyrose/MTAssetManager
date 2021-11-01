@@ -9,43 +9,34 @@ from ..collections import (
     activate_collection,
     get_all_descendent_collections)
 from .add_to_library import (
-    draw_save_props_menu,
-    add_asset_to_library,
-    construct_asset_description,
-    mark_as_asset,
     MT_Save_To_Library)
 from ..preferences import get_prefs
 from .preview_rendering import render_collection_preview
 from ..utils import tagify
 
-class MT_OT_Set_Object_Bool_Type(Operator):
+class MT_OT_Set_Object_Bool_Type(Operator, MT_Save_To_Library):
     """Set the object type for objects saved as part of a ARCH_ELEM collection."""
 
     bl_idname = "collection.set_object_type"
     bl_label = "Set Object Propertis."
     bl_description = "Set the properties for objects saved as part of an architectural element collection."
 
-    Name: StringProperty(
+    name: StringProperty(
         name="Name",
         default=""
     )
 
-    Description: StringProperty(
-        name="Description",
+    desc: StringProperty(
+        name="desc",
         default=""
     )
 
-    URI: StringProperty(
-        name="URI",
+    author: StringProperty(
+        name="author",
         default=""
     )
 
-    Author: StringProperty(
-        name="Author",
-        default=""
-    )
-
-    License: EnumProperty(
+    license: EnumProperty(
         items=[
             ("ARR", "All Rights Reserved", ""),
             ("CCBY", "Attribution (CC BY)", ""),
@@ -58,23 +49,23 @@ class MT_OT_Set_Object_Bool_Type(Operator):
         description="License for asset use",
         default="ARR")
 
-    Tags: StringProperty(
-        name="Tags",
+    tags: StringProperty(
+        name="tags",
         description="Comma seperated list",
         default=""
     )
 
-    RootObject: StringProperty(
+    root_object: StringProperty(
         name="Root Object",
         description="Object that all other objects in this collection are parented to. Select None to create a new empty object"
     )
 
-    OwningCollection: StringProperty(
+    owning_collection: StringProperty(
         name="Collection",
         description="Collection to save."
     )
 
-    CollectionType: StringProperty(
+    collection_type: StringProperty(
         name="Collection Type",
         description="Collection Type."
     )
@@ -83,8 +74,10 @@ class MT_OT_Set_Object_Bool_Type(Operator):
         return add_collection_to_library(self, context)
 
     def invoke(self, context, event):
-        collection = bpy.data.collections[self.OwningCollection]
-        objects = sorted([obj for obj in collection.objects if obj.type == 'MESH'], key=lambda obj: obj.name)
+        collection = bpy.data.collections[self.owning_collection]
+        objects = sorted(
+            [obj for obj in collection.objects if obj.type == 'MESH'],
+            key=lambda obj: obj.name)
 
         for i, obj in enumerate(objects):
             obj.mt_object_props.boolean_order = i
@@ -92,7 +85,7 @@ class MT_OT_Set_Object_Bool_Type(Operator):
         return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
-        collection = bpy.data.collections[self.OwningCollection]
+        collection = bpy.data.collections[self.owning_collection]
         objects = sorted([obj for obj in collection.objects if obj.type == 'MESH'], key=lambda obj: obj.name)
         layout = self.layout
         layout.use_property_decorate = False
@@ -186,60 +179,57 @@ class MT_OT_Add_Collection_To_Library(Operator, MT_Save_To_Library):
         Args:
             context (bpy.Context): context
         """
-        activate_collection(self.OwningCollection)
+        activate_collection(self.owning_collection)
 
 
-    Name: StringProperty(
+    name: StringProperty(
         name="Name",
         default="Collection"
     )
 
-    RootObject: EnumProperty(
+    root_object: EnumProperty(
         name="Root Object",
         items=create_root_object_enums,
         description="Object that all other objects in this collection are parented to. Select None to create a new empty object"
     )
 
-    OwningCollection: EnumProperty(
+    owning_collection: EnumProperty(
         name="Collection",
         items=create_owning_collection_enums,
         update=update_active_collection,
         description="Collection to save."
     )
 
-    CollectionType: EnumProperty(
+    collection_type: EnumProperty(
         name="Collection Type",
         items=create_collection_type_enums,
         description="Collection Type."
     )
 
     def execute(self, context):
-        if self.CollectionType == 'ARCH_ELEMENT':
+        if self.collection_type == 'ARCH_ELEMENT':
             return bpy.ops.collection.set_object_type(
                 'INVOKE_DEFAULT',
-                Name=self.Name,
-                Description=self.Description,
-                URI=self.URI,
-                Author=self.Author,
-                License=self.License,
-                Tags=self.Tags,
-                RootObject=self.RootObject,
-                OwningCollection=self.OwningCollection)
+                name=self.name,
+                desc=self.desc,
+                author=self.author,
+                license=self.license,
+                tags=self.tags,
+                root_object=self.root_object,
+                owning_collection=self.owning_collection)
         else:
-            return add_collection_to_library(
-                self,
-                context)
+            return add_collection_to_library(self, context)
 
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self)
 
     def draw(self, context):
         layout = self.layout
-        layout.prop(self, 'Name')
-        layout.prop(self, 'RootObject')
-        layout.prop(self, 'OwningCollection')
-        layout.prop(self, 'CollectionType')
-        draw_save_props_menu(self, context)
+        layout.prop(self, 'name')
+        layout.prop(self, 'root_object')
+        layout.prop(self, 'owning_collection')
+        layout.prop(self, 'collection_type')
+        self.draw_save_props_menu(context)
 
 
 def add_collection_to_library(self, context):
@@ -253,8 +243,8 @@ def add_collection_to_library(self, context):
     obj = context.active_object
     props = context.scene.mt_am_props
     prefs = get_prefs()
-    collection = bpy.data.collections[self.OwningCollection]
-    root_obj_name = self.RootObject
+    collection = bpy.data.collections[self.owning_collection]
+    root_obj_name = self.root_object
 
     # if user doesn't choose one of the existing objects as the root object create a new empty
     # and move it to the origin of the active object
@@ -289,24 +279,23 @@ def add_collection_to_library(self, context):
                 ob.parent = root
                 ob.matrix_parent_inverse = root.matrix_world.inverted()
 
-    tags = tagify(self.Tags)
+    tags = tagify(self.tags)
 
     kwargs = {
-        "Description": self.Description,
-        "URI": self.URI,
-        "Author": self.Author,
-        "License": self.License,
-        "Tags": tags,
-        "RootObject": root.name}
+        "desc": self.desc,
+        "author": self.author,
+        "license": self.license,
+        "tags": tags,
+        "root_object": root.name}
 
-    asset_desc = construct_asset_description(
+    asset_desc = self.construct_asset_description(
         props,
         collection,
         **kwargs)
 
     # for collections we set this here because it's hard to know what collection the user wants to
     # save in advance.
-    asset_desc['Name'] = self.Name
+    asset_desc['name'] = self.name
 
     scene_path = os.path.join(
         prefs.default_assets_path,
@@ -314,8 +303,8 @@ def add_collection_to_library(self, context):
         "preview_scenes.blend")
 
     imagepath = os.path.join(
-        asset_desc['FilePath'],
-        asset_desc['PreviewImageName'])
+        asset_desc['filepath'],
+        asset_desc['preview_image_name'])
 
     img = render_collection_preview(
             self,
@@ -326,10 +315,9 @@ def add_collection_to_library(self, context):
             collection)
 
     if hasattr(collection, 'asset_data'):
-        mark_as_asset(collection, asset_desc, tags)
+        self.mark_as_asset(collection, asset_desc, tags)
 
-    add_asset_to_library(
-        self,
+    self.add_asset_to_library(
         collection,
         asset_desc,
         img)

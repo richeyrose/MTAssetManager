@@ -14,9 +14,7 @@ class ASSETBROWSER_PT_custom_name(asset_utils.AssetMetaDataPanel, Panel):
         active_asset = asset_utils.SpaceAssetInfo.get_active_asset(context)
 
         if active_asset:
-            layout.prop(active_asset, 'mt_author')
             layout.prop(active_asset, 'mt_license')
-            layout.prop(active_asset, 'mt_URI')
 
 class MT_PT_AM_Main_Panel:
     bl_category = "Asset Manager"

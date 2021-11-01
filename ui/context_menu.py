@@ -13,7 +13,7 @@ def draw_object_context_menu_items(self, context):
         "material.mt_ot_am_add_material_to_library",
         text="Save active material to MakeTile Library")
     op = layout.operator("collection.add_collection_to_library")
-    op.Name = context.collection.name
+    op.name = context.collection.name
 
     layout.separator()
     # cut, copy, paste, delete assets

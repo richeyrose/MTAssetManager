@@ -2,10 +2,6 @@
 import os
 from bpy.types import Operator
 from .add_to_library import (
-    draw_save_props_menu,
-    add_asset_to_library,
-    construct_asset_description,
-    mark_as_asset,
     MT_Save_To_Library)
 from ..preferences import get_prefs
 from .preview_rendering import render_object_preview
@@ -33,14 +29,13 @@ class MT_OT_AM_Add_Multiple_Objects_To_Library(Operator, MT_Save_To_Library):
         obs = [ob for ob in context.selected_editable_objects if ob.type == 'MESH']
         props = context.scene.mt_am_props
         prefs = get_prefs()
-        tags = tagify(self.Tags)
+        tags = tagify(self.tags)
 
         kwargs = {
-            "Description": self.Description,
-            "URI": self.URI,
-            "Author": self.Author,
-            "License": self.License,
-            "Tags": tags}
+            "desc": self.desc,
+            "author": self.author,
+            "license": self.license,
+            "tags": tags}
 
         scene_path = os.path.join(
             prefs.default_assets_path,
@@ -48,14 +43,14 @@ class MT_OT_AM_Add_Multiple_Objects_To_Library(Operator, MT_Save_To_Library):
             "preview_scenes.blend")
 
         for obj in obs:
-            asset_desc = construct_asset_description(
+            asset_desc = self.construct_asset_description(
                 props,
                 obj,
                 **kwargs)
 
             imagepath = os.path.join(
-                asset_desc['FilePath'],
-                asset_desc['PreviewImageName'])
+                asset_desc['filepath'],
+                asset_desc['preview_image_name'])
 
             img = render_object_preview(
                 self,
@@ -67,11 +62,10 @@ class MT_OT_AM_Add_Multiple_Objects_To_Library(Operator, MT_Save_To_Library):
 
             # save asset data for Blender asset browser
             if hasattr(obj, 'asset_data'):
-                mark_as_asset(obj, asset_desc, tags)
+                self.mark_as_asset(obj, asset_desc, tags)
 
             # add the asset to the MakeTile library
-            add_asset_to_library(
-                self,
+            self.add_asset_to_library(
                 obj,
                 asset_desc,
                 img)
@@ -91,4 +85,4 @@ class MT_OT_AM_Add_Multiple_Objects_To_Library(Operator, MT_Save_To_Library):
             layout.prop(context.active_object, 'name')
         else:
             layout.label(text="All objects will have the same asset properties.")
-        draw_save_props_menu(self, context)
+        self.draw_save_props_menu(context)
