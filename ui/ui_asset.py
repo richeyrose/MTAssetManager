@@ -229,16 +229,6 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
             self.shader.uniform_sampler("image", tex)
             self.batch_icon.draw(self.shader)
 
-            # draw hovered transparency
-            if self.hovered:
-                self.update_hover(self.x, self.y)
-                self.hover_shader.bind()
-                self.hover_shader.uniform_float(
-                    "color",
-                    (self.prefs.asset_bar_item_hover_color))
-                gpu.state.blend_set('ALPHA')
-                self.hover_panel.draw(self.hover_shader)
-
             # draw text box at bottom of thumbnail
             self.update_text_box(self.x, self.y)
             self.text_box_shader.bind()
@@ -262,6 +252,18 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
             blf.clipping(0, self.x, self.y, self.x + self.width - 5, self.y + self.height - 5)
             blf.draw(0, self.asset.name)
             blf.disable(0, blf.CLIPPING)
+
+            # draw hovered transparency
+            if self.hovered:
+                self.update_hover(self.x, self.y)
+                self.hover_shader.bind()
+                self.hover_shader.uniform_float(
+                    "color",
+                    (self.prefs.asset_bar_item_hover_color))
+                gpu.state.blend_set('ALPHA')
+                self.hover_panel.draw(self.hover_shader)
+
+
 
         else:
             self._draw = False
@@ -409,13 +411,13 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
 #         asset_desc = bpy.context.scene.mt_am_props.current_asset_desc
 #         op = layout.operator("object.mt_am_edit_asset_metadata")
 #         op.Name = asset_desc["Name"]
-#         op.FilePath = asset_desc["FilePath"]
+#         op.filepath = asset_desc["filepath"]
 #         op.PreviewImagePath = asset_desc["PreviewImagePath"]
-#         op.Description = asset_desc["Description"]
+#         op.desc = asset_desc["desc"]
 #         op.URI = asset_desc["URI"]
-#         op.Author = asset_desc["Author"]
+#         op.author = asset_desc["author"]
 #         op.License = asset_desc["License"]
-#         op.Tags = ", ".join(asset_desc["Tags"])
+#         op.tags = ", ".join(asset_desc["tags"])
 
 
 
