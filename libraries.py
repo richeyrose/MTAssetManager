@@ -6,7 +6,7 @@ from .preferences import get_prefs
 from .lib.send2trash import send2trash
 from .utils import path_leaf
 
-# # TODO #1 Create a rename category operator
+
 class MT_OT_Save_Library(Operator):
     bl_idname = "scene.mt_am_save_library"
     bl_label = "Save Library Path"
@@ -23,6 +23,10 @@ class MT_OT_Save_Library(Operator):
         subtype='DIR_PATH',
         default=""
     )
+
+    @classmethod
+    def poll(cls, context):
+        return os.path.isdir(context.scene.mt_am_props.new_library_path)
 
     def execute(self, context):
         prefs = get_prefs()
