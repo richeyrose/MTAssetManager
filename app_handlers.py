@@ -16,7 +16,8 @@ def copy_default_asset_library():
     for t in asset_types:
         src = os.path.join(default_assets_path, t)
         dst = os.path.join(user_assets_path, t)
-        shutil.copytree(src, dst, dirs_exist_ok=True)
+        if os.path.exists(src):
+            shutil.copytree(src, dst, dirs_exist_ok=True)
 
 def create_libraries():
     """Add the user asset path as asset library."""
@@ -68,7 +69,7 @@ def create_properties():
 
     icons_path = os.path.join(prefs.default_assets_path, "misc", "icons.blend")
     with bpy.data.libraries.load(icons_path, link=True) as (data_from, data_to):
-        data_to.images = data_from.images
+        data_to.images = [img for img in data_from.images if img not in bpy.data.images]
 
     bar_props.object_icon = bpy.data.images['object_data.png']
     bar_props.collection_icon = bpy.data.images['outliner_collection.png']
