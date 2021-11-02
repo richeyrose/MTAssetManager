@@ -50,11 +50,18 @@ class MT_PT_AM_Props(PropertyGroup):
         description="Path to the parent of the current asset folder."
     )
 
+    # this is the top level path you can navigate to.
     library_path: StringProperty(
         name="Library Path",
         subtype='DIR_PATH',
-        description="Library Path.",
+        description="Current Library Path.",
         update=update_library_path
+    )
+
+    new_library_path: StringProperty(
+        name="Library Path",
+        subtype="DIR_PATH",
+        description="Library Path."
     )
 
     libraries: EnumProperty(

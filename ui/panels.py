@@ -98,12 +98,12 @@ class MT_PT_AM_Library_Select_Panel(MT_PT_AM_Main_Panel, Panel):
         props = context.scene.mt_am_props
         layout = self.layout
 
-        layout.label(text="Choose Library")
+        layout.label(text="Current Library:")
         layout.prop(props, 'libraries', text="")
 
-        layout.label(text="New Library")
-        row=layout.row()
-        op = row.operator('scene.mt_am_save_library', text="", icon='FILE_NEW')
-        op.library_path = props.current_path
-        op.library_name = path_leaf(props.current_path)
-        row.prop(props, 'library_path', text="")
+        layout.label(text="Add New Library:")
+
+        layout.prop(props, 'new_library_path', text="")
+        op = layout.operator('scene.mt_am_save_library')
+        op.library_path = props.new_library_path
+        op.library_name = path_leaf(props.new_library_path)
