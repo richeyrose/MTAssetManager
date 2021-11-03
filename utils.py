@@ -213,3 +213,17 @@ def absolute_file_paths(directory):
     """
     path = os.path.abspath(directory)
     return [entry.path for entry in os.scandir(path) if entry.is_file()]
+
+def view3d_find(return_area=False):
+    """Returns first 3d view, Normally we get this from context
+    need it for loopcut override"""
+    for area in bpy.context.window.screen.areas:
+        if area.type == 'VIEW_3D':
+            v3d = area.spaces[0]
+            rv3d = v3d.region_3d
+            for region in area.regions:
+                if region.type == 'WINDOW':
+                    if return_area:
+                        return region, rv3d, v3d, area
+                    return region, rv3d, v3d
+    return None, None

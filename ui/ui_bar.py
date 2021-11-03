@@ -13,6 +13,7 @@ class MT_UI_AM_Asset_Bar(MT_UI_AM_Widget):
         self._show_assets = False
         self._first_asset_index = 0  # the first asset to show
         self._last_asset_index = 0  # the last asset to show
+        self.last_selected_asset = []
         self.offset = 0
         self.nav_arrows = []
         self.assets = []

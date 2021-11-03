@@ -25,12 +25,16 @@ class MT_PT_AM_Bar_Panel(MT_PT_AM_Main_Panel, Panel):
     bl_idname = "MT_PT_AM_Main_Panel"
     bl_description = "Panel for navigating asset bar."
     bl_label = "Assets"
-    bl_order = 1
+    bl_order = 0
 
     def draw(self, context):
         props = context.scene.mt_am_props
         layout = self.layout
         subfolder = []
+
+        # show label for current library
+        layout.label(text="Current Library:")
+        layout.prop(props, 'libraries', text="")
 
         # show / hide asset bar
         if not props.asset_bar:
@@ -57,9 +61,7 @@ class MT_PT_AM_Bar_Panel(MT_PT_AM_Main_Panel, Panel):
                 text=os.path.basename(props.parent_path),
                 icon='FILE_PARENT')
 
-        # show label for current folder
-        layout.label(text="Current Path")
-        layout.label(text=props.current_path)
+
 
         # get list of subfolders
         try:
@@ -87,19 +89,37 @@ class MT_PT_AM_Bar_Panel(MT_PT_AM_Main_Panel, Panel):
             del_op = row.operator("scene.mt_am_delete_subfolder", text="", icon="REMOVE")
             del_op.folder_name = subfolder
 
+class MT_PT_AM_Asset_Info_Panel(MT_PT_AM_Main_Panel, Panel):
+    """Asset Info Panel in Sidebar"""
+    bl_idname = "MT_PT_AM_Asset_Info_Panel"
+    bl_label = "Asset Info"
+    bl_order = 1
+
+    @classmethod
+    def poll(cls, context):
+        bar = context.scene.mt_am_props.asset_bar
+        return bar and bar.last_selected_asset
+
+    def draw(self, context):
+        props=context.scene.mt_am_props
+        bar = props.asset_bar
+        asset = bar.last_selected_asset
+
+        layout = self.layout
+        layout.label(text=asset.name)
+
+
+
 class MT_PT_AM_Library_Select_Panel(MT_PT_AM_Main_Panel, Panel):
     """Library Selection Sub Panel"""
     bl_idname = "MT_PT_AM_Library_Select_Panel"
     bl_label = "Library"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_order = 0
+    bl_order = 2
 
     def draw(self, context):
         props = context.scene.mt_am_props
         layout = self.layout
-
-        layout.label(text="Current Library:")
-        layout.prop(props, 'libraries', text="")
 
         layout.label(text="Add New Library:")
 

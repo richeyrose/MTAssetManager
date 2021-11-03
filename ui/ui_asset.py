@@ -285,6 +285,7 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
         if self._draw and self.hovered:
             self.asset_bar.deselect_all()
             self.selected = True
+            self.asset_bar.last_selected_asset = self.asset
 
             # spawn a draggable thumb nail we can place in the scene
             self._drag_thumb = MT_AM_UI_Drag_Thumb(x, y, self.width, self.height, self, self.asset_bar, self.op)
@@ -313,6 +314,7 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
                     for asset in assets[first_selected_index:self._index]:
                         asset.selected = True
                     self.selected = True
+                    self.asset_bar.last_selected_asset = self.asset
                     return True
                 else:
                     for asset in assets:
@@ -320,6 +322,7 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
                     for asset in assets[first_selected_index:self._index]:
                         asset.selected = True
                     self.selected = True
+                    self.asset_bar.last_selected_asset = self.asset
                     return True
             else:
                 last_selected_index = 0
@@ -330,12 +333,14 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
                 if not self.selected:
                     for asset in assets[self._index:last_selected_index]:
                         asset.selected = True
+                    self.asset_bar.last_selected_asset = self.asset
                     return True
                 else:
                     for asset in assets:
                         asset.selected = False
                     for asset in assets[self._index:last_selected_index]:
                         asset.selected = True
+                    self.asset_bar.last_selected_asset = self.asset
                     return True
         return False
 
@@ -350,6 +355,7 @@ class MT_AM_UI_Asset(MT_UI_AM_Widget):
                 self.selected = False
             else:
                 self.selected = True
+                self.asset_bar.last_selected_asset = self.asset
             return True
         return False
 
