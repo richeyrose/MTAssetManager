@@ -1,6 +1,7 @@
 import os
+import bpy
 from ..utils import path_leaf
-from bpy.types import Panel
+from bpy.types import Panel, Operator, PointerProperty
 from bpy_extras import asset_utils
 
 class ASSETBROWSER_PT_custom_name(asset_utils.AssetMetaDataPanel, Panel):
@@ -104,10 +105,19 @@ class MT_PT_AM_Asset_Info_Panel(MT_PT_AM_Main_Panel, Panel):
         props=context.scene.mt_am_props
         bar = props.asset_bar
         asset = bar.last_selected_asset
-
         layout = self.layout
-        layout.label(text=asset.name)
-
+        try:
+            asset_data = asset.asset_data
+            layout.prop(asset, "name")
+            layout.prop(asset_data, "description")
+            layout.prop(asset_data, "author")
+            layout.prop(asset_data, "mt_license")
+            layout.prop(asset_data, "tags")
+            op = layout.operator("asset.mt_open_containing_blend_file")
+            op.filepath = asset.library.filepath
+            op.name = asset.name
+        except ReferenceError:
+            pass
 
 
 class MT_PT_AM_Library_Select_Panel(MT_PT_AM_Main_Panel, Panel):
@@ -127,3 +137,5 @@ class MT_PT_AM_Library_Select_Panel(MT_PT_AM_Main_Panel, Panel):
         op = layout.operator('scene.mt_am_save_library')
         op.library_path = props.new_library_path
         op.library_name = path_leaf(props.new_library_path)
+
+
