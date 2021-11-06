@@ -2,12 +2,22 @@
 import os
 from pathlib import Path
 import bpy
-from bpy.props import StringProperty, EnumProperty
+from bpy.props import StringProperty, EnumProperty, PointerProperty
 from ..utils import slugify, tagify, find_and_rename
 from ..preferences import get_prefs
 
 class MT_Save_To_Library:
     """Mixin for save operators."""
+    dirpath: StringProperty(
+        name="Save Directory",
+        subtype="DIR_PATH",
+        description="Directory to save asset in."
+    )
+
+    preview_img: StringProperty(
+        name="Preview Image Name"
+    )
+
     name: StringProperty(
         name="Name",
         default=""
@@ -79,9 +89,14 @@ class MT_Save_To_Library:
         if not os.path.exists(asset_desc['filepath']):
             os.makedirs(asset_desc['filepath'])
 
+        ids = {asset}
+
+        if preview_img:
+            ids.add(preview_img)
+
         bpy.data.libraries.write(
             assetpath,
-            {asset, preview_img},
+            ids,
             fake_user=True)
 
         # # delete external image
@@ -94,24 +109,32 @@ class MT_Save_To_Library:
 
 
     def construct_asset_description(self, props, asset, **kwargs):
-        asset_save_path = props.current_path
+        if not self.dirpath:
+            asset_save_path = props.current_path
+        else:
+            asset_save_path = self.dirpath
 
         # create a unique (within this directory) slug for our file
         slug = slugify(asset.name)
 
         # list of .blend file stem names in asset_save_path:
-        blends = [f for f in os.listdir(asset_save_path) if os.path.isfile(os.path.join(asset_save_path, f)) and f.endswith(".blend")]
-        stems = [Path(blend).stem for blend in blends]
+        try:
+            blends = [f for f in os.listdir(asset_save_path) if os.path.isfile(os.path.join(asset_save_path, f)) and f.endswith(".blend")]
+            stems = [Path(blend).stem for blend in blends]
+        except FileNotFoundError:
+            os.makedirs(asset_save_path)
+            stems=[]
 
         # check if slug already exists and increment and rename if not.
-        new_slug = find_and_rename(slug, stems)
+        if stems:
+            slug = find_and_rename(slug, stems)
 
         # construct dict for saving to .json cache file
         asset_desc = {
-            "slug": new_slug,
-            "filename": new_slug + '.blend',
+            "slug": slug,
+            "filename": slug + '.blend',
             "filepath": asset_save_path,
-            "preview_image_name": new_slug + '.png'}
+            "preview_image_name": slug + '.png'}
 
         for key, value in kwargs.items():
             asset_desc[key] = value
@@ -144,7 +167,8 @@ class MT_Save_To_Library:
 
         # set asset tags
         for tag in tags:
-            asset_data.tags.new(tag, skip_if_exists=True)
+            if tag:
+                asset_data.tags.new(tag, skip_if_exists=True)
 
         # set author
         asset_data.author = asset_desc['author']

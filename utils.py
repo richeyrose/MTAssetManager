@@ -174,7 +174,7 @@ def find_and_rename(slug, current_slugs):
         slug = slug + str(int(match.group()) + 1).zfill(3)
         slug = find_and_rename(slug, current_slugs)
     else:
-        slug = slug + '_001'
+        slug = slug + '.001'
         slug = find_and_rename(slug, current_slugs)
     return slug
 

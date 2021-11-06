@@ -48,29 +48,29 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
     user_assets_path = os.path.join(user_path, 'MakeTile')
     default_assets_path = os.path.join(addon_path, "assets")
 
-    def update_user_assetspath(self, context):
-        """Update the user assets path."""
-        new_path = makedir(abspath(self.user_assets_path))
-        old_path = abspath(self.old_path)
+    # def update_user_assetspath(self, context):
+    #     """Update the user assets path."""
+    #     new_path = makedir(abspath(self.user_assets_path))
+    #     old_path = abspath(self.old_path)
 
-        if new_path != old_path:
-            print(" » Copying asset libraries from %s to %s" % (old_path, new_path))
+    #     if new_path != old_path:
+    #         print(" » Copying asset libraries from %s to %s" % (old_path, new_path))
 
-            libs = sorted([f for f in os.listdir(old_path) if os.path.isdir(os.path.join(old_path, f))])
+    #         libs = sorted([f for f in os.listdir(old_path) if os.path.isdir(os.path.join(old_path, f))])
 
-            for lib in libs:
-                src = os.path.join(old_path, lib)
-                dest = os.path.join(new_path, lib)
+    #         for lib in libs:
+    #             src = os.path.join(old_path, lib)
+    #             dest = os.path.join(new_path, lib)
 
-                if not os.path.exists(dest):
-                    print(" » %s" % (lib))
-                    shutil.copytree(src, dest)
+    #             if not os.path.exists(dest):
+    #                 print(" » %s" % (lib))
+    #                 shutil.copytree(src, dest)
 
-            # set the new old_path
-            self.old_path = new_path
+    #         # set the new old_path
+    #         self.old_path = new_path
 
-            # reload assets
-            reload_asset_libraries()
+    #         # reload assets
+    #         reload_asset_libraries()
 
     default_assets_path: StringProperty(
         name="Default Asset Libraries",
@@ -84,7 +84,6 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
         subtype='DIR_PATH',
         description="Path to User Asset Library",
         default=user_assets_path,
-        update=update_user_assetspath
     )
 
     library_path: StringProperty(
@@ -217,9 +216,20 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
         description="Use GPU for preview renders"
     )
 
+    old_assets_path: StringProperty(
+        name="Old Assets Path",
+        description="Path where old style MakeTile assets are stored",
+        subtype="DIR_PATH"
+    )
+
     def draw(self, context):
         layout = self.layout
         layout.prop(self, 'user_assets_path')
+        box = layout.box()
+        box.prop(self, 'old_assets_path')
+        op = box.operator('file.mt_asset_converter')
+        op.old_assets_path = self.old_assets_path
+
 
 # TODO: Stub - reload_asset_libraries
 def reload_asset_libraries():

@@ -1,5 +1,6 @@
 """This module contains classes and functions for saving objects to the MakeTile library."""
 import os
+import bpy
 from bpy.types import Operator
 from .add_to_library import (
     MT_Save_To_Library)
@@ -48,17 +49,20 @@ class MT_OT_AM_Add_Multiple_Objects_To_Library(Operator, MT_Save_To_Library):
                 obj,
                 **kwargs)
 
-            imagepath = os.path.join(
-                asset_desc['filepath'],
-                asset_desc['preview_image_name'])
+            if self.preview_img:
+                img = bpy.data.images[self.preview_img, None]
+            else:
+                imagepath = os.path.join(
+                    asset_desc['filepath'],
+                    asset_desc['preview_image_name'])
 
-            img = render_object_preview(
-                self,
-                context,
-                imagepath,
-                scene_path,
-                prefs.preview_scene,
-                obj)
+                img = render_object_preview(
+                    self,
+                    context,
+                    imagepath,
+                    scene_path,
+                    prefs.preview_scene,
+                    obj)
 
             # save asset data for Blender asset browser
             if hasattr(obj, 'asset_data'):

@@ -3,10 +3,10 @@ from bpy.types import Operator
 from bpy.props import StringProperty
 
 class MT_OT_open_containing_blend_file(Operator):
-    """Open the blend file that contains the active asset."""
+    """Open the blend file that contains the active asset"""
 
     bl_idname = "asset.mt_open_containing_blend_file"
-    bl_label = "Open Blend File"
+    bl_label = "Open Asset Blend File"
     bl_options = {'REGISTER'}
 
     _process = None  # Optional[subprocess.Popen]

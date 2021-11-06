@@ -1,4 +1,5 @@
 import bpy
+from bpy.types import Operator
 
 def draw_object_context_menu_items(self, context):
     """Add save options to object right click context menu."""
@@ -17,6 +18,7 @@ def draw_object_context_menu_items(self, context):
 
     layout.separator()
     layout.operator("object.delete_selected_assets_from_library")
+
 
 class MT_OT_link_to_active_collection(Operator):
     """Link object to active collection."""
