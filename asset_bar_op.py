@@ -179,8 +179,12 @@ class MT_OT_AM_Asset_Bar(Operator):
 
         libs = []
         for lib in bpy.data.libraries:
-            if os.path.samefile(pathlib.Path(lib.filepath).parent, current_path):
-                libs.append(lib)
+            try:
+                if os.path.samefile(pathlib.Path(lib.filepath).parent, current_path):
+                    libs.append(lib)
+            except FileNotFoundError as err:
+                bpy.data.libraries.remove(lib)
+                self.report({'INFO'}, str(err) + ' Library removed.')
 
         lib_filepaths = [lib.filepath for lib in libs]
 

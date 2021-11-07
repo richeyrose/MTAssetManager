@@ -17,27 +17,48 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import os
+import re
 import shutil
 import bpy
 from .system import makedir, abspath, get_addon_path, get_addon_name
-from bpy.types import PropertyGroup
+from bpy.types import PropertyGroup, Operator
 from bpy.props import (
     StringProperty,
     FloatVectorProperty,
     FloatProperty,
     IntProperty,
-    BoolProperty)
+    BoolProperty,
+    CollectionProperty,
+    EnumProperty)
 
-class MT_Library(PropertyGroup):
+# class MT_Library(PropertyGroup):
+#     name: StringProperty(
+#         name="Name",
+#         description="Library Name"
+#     )
+
+#     path: StringProperty(
+#         name="Path",
+#         subtype='DIR_PATH',
+#         description="Path to Library."
+#     )
+
+default_licenses=[
+    ("ARR", "All Rights Reserved", ""),
+    ("CCBY", "Attribution (CC BY)", ""),
+    ("CCBYSA", "Attribution-ShareAlike (CC BY-SA)", ""),
+    ("CCBYND", "Attribution-NoDerivs (CC BY-ND)", ""),
+    ("CCBYNC", "Attribution-NonCommercial (CC BY-NC)", ""),
+    ("CCBYNCSA", "Attribution-NonCommercial-ShareAlike (CC BY-NC-SA)", ""),
+    ("CCBYNCND", "Attribution-NonCommercial-NoDerivs (CC BY-NC-ND)", "")]
+
+class MT_User_Licenses(PropertyGroup):
     name: StringProperty(
         name="Name",
-        description="Library Name"
+        description="License Name"
     )
-
-    path: StringProperty(
-        name="Path",
-        subtype='DIR_PATH',
-        description="Path to Library."
+    description: StringProperty(
+        name="Description"
     )
 
 class MT_AM_Prefs(bpy.types.AddonPreferences):
@@ -48,6 +69,20 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
     user_assets_path = os.path.join(user_path, 'MakeTile')
     default_assets_path = os.path.join(addon_path, "assets")
 
+    def create_licenses_enums(self, context):
+        enum_items = []
+        if context is None:
+            return enum_items
+
+        # default licenses
+        enum_items=default_licenses.copy()
+
+        # User licenses
+        user_licenses = self.user_licenses
+        for li in user_licenses:
+            enum = (li.name, li.name, li.description)
+            enum_items.append(enum)
+        return enum_items
     # def update_user_assetspath(self, context):
     #     """Update the user assets path."""
     #     new_path = makedir(abspath(self.user_assets_path))
@@ -222,14 +257,96 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
         subtype="DIR_PATH"
     )
 
+    user_licenses: CollectionProperty(
+        name="User Licenses",
+        type=MT_User_Licenses
+    )
+
+    licenses: EnumProperty(
+        name="Licenses",
+        items=create_licenses_enums
+    )
+
     def draw(self, context):
+        props = context.scene.mt_am_props
         layout = self.layout
         layout.prop(self, 'user_assets_path')
         box = layout.box()
         box.prop(self, 'old_assets_path')
         op = box.operator('file.mt_asset_converter')
-        op.old_assets_path = self.old_assets_path
+        op.data_path = self.old_assets_path
 
+        layout.label(text="User Licenses:")
+
+        # Draw list of user licenses
+        layout.prop(self, 'user_licenses')
+        for li in self.user_licenses:
+            row = layout.row()
+            row.prop(li, 'name')
+            row.prop(li, 'description')
+            op = row.operator('addons.mt_remove_user_license', text="", icon='REMOVE')
+            op.name = li.name
+
+        layout.label(text="Add New License:")
+        row = layout.row()
+        row.prop(props, 'new_license_name')
+        row.prop(props, 'new_license_desc')
+        op = layout.operator('addons.mt_add_user_license')
+        op.name=props.new_license_name
+        op.description=props.new_license_desc
+        layout.prop(self, 'licenses')
+
+class MT_AM_OT_Remove_User_License(Operator):
+    bl_idname="addons.mt_remove_user_license"
+    bl_label = "Remove License"
+
+    name: StringProperty(
+        name="Name"
+    )
+
+    def execute(self, context):
+        prefs=get_prefs()
+        prefs.user_licenses.remove(prefs.user_licenses.find(self.name))
+
+        return{'FINISHED'}
+
+class MT_AM_OT_Add_User_License(Operator):
+    bl_idname = "addons.mt_add_user_license"
+    bl_label = "Add License"
+
+    name: StringProperty(
+        name="Name",
+        description="Characters other than Aa-Zz0-9()_- will be stripped"
+    )
+
+    description: StringProperty(
+        name="Description"
+    )
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene.mt_am_props.new_license_name
+
+    def execute(self, context):
+        prefs = get_prefs()
+        props = context.scene.mt_am_props
+        user_licenses = prefs.user_licenses
+        name = re.sub(r'[^a-zA-Z0-9()-_ ]','', self.name)
+
+        if name not in user_licenses.keys():
+            new_license = user_licenses.add()
+            new_license.name = name
+            new_license.description = self.description
+
+            # clear text boxes
+            props.new_license_name=''
+            props.new_license_desc = ''
+            return{'FINISHED'}
+
+        self.report(
+            {'INFO'},
+            "A license with this name already exists. Please rename license.")
+        return{'CANCELLED'}
 
 # TODO: Stub - reload_asset_libraries
 def reload_asset_libraries():

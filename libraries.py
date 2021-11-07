@@ -84,6 +84,7 @@ class MT_OT_Delete_Subfolder(Operator):
         if os.path.isdir(to_delete):
             try:
                 send2trash(to_delete)
+                props.assets_updated = True
                 return {'FINISHED'}
             except OSError as err:
                 self.report({'INFO'}, str(err))

@@ -8,11 +8,6 @@ from ..preferences import get_prefs
 
 class MT_Save_To_Library:
     """Mixin for save operators."""
-    dirpath: StringProperty(
-        name="Save Directory",
-        subtype="DIR_PATH",
-        description="Directory to save asset in."
-    )
 
     preview_img: StringProperty(
         name="Preview Image Name"
@@ -108,11 +103,11 @@ class MT_Save_To_Library:
         return asset_desc
 
 
-    def construct_asset_description(self, props, asset, **kwargs):
-        if not self.dirpath:
+    def construct_asset_description(self, props, asset, save_path=None, **kwargs):
+        if not save_path:
             asset_save_path = props.current_path
         else:
-            asset_save_path = self.dirpath
+            asset_save_path = save_path
 
         # create a unique (within this directory) slug for our file
         slug = slugify(asset.name)

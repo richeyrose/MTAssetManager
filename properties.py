@@ -50,6 +50,15 @@ class MT_PT_AM_Props(PropertyGroup):
         description="Path to the parent of the current asset folder."
     )
 
+    # used for adding new user defined licenses
+    new_license_name: StringProperty(
+        name="Name"
+    )
+
+    new_license_desc: StringProperty(
+        name="Description"
+    )
+
     # this is the top level path you can navigate to.
     library_path: StringProperty(
         name="Library Path",
@@ -169,6 +178,7 @@ class MT_PT_AM_Bar_Props(PropertyGroup):
         name="Missing Preview Icon",
         description="Icon to display when there is a missing preview image."
     )
+
 
 class MT_PT_AM_Object_Spawn_Props(PropertyGroup):
     randomize_rotation: bpy.props.BoolProperty(

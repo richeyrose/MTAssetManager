@@ -5,23 +5,24 @@ import json
 from bpy.props import StringProperty, BoolProperty, PointerProperty
 from ..preferences import get_prefs
 from ..system import makedir, abspath
+from ..save_asset.add_to_library import MT_Save_To_Library
 
-class MT_OT_Asset_Converter(bpy.types.Operator):
+class MT_OT_Asset_Converter(bpy.types.Operator, MT_Save_To_Library):
     bl_idname = "file.mt_asset_converter"
     bl_label = "Convert Old Assets"
     bl_description = "Converts old MakeTile assets to the new asset system."
 
-    old_assets_path: StringProperty(
-        name="Old Assets Path",
+    data_path: StringProperty(
+        name="Data Path",
         subtype="DIR_PATH",
-        description="Path to the folder containing your data folder."
+        description="Path to your 'data' folder"
     )
 
 
     def execute(self, context):
         prefs = get_prefs()
-        src_path = self.old_assets_path
-        data_path = os.path.join(src_path, "data")
+        props = context.scene.mt_am_props
+        data_path = self.data_path
         user_assets_path = prefs.user_assets_path
 
         # create a list of all descriptions
@@ -47,7 +48,7 @@ class MT_OT_Asset_Converter(bpy.types.Operator):
             assets_path = os.path.join(user_assets_path, "ConvertedAssets")
 
             # create subfolder where we'll move our old asset file to once done
-            old_assets_path = os.path.join(src_path, "OldAssets")
+            old_assets_path = os.path.join(user_assets_path, "OldAssets")
             try:
                 os.mkdir(old_assets_path)
             except FileExistsError as err:
@@ -56,62 +57,55 @@ class MT_OT_Asset_Converter(bpy.types.Operator):
                 self.report({'INFO'}, str(err))
                 return {'CANCELLED'}
 
-
+        #TODO Rename asset using pretty name
         # for each description:
             # append the asset
             # save it as an asset using the new operators into a file in a subfolder based on the category in the asset desc
             # move the old asset file and preview into an "Old Assets" folder
-            # update the asset description in the .json file.
             for desc in descs:
-                if desc['Type'] == 'OBJECTS':
-                    # append asset to file
-                    try:
-                        with bpy.data.libraries.load(desc["FilePath"]) as (data_from, data_to):
-                            data_to.objects = [desc['Slug']]
-                        asset = data_to.objects[0]
-                    except OSError as err:
-                        self.report({'INFO'}, str(err))
-                        continue
-
-                    try:
-                        preview_img = bpy.data.images.load(desc['PreviewImagePath'])
-                    except RuntimeError as err:
-                        self.report({'INFO'}, str(err))
-                        preview_img = None
-
-                    ctx = context.copy()
-                    ctx['active_object'] = asset
-                    ctx['selected_objects'] = [asset]
-                    ctx['selected_editable_objects'] = [asset]
-
-                    bpy.ops.object.add_selected_objects_to_library(
-                        ctx,
-                        dirpath=os.path.join(assets_path, desc['Category']),
-                        preview_img = preview_img.name,
-                        name=desc['Name'],
-                        desc=desc['Description'],
-                        author=desc['Author'],
-                        tags=",".join(desc['Tags']))
-
-                    # clean up current file
-                    bpy.data.objects.remove(asset)
-                    bpy.data.images.remove(preview_img)
-
-                    # # move old asset file to Old Assets Folder
-                    # try:
-                    #     shutil.move(desc["FilePath"], old_assets_path)
-                    # except OSError as err:
-                    #     self.report({'INFO'}, str(err))
-                    return {'FINISHED'} # REMOVE ME
+                asset_type = str(desc['Type']).lower()
+                try:
+                    with bpy.data.libraries.load(desc["FilePath"]) as (data_from, data_to):
+                        setattr(data_to, asset_type, [desc['Slug']])
+                    asset = getattr(data_to, asset_type)[0]
+                    asset.name = desc['Name']
+                except OSError as err:
+                    self.report({'INFO'}, str(err))
+                    continue
+                try:
+                    preview_img = bpy.data.images.load(desc['PreviewImagePath'])
+                except RuntimeError as err:
+                    self.report({'INFO'}, str(err))
+                    preview_img = None
 
 
-                elif desc['Type'] == 'MATERIALS':
-                    pass
-                elif desc['Type'] == 'COLLECTIONS':
-                    pass
+                kwargs = {
+                    "desc": desc['Description'],
+                    "author": desc['Author'],
+                    "tags": desc['Tags'],
+                    "license":'ARR'}
+
+                asset_desc = self.construct_asset_description(
+                    props,
+                    asset,
+                    save_path=os.path.join(assets_path, desc['Category']),
+                    **kwargs)
+
+                # save asset data for Blender asset browser
+                self.mark_as_asset(asset, asset_desc, desc['Tags'])
+
+                self.add_asset_to_library(
+                    asset,
+                    asset_desc,
+                    preview_img)
+
+                # clean up current file
+                getattr(bpy.data, asset_type).remove(asset)
+                bpy.data.images.remove(preview_img)
 
 
-
+        #TODO live scan of folder to update bar
+        props.assets_updated = True
         return {'FINISHED'}
 
     def load_categories(assets_path):
@@ -128,3 +122,6 @@ class MT_OT_Asset_Converter(bpy.types.Operator):
                 categories = json.load(json_file)
 
         return categories
+
+
+
