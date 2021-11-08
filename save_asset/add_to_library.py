@@ -4,7 +4,7 @@ from pathlib import Path
 import bpy
 from bpy.props import StringProperty, EnumProperty, PointerProperty
 from ..utils import slugify, tagify, find_and_rename
-from ..preferences import create_licenses_enums
+from ..preferences import create_license_enums
 
 class MT_Save_To_Library:
     """Mixin for save operators."""
@@ -29,7 +29,7 @@ class MT_Save_To_Library:
     )
 
     license: EnumProperty(
-        items=create_licenses_enums,
+        items=create_license_enums,
         name="License",
         description="License for asset use")
 
@@ -63,7 +63,7 @@ class MT_Save_To_Library:
         Returns:
             dict: asset_desc
         """
-        imagepath = os.path.join(asset_desc['filepath'], asset_desc['preview_image_name'])
+        imagepath = asset_desc['imagepath']
         assetpath = os.path.join(asset_desc['filepath'], asset_desc['filename'])
 
         if preview_img:
@@ -121,7 +121,7 @@ class MT_Save_To_Library:
             "slug": slug,
             "filename": slug + '.blend',
             "filepath": asset_save_path,
-            "preview_image_name": slug + '.png'}
+            "imagepath": os.path.join(asset_save_path, slug + '.png')}
 
         for key, value in kwargs.items():
             asset_desc[key] = value
@@ -145,7 +145,7 @@ class MT_Save_To_Library:
 
         # set asset preview
         ctx = {'id': asset}
-        imagepath = os.path.join(asset_desc['filepath'], asset_desc['preview_image_name'])
+        imagepath = asset_desc['imagepath']
         if os.path.isfile(imagepath):
             bpy.ops.ed.lib_id_load_custom_preview(ctx, filepath=imagepath)
 

@@ -3,9 +3,9 @@ import os
 import bpy
 from bpy.types import PropertyGroup
 from bpy.props import StringProperty, BoolProperty, EnumProperty, PointerProperty, CollectionProperty
-from .preferences import get_prefs
+from .preferences import get_prefs, create_license_enums
 
-# TODO Create Propertygroup on assetmetadata for storing license as current one is static.
+
 class MT_PT_AM_Props(PropertyGroup):
     def library_enum_items(self, context):
         enum_items = []
@@ -80,6 +80,26 @@ class MT_PT_AM_Props(PropertyGroup):
         update=update_libraries_enum
     )
 
+    # Asset Converter props
+    data_path: StringProperty(
+        name="Data Path",
+        subtype="DIR_PATH",
+        description="Path to your 'data' folder"
+    )
+
+    target_path: StringProperty(
+        name="Target Path",
+        subtype="DIR_PATH",
+        description="Directory to save converted assets in."
+    )
+
+    archive_path: StringProperty(
+        name="Archive Path",
+        subtype="DIR_PATH",
+        description="Directory to archive old assets in. Leave blank to leave in place."
+    )
+
+    # Asset bar filter and sort
     asset_sort_by: EnumProperty(
         name="Sort By",
         items=[
@@ -227,18 +247,13 @@ def register():
 
     # Custom asset properties
     bpy.types.AssetMetaData.mt_license = EnumProperty(
-        items=[
-            ("ARR", "All Rights Reserved", ""),
-            ("CCBY", "Attribution (CC BY)", ""),
-            ("CCBYSA", "Attribution-ShareAlike (CC BY-SA)", ""),
-            ("CCBYND", "Attribution-NoDerivs (CC BY-ND)", ""),
-            ("CCBYNC", "Attribution-NonCommercial (CC BY-NC)", ""),
-            ("CCBYNCSA", "Attribution-NonCommercial-ShareAlike (CC BY-NC-SA)", ""),
-            ("CCBYNCND", "Attribution-NonCommercial-NoDerivs (CC BY-NC-ND)", "")],
+        items=create_license_enums,
         name="License",
-        description="License for asset use",
-        default="ARR")
+        description="License for asset use")
 
+    # Have to do this rather than a property group
+    # as AssetMetaData doesn't support data-block properties (as of 3.0).
+    # TODO See if it's worth just using the preview
     bpy.types.Object.mt_preview_img = PointerProperty(
         name="Preview Image",
         type=bpy.types.Image,

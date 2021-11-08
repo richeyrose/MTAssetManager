@@ -56,13 +56,11 @@ class MT_PT_AM_Bar_Panel(MT_PT_AM_Main_Panel, Panel):
         row.prop(props, 'asset_reverse_sort')
 
         # display return to parent button if we're not in the library root
-        if not os.path.samefile(props.current_path, props.library_path):
+        if props.current_path and props.library_path and not os.path.samefile(props.current_path, props.library_path):
             op = layout.operator(
                 'view3d.mt_ret_to_parent',
                 text=os.path.basename(props.parent_path),
                 icon='FILE_PARENT')
-
-
 
         # get list of subfolders
         try:
@@ -106,13 +104,17 @@ class MT_PT_AM_Asset_Info_Panel(MT_PT_AM_Main_Panel, Panel):
         bar = props.asset_bar
         asset = bar.last_selected_asset
         layout = self.layout
+        # layout.use_property_split = True
         try:
             asset_data = asset.asset_data
             layout.prop(asset, "name")
             layout.prop(asset_data, "description")
             layout.prop(asset_data, "author")
             layout.prop(asset_data, "mt_license")
-            layout.prop(asset_data, "tags")
+            layout.label(text="Tags")
+            row = layout.row()
+            row.template_list("ASSETBROWSER_UL_metadata_tags", "asset_tags", asset_data, "tags",
+                          asset_data, "active_tag", rows=4)
             op = layout.operator("asset.mt_open_containing_blend_file")
             op.filepath = asset.library.filepath
             op.name = asset.name
@@ -123,19 +125,52 @@ class MT_PT_AM_Asset_Info_Panel(MT_PT_AM_Main_Panel, Panel):
 class MT_PT_AM_Library_Select_Panel(MT_PT_AM_Main_Panel, Panel):
     """Library Selection Sub Panel"""
     bl_idname = "MT_PT_AM_Library_Select_Panel"
-    bl_label = "Library"
+    bl_label = "Libraries"
     bl_options = {'DEFAULT_CLOSED'}
     bl_order = 2
 
     def draw(self, context):
-        props = context.scene.mt_am_props
+        # props = context.scene.mt_am_props
+        # layout = self.layout
+
+        # layout.label(text="Add New Library:")
+
+        # layout.prop(props, 'new_library_path', text="")
+        # op = layout.operator('scene.mt_am_save_library')
+        # op.library_path = props.new_library_path
+        # op.library_name = path_leaf(props.new_library_path)
         layout = self.layout
+        layout.use_property_split = False
+        layout.use_property_decorate = False
 
-        layout.label(text="Add New Library:")
+        paths = context.preferences.filepaths
 
-        layout.prop(props, 'new_library_path', text="")
-        op = layout.operator('scene.mt_am_save_library')
-        op.library_path = props.new_library_path
-        op.library_name = path_leaf(props.new_library_path)
+        box = layout.box()
+        split = box.split(factor=0.35)
+        name_col = split.column()
+        path_col = split.column()
+
+        row = name_col.row(align=True)  # Padding
+        row.separator()
+        row.label(text="Name")
+
+        row = path_col.row(align=True)  # Padding
+        row.separator()
+        row.label(text="Path")
+
+        for i, library in enumerate(paths.asset_libraries):
+            row = name_col.row()
+            row.alert = not library.name
+            row.prop(library, "name", text="")
+
+            row = path_col.row()
+            subrow = row.row()
+            subrow.alert = not library.path
+            subrow.prop(library, "path", text="")
+            row.operator("preferences.asset_library_remove", text="", icon='X', emboss=False).index = i
+
+        row = box.row()
+        row.alignment = 'RIGHT'
+        row.operator("preferences.asset_library_add", text="", icon='ADD', emboss=False)
 
 

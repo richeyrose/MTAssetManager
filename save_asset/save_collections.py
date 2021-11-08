@@ -302,9 +302,7 @@ def add_collection_to_library(self, context):
         "previews",
         "preview_scenes.blend")
 
-    imagepath = os.path.join(
-        asset_desc['filepath'],
-        asset_desc['preview_image_name'])
+    imagepath = asset_desc['imagepath']
 
     img = render_collection_preview(
             self,

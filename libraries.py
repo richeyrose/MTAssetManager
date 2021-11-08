@@ -36,7 +36,7 @@ class MT_OT_Save_Library(Operator):
         # check if library already exists
         for lib in libs:
             try:
-                if os.path.samefile(props.current_path, lib.path):
+                if os.path.samefile(self.library_path, lib.path):
                     self.report({'INFO'}, "Library Already Exists")
                     return {'CANCELLED'}
             # skip libraries with no paths
@@ -46,12 +46,12 @@ class MT_OT_Save_Library(Operator):
 
         # save library
         if not self.library_name:
-            self.library_name = path_leaf(props.current_path)
+            self.library_name = path_leaf(self.library_path)
 
         # doesn't seem to be a way of doing this without using an operator
         bpy.ops.preferences.asset_library_add()
         libs[-1].name = self.library_name
-        libs[-1].path = props.current_path
+        libs[-1].path = self.library_path
         self.report({'INFO'}, "Library" + libs[-1].name + "Added")
         return {'FINISHED'}
 

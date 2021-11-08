@@ -331,9 +331,13 @@ class MT_OT_AM_Asset_Bar(Operator):
             context (bpy.context): context
         """
         # check to see if an asset has been added, removed or updated.
-        if hasattr(context.scene, 'mt_am_props') and context.scene.mt_am_props.assets_updated:
-            context.scene.mt_am_props.assets_updated = False
-            self.init_assets(context, reset_index=False)
+        try:
+            if hasattr(context.scene, 'mt_am_props') and context.scene.mt_am_props.assets_updated:
+                context.scene.mt_am_props.assets_updated = False
+                self.init_assets(context, reset_index=False)
+        except ReferenceError as err:
+            self.report({'INFO'}, str(err))
+            self.init_asset_bar(self, context)
         try:
             MT_OT_AM_Asset_Bar.asset_bar.draw()
         except AttributeError:

@@ -112,9 +112,7 @@ class MT_OT_AM_Add_Material_To_Library(Operator, MT_Save_To_Library):
         # TODO implement mini base and roof preview objects
         preview_obj = self.preview_object
 
-        imagepath = os.path.join(
-            asset_desc['filepath'],
-            asset_desc['preview_image_name'])
+        imagepath = asset_desc['imagepath']
 
         img = render_material_preview(
                 self,

@@ -52,9 +52,7 @@ class MT_OT_AM_Add_Multiple_Objects_To_Library(Operator, MT_Save_To_Library):
             if self.preview_img:
                 img = bpy.data.images[self.preview_img, None]
             else:
-                imagepath = os.path.join(
-                    asset_desc['filepath'],
-                    asset_desc['preview_image_name'])
+                imagepath = asset_desc['imagepath']
 
                 img = render_object_preview(
                     self,

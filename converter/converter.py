@@ -19,6 +19,17 @@ class MT_OT_Asset_Converter(bpy.types.Operator, MT_Save_To_Library):
         description="Path to your 'data' folder"
     )
 
+    target_path: StringProperty(
+        name="Target Path",
+        subtype="DIR_PATH",
+        description="Directory to save converted assets in."
+    )
+
+    archive_path: StringProperty(
+        name="Archive Path",
+        subtype="DIR_PATH",
+        description="Directory to archive old assets in. Leave blank to leave in place."
+    )
 
     def execute(self, context):
         prefs = get_prefs()
@@ -37,33 +48,17 @@ class MT_OT_Asset_Converter(bpy.types.Operator, MT_Save_To_Library):
                     descs.extend(json.load(json_file))
 
         if descs:
-            # create subfolder in new_path where we will move our assets to
+            # create directory to save converted assets in if user hasn't specified one.
             try:
-                os.mkdir(os.path.join(user_assets_path, "ConvertedAssets"))
-            except FileExistsError as err:
-                self.report({'INFO'}, str(err))
+                if not self.target_path:
+                    os.makedirs(os.path.join(user_assets_path, "ConvertedAssets"), exist_ok=True)
+                    self.target_path = os.path.join(user_assets_path, "ConvertedAssets")
             except OSError as err:
                 self.report({'INFO'}, str(err))
                 return {'CANCELLED'}
 
-            assets_path = os.path.join(user_assets_path, "ConvertedAssets")
-
-            # create subfolder where we'll move our old asset file to once done
-            old_assets_path = os.path.join(user_assets_path, "OldAssets")
-            try:
-                os.mkdir(old_assets_path)
-            except FileExistsError as err:
-                self.report({'INFO'}, str(err))
-            except OSError as err:
-                self.report({'INFO'}, str(err))
-                return {'CANCELLED'}
-
-        #TODO Rename asset using pretty name
-        # for each description:
-            # append the asset
-            # save it as an asset using the new operators into a file in a subfolder based on the category in the asset desc
-            # move the old asset file and preview into an "Old Assets" folder
             for desc in descs:
+                # append the asset to the current file
                 asset_type = str(desc['Type']).lower()
                 try:
                     with bpy.data.libraries.load(desc["FilePath"]) as (data_from, data_to):
@@ -73,21 +68,23 @@ class MT_OT_Asset_Converter(bpy.types.Operator, MT_Save_To_Library):
                 except OSError as err:
                     self.report({'INFO'}, str(err))
                     continue
+                # append the preview image tot he current file
                 try:
                     preview_img = bpy.data.images.load(desc['PreviewImagePath'])
                 except RuntimeError as err:
                     self.report({'INFO'}, str(err))
                     preview_img = None
 
-                license = desc['License']
-                if license in [license[1] for license in default_licenses]:
-                    license_id = [license[0] for license in default_licenses if license[1] == 'Test'][0]
-                elif license in [license['name'] for license in prefs.user_licenses]:
-                    license_id = license
+                # Check if the license in the asset metadata exists and create a new one if not
+                asset_license = desc['License']
+                if asset_license in [license[1] for license in default_licenses]:
+                    license_id = [license[0] for license in default_licenses if license[1] == asset_license][0]
+                elif asset_license in [license['name'] for license in prefs.user_licenses]:
+                    license_id = asset_license
                 else:
                     new_license = prefs.user_licenses.add()
-                    new_license.name = license
-                    license_id = license
+                    new_license.name = asset_license
+                    license_id = asset_license
 
                 kwargs = {
                     "desc": desc['Description'],
@@ -98,8 +95,10 @@ class MT_OT_Asset_Converter(bpy.types.Operator, MT_Save_To_Library):
                 asset_desc = self.construct_asset_description(
                     props,
                     asset,
-                    save_path=os.path.join(assets_path, desc['Category']),
+                    save_path=os.path.join(self.target_path, desc['Category']),
                     **kwargs)
+
+                asset_desc['imagepath'] = desc['PreviewImagePath']
 
                 # save asset data for Blender asset browser
                 self.mark_as_asset(asset, asset_desc, desc['Tags'])
@@ -113,7 +112,12 @@ class MT_OT_Asset_Converter(bpy.types.Operator, MT_Save_To_Library):
                 getattr(bpy.data, asset_type).remove(asset)
                 bpy.data.images.remove(preview_img)
 
-
+                # move old file to archive
+                if self.archive_path:
+                    try:
+                        shutil.move(desc["FilePath"], self.archive_path)
+                    except OSError as err:
+                        self.report({'INFO'}, str(err))
         #TODO live scan of folder to update bar
         props.assets_updated = True
         return {'FINISHED'}

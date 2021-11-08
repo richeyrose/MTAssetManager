@@ -22,7 +22,7 @@ import shutil
 import bpy
 from .enums import default_licenses
 from .system import makedir, abspath, get_addon_path, get_addon_name
-from bpy.types import PropertyGroup, Operator
+from bpy.types import PropertyGroup, Operator, UIList
 from bpy.props import (
     StringProperty,
     FloatVectorProperty,
@@ -31,18 +31,6 @@ from bpy.props import (
     BoolProperty,
     CollectionProperty,
     EnumProperty)
-
-# class MT_Library(PropertyGroup):
-#     name: StringProperty(
-#         name="Name",
-#         description="Library Name"
-#     )
-
-#     path: StringProperty(
-#         name="Path",
-#         subtype='DIR_PATH',
-#         description="Path to Library."
-#     )
 
 
 class MT_User_Licenses(PropertyGroup):
@@ -54,13 +42,14 @@ class MT_User_Licenses(PropertyGroup):
         name="Description"
     )
 
-def create_licenses_enums(self, context):
+def create_license_enums(self, context):
     enum_items = []
     if context is None:
         return enum_items
 
+    prefs=get_prefs()
     # User licenses
-    user_licenses = self.user_licenses
+    user_licenses = prefs.user_licenses
 
     for li in user_licenses:
         enum = (li.name, li.name, li.description)
@@ -78,31 +67,6 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
     default_assets_path = os.path.join(addon_path, "assets")
 
 
-
-    # def update_user_assetspath(self, context):
-    #     """Update the user assets path."""
-    #     new_path = makedir(abspath(self.user_assets_path))
-    #     old_path = abspath(self.old_path)
-
-    #     if new_path != old_path:
-    #         print(" » Copying asset libraries from %s to %s" % (old_path, new_path))
-
-    #         libs = sorted([f for f in os.listdir(old_path) if os.path.isdir(os.path.join(old_path, f))])
-
-    #         for lib in libs:
-    #             src = os.path.join(old_path, lib)
-    #             dest = os.path.join(new_path, lib)
-
-    #             if not os.path.exists(dest):
-    #                 print(" » %s" % (lib))
-    #                 shutil.copytree(src, dest)
-
-    #         # set the new old_path
-    #         self.old_path = new_path
-
-    #         # reload assets
-    #         reload_asset_libraries()
-
     default_assets_path: StringProperty(
         name="Default Asset Libraries",
         description="Path to Default Asset Libraries",
@@ -115,6 +79,12 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
         subtype='DIR_PATH',
         description="Path to User Asset Library",
         default=user_assets_path,
+    )
+
+    default_author: StringProperty(
+        name="Default Author",
+        description="Default author to use when saving assets.",
+        default=''
     )
 
     library_path: StringProperty(
@@ -247,12 +217,6 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
         description="Use GPU for preview renders"
     )
 
-    old_assets_path: StringProperty(
-        name="Old Assets Path",
-        description="Path where old style MakeTile assets are stored",
-        subtype="DIR_PATH"
-    )
-
     user_licenses: CollectionProperty(
         name="User Licenses",
         type=MT_User_Licenses
@@ -260,17 +224,23 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
 
     licenses: EnumProperty(
         name="Licenses",
-        items=create_licenses_enums
+        items=create_license_enums
     )
 
     def draw(self, context):
         props = context.scene.mt_am_props
         layout = self.layout
         layout.prop(self, 'user_assets_path')
+
         box = layout.box()
-        box.prop(self, 'old_assets_path')
+        box.label(text="Asset Converter")
+        box.prop(props, 'data_path')
+        box.prop(props, 'target_path')
+        box.prop(props, 'archive_path')
         op = box.operator('file.mt_asset_converter')
-        op.data_path = self.old_assets_path
+        op.data_path = props.data_path
+        op.target_path = props.target_path
+        op.archive_path = props.archive_path
 
         layout.label(text="User Licenses:")
 
@@ -305,6 +275,22 @@ class MT_AM_OT_Remove_User_License(Operator):
         prefs.user_licenses.remove(prefs.user_licenses.find(self.name))
 
         return{'FINISHED'}
+
+class MT_UL_License_List(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data,
+                  active_propname, index):
+
+        # # We could write some code to decide which icon to use here...
+        custom_icon = 'OBJECT_DATAMODE'
+
+        # Make sure your code supports all 3 layout types
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            layout.label(text=item.name, icon = custom_icon)
+
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            layout.label(text="", icon = custom_icon)
+
 
 class MT_AM_OT_Add_User_License(Operator):
     bl_idname = "addons.mt_add_user_license"
