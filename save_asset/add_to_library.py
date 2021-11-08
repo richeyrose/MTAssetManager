@@ -52,13 +52,14 @@ class MT_Save_To_Library:
         layout.prop(self, 'tags')
 
 
-    def add_asset_to_library(self, asset, asset_desc, preview_img = None):
+    def add_asset_to_library(self, asset, asset_desc, preview_img = None, del_preview=True):
         """Add the passed in asset to the asset library.
 
         Args:
-            context (bpy.Context): context
             asset (bpy.types.object, material, collection): the asset to add
-            asset_type (enum in {OBJECTS, COLLECTIONS, MATERIALS}): asset type
+            asset_desc (dict): dict containing imagepath, filepath, filename
+            preview_img (bpy.types.Image): Preview Image. Default None
+            del_preview (bool): Whether to delete the source file for the preview image.
 
         Returns:
             dict: asset_desc
@@ -87,8 +88,9 @@ class MT_Save_To_Library:
             fake_user=True)
 
         # # delete external image
-        if os.path.exists(imagepath):
-            os.remove(imagepath)
+        if del_preview:
+            if os.path.exists(imagepath):
+                os.remove(imagepath)
 
         self.report({'INFO'}, asset.name + " added to Library.")
 

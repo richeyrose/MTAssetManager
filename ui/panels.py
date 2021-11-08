@@ -45,15 +45,20 @@ class MT_PT_AM_Bar_Panel(MT_PT_AM_Main_Panel, Panel):
             layout.operator("view3d.mt_hide_asset_bar")
 
         # filter by
-        layout.label(text="Filter By")
+        layout.label(text="Filter By Type")
         row = layout.row()
-        row.prop(props, 'asset_filter', text="")
+        row.prop(props, 'type_filter', text="")
+
+        layout.label(text="Filter by Name and Description")
+        layout.prop(props, "text_filter", text="",translate=False, icon='VIEWZOOM')
 
         # sort by
         layout.label(text="Sort By")
         row = layout.row()
         row.prop(props, 'asset_sort_by', text="")
         row.prop(props, 'asset_reverse_sort')
+
+
 
         # display return to parent button if we're not in the library root
         if props.current_path and props.library_path and not os.path.samefile(props.current_path, props.library_path):
@@ -130,15 +135,6 @@ class MT_PT_AM_Library_Select_Panel(MT_PT_AM_Main_Panel, Panel):
     bl_order = 2
 
     def draw(self, context):
-        # props = context.scene.mt_am_props
-        # layout = self.layout
-
-        # layout.label(text="Add New Library:")
-
-        # layout.prop(props, 'new_library_path', text="")
-        # op = layout.operator('scene.mt_am_save_library')
-        # op.library_path = props.new_library_path
-        # op.library_name = path_leaf(props.new_library_path)
         layout = self.layout
         layout.use_property_split = False
         layout.use_property_decorate = False

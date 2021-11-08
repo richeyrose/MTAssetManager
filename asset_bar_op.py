@@ -1,5 +1,6 @@
 import os
 from operator import itemgetter, attrgetter
+from re import search
 import ntpath
 import pathlib
 import bpy
@@ -175,7 +176,7 @@ class MT_OT_AM_Asset_Bar(Operator):
         props = context.scene.mt_am_props
         current_path = self.current_path = context.scene.mt_am_props.current_path
         current_assets = []
-        asset_filter = props.asset_filter
+        type_filter = props.type_filter
 
         libs = []
         for lib in bpy.data.libraries:
@@ -194,19 +195,22 @@ class MT_OT_AM_Asset_Bar(Operator):
                 lib_filepaths.remove(lib.filepath)
                 bpy.data.libraries.remove(lib)
             else:
-                for id in lib.users_id:
-                    if asset_filter == 'NONE':
-                        if type(id) in [Collection, Object, Material] and id.asset_data:
+                #TODO Abstract this out so we can choose what to filter onand clean it up.
+                for id in [id for id in lib.users_id if type(id) in [Collection, Object, Material] and id.asset_data]:
+                    if props.text_filter:
+                        if not search(props.text_filter.lower(), id.name.lower()) and not search(props.text_filter.lower(), id.asset_data.description.lower()):
+                            continue
+                    if type_filter == 'MATERIAL':
+                        if type(id) == Material:
                             current_assets.append(id)
-                    elif asset_filter == 'MATERIAL':
-                        if type(id) == Material and id.asset_data:
+                    elif type_filter == 'OBJECT':
+                        if type(id) == Object:
                             current_assets.append(id)
-                    elif asset_filter == 'OBJECT':
-                        if type(id) == Object and id.asset_data:
+                    elif type_filter == 'COLLECTION':
+                        if type(id) == Collection:
                             current_assets.append(id)
-                    elif asset_filter == 'COLLECTION':
-                        if type(id) == Collection and id.asset_data:
-                            current_assets.append(id)
+                    else:
+                        current_assets.append(id)
 
         # list of files in current directory
         files = [file for file in absolute_file_paths(current_path) if file.endswith(".blend")]
@@ -217,21 +221,25 @@ class MT_OT_AM_Asset_Bar(Operator):
         # load new files
         for file in new_files:
             with bpy.data.libraries.load(file, assets_only=True, link=True) as (data_from, data_to):
-                if asset_filter == 'NONE':
+                if type_filter == 'NONE':
                     data_to.objects = data_from.objects
                     data_to.collections = data_from.collections
                     data_to.materials = data_from.materials
-                elif asset_filter == 'MATERIAL':
+                elif type_filter == 'MATERIAL':
                     data_to.materials = data_from.materials
-                elif asset_filter == 'COLLECTION':
+                elif type_filter == 'COLLECTION':
                     data_to.collections = data_from.collections
-                elif asset_filter == 'OBJECT':
+                elif type_filter == 'OBJECT':
                     data_to.objects = data_from.objects
 
             all_assets = data_to.objects + data_to.materials + data_to.collections
             for i in all_assets:
+                if props.text_filter:
+                    if not search(props.text_filter.lower(), id.name.lower()) and not search(props.text_filter.lower(), id.asset_data.description.lower()):
+                        continue
                 current_assets.append(i)
 
+        # TODO Filter by tag
         # sort assets
         sort_by = props.asset_sort_by
         reverse = props.asset_reverse_sort

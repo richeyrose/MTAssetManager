@@ -106,11 +106,13 @@ class MT_OT_Asset_Converter(bpy.types.Operator, MT_Save_To_Library):
                 self.add_asset_to_library(
                     asset,
                     asset_desc,
-                    preview_img)
+                    preview_img,
+                    del_preview=False)
 
                 # clean up current file
                 getattr(bpy.data, asset_type).remove(asset)
-                bpy.data.images.remove(preview_img)
+                if preview_img:
+                    bpy.data.images.remove(preview_img)
 
                 # move old file to archive
                 if self.archive_path:

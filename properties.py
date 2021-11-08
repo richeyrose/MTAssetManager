@@ -117,7 +117,7 @@ class MT_PT_AM_Props(PropertyGroup):
         update=update_assets
     )
 
-    asset_filter: EnumProperty(
+    type_filter: EnumProperty(
         name="Filter",
         items=[
             ("OBJECT", "Object", "Filter by Object"),
@@ -125,6 +125,13 @@ class MT_PT_AM_Props(PropertyGroup):
             ("COLLECTION", "Collection", "Filter by Collection"),
             ("NONE", "None", "Remove Filter")],
         default="NONE",
+        update=update_assets
+    )
+
+    text_filter: StringProperty(
+        name="Text Filter",
+        default="",
+        description="Filter by name and/or description",
         update=update_assets
     )
 

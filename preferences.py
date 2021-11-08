@@ -22,7 +22,7 @@ import shutil
 import bpy
 from .enums import default_licenses
 from .system import makedir, abspath, get_addon_path, get_addon_name
-from bpy.types import PropertyGroup, Operator, UIList
+from bpy.types import PropertyGroup, Operator
 from bpy.props import (
     StringProperty,
     FloatVectorProperty,
@@ -31,7 +31,6 @@ from bpy.props import (
     BoolProperty,
     CollectionProperty,
     EnumProperty)
-
 
 class MT_User_Licenses(PropertyGroup):
     name: StringProperty(
@@ -65,7 +64,6 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
     export_path = os.path.join(user_path, 'MakeTile')
     user_assets_path = os.path.join(user_path, 'MakeTile')
     default_assets_path = os.path.join(addon_path, "assets")
-
 
     default_assets_path: StringProperty(
         name="Default Asset Libraries",
@@ -254,13 +252,12 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
             op.name = li.name
 
         layout.label(text="Add New License:")
-        row = layout.row()
-        row.prop(props, 'new_license_name')
-        row.prop(props, 'new_license_desc')
+
+        layout.prop(props, 'new_license_name')
+        layout.prop(props, 'new_license_desc')
         op = layout.operator('addons.mt_add_user_license')
         op.name=props.new_license_name
         op.description=props.new_license_desc
-        layout.prop(self, 'licenses')
 
 class MT_AM_OT_Remove_User_License(Operator):
     bl_idname="addons.mt_remove_user_license"
@@ -275,22 +272,6 @@ class MT_AM_OT_Remove_User_License(Operator):
         prefs.user_licenses.remove(prefs.user_licenses.find(self.name))
 
         return{'FINISHED'}
-
-class MT_UL_License_List(UIList):
-    def draw_item(self, context, layout, data, item, icon, active_data,
-                  active_propname, index):
-
-        # # We could write some code to decide which icon to use here...
-        custom_icon = 'OBJECT_DATAMODE'
-
-        # Make sure your code supports all 3 layout types
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.label(text=item.name, icon = custom_icon)
-
-        elif self.layout_type in {'GRID'}:
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon = custom_icon)
-
 
 class MT_AM_OT_Add_User_License(Operator):
     bl_idname = "addons.mt_add_user_license"
