@@ -20,6 +20,7 @@ import os
 import re
 import shutil
 import bpy
+from .enums import default_licenses
 from .system import makedir, abspath, get_addon_path, get_addon_name
 from bpy.types import PropertyGroup, Operator
 from bpy.props import (
@@ -43,14 +44,6 @@ from bpy.props import (
 #         description="Path to Library."
 #     )
 
-default_licenses=[
-    ("ARR", "All Rights Reserved", ""),
-    ("CCBY", "Attribution (CC BY)", ""),
-    ("CCBYSA", "Attribution-ShareAlike (CC BY-SA)", ""),
-    ("CCBYND", "Attribution-NoDerivs (CC BY-ND)", ""),
-    ("CCBYNC", "Attribution-NonCommercial (CC BY-NC)", ""),
-    ("CCBYNCSA", "Attribution-NonCommercial-ShareAlike (CC BY-NC-SA)", ""),
-    ("CCBYNCND", "Attribution-NonCommercial-NoDerivs (CC BY-NC-ND)", "")]
 
 class MT_User_Licenses(PropertyGroup):
     name: StringProperty(
@@ -61,6 +54,21 @@ class MT_User_Licenses(PropertyGroup):
         name="Description"
     )
 
+def create_licenses_enums(self, context):
+    enum_items = []
+    if context is None:
+        return enum_items
+
+    # User licenses
+    user_licenses = self.user_licenses
+
+    for li in user_licenses:
+        enum = (li.name, li.name, li.description)
+        enum_items.append(enum)
+
+    enum_items.extend(default_licenses)
+    return enum_items
+
 class MT_AM_Prefs(bpy.types.AddonPreferences):
     bl_idname = __package__
     addon_path = get_addon_path()
@@ -69,20 +77,8 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
     user_assets_path = os.path.join(user_path, 'MakeTile')
     default_assets_path = os.path.join(addon_path, "assets")
 
-    def create_licenses_enums(self, context):
-        enum_items = []
-        if context is None:
-            return enum_items
 
-        # default licenses
-        enum_items=default_licenses.copy()
 
-        # User licenses
-        user_licenses = self.user_licenses
-        for li in user_licenses:
-            enum = (li.name, li.name, li.description)
-            enum_items.append(enum)
-        return enum_items
     # def update_user_assetspath(self, context):
     #     """Update the user assets path."""
     #     new_path = makedir(abspath(self.user_assets_path))
@@ -347,10 +343,6 @@ class MT_AM_OT_Add_User_License(Operator):
             {'INFO'},
             "A license with this name already exists. Please rename license.")
         return{'CANCELLED'}
-
-# TODO: Stub - reload_asset_libraries
-def reload_asset_libraries():
-    pass
 
 def get_prefs():
     """returns MakeTile preferences"""

@@ -5,6 +5,7 @@ from bpy.types import PropertyGroup
 from bpy.props import StringProperty, BoolProperty, EnumProperty, PointerProperty, CollectionProperty
 from .preferences import get_prefs
 
+# TODO Create Propertygroup on assetmetadata for storing license as current one is static.
 class MT_PT_AM_Props(PropertyGroup):
     def library_enum_items(self, context):
         enum_items = []

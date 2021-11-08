@@ -4,7 +4,7 @@ from pathlib import Path
 import bpy
 from bpy.props import StringProperty, EnumProperty, PointerProperty
 from ..utils import slugify, tagify, find_and_rename
-from ..preferences import get_prefs
+from ..preferences import create_licenses_enums
 
 class MT_Save_To_Library:
     """Mixin for save operators."""
@@ -29,17 +29,9 @@ class MT_Save_To_Library:
     )
 
     license: EnumProperty(
-        items=[
-            ("ARR", "All Rights Reserved", ""),
-            ("CCBY", "Attribution (CC BY)", ""),
-            ("CCBYSA", "Attribution-ShareAlike (CC BY-SA)", ""),
-            ("CCBYND", "Attribution-NoDerivs (CC BY-ND)", ""),
-            ("CCBYNC", "Attribution-NonCommercial (CC BY-NC)", ""),
-            ("CCBYNCSA", "Attribution-NonCommercial-ShareAlike (CC BY-NC-SA)", ""),
-            ("CCBYNCND", "Attribution-NonCommercial-NoDerivs (CC BY-NC-ND)", "")],
+        items=create_licenses_enums,
         name="License",
-        description="License for asset use",
-        default="ARR")
+        description="License for asset use")
 
     tags: StringProperty(
         name="Tags",

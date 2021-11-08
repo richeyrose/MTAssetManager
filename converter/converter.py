@@ -3,6 +3,7 @@ import shutil
 import bpy
 import json
 from bpy.props import StringProperty, BoolProperty, PointerProperty
+from ..enums import default_licenses
 from ..preferences import get_prefs
 from ..system import makedir, abspath
 from ..save_asset.add_to_library import MT_Save_To_Library
@@ -78,12 +79,21 @@ class MT_OT_Asset_Converter(bpy.types.Operator, MT_Save_To_Library):
                     self.report({'INFO'}, str(err))
                     preview_img = None
 
+                license = desc['License']
+                if license in [license[1] for license in default_licenses]:
+                    license_id = [license[0] for license in default_licenses if license[1] == 'Test'][0]
+                elif license in [license['name'] for license in prefs.user_licenses]:
+                    license_id = license
+                else:
+                    new_license = prefs.user_licenses.add()
+                    new_license.name = license
+                    license_id = license
 
                 kwargs = {
                     "desc": desc['Description'],
                     "author": desc['Author'],
                     "tags": desc['Tags'],
-                    "license":'ARR'}
+                    "license": license_id}
 
                 asset_desc = self.construct_asset_description(
                     props,
