@@ -135,6 +135,12 @@ class MT_PT_AM_Props(PropertyGroup):
         update=update_assets
     )
 
+    search_description: BoolProperty(
+        name="Search Description",
+        default=True,
+        description="Include description in search?"
+    )
+
     cut: bpy.props.BoolProperty(
         name="Cut",
         default=False,

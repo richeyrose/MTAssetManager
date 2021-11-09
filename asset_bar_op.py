@@ -1,6 +1,6 @@
 import os
 from operator import itemgetter, attrgetter
-from re import search
+import re
 import ntpath
 import pathlib
 import bpy
@@ -166,6 +166,28 @@ class MT_OT_AM_Asset_Bar(Operator):
                         break
 
 
+    def asset_str_filter(self, props, search_str, name, desc):
+        """Filter assets by name and description.
+
+        Args:
+            props (MTAssetManager.properties.MT_PT_AM_Props): Properties
+            search_str (str): String to search for
+            name (str): Asset Name
+            desc (str): Asset Description
+
+        Returns:
+            Bool: True iff search_str found.
+        """
+        search_str = re.sub(r'[^aA-zZ0-9 ]',"", search_str).lower()
+        name = re.sub(r'[^aA-zZ0-9 ]',"", name).lower()
+        desc = re.sub(r'[^aA-zZ0-9 ]',"", desc).lower()
+        if re.search(search_str, name):
+            return True
+        if props.search_description:
+            if re.search(search_str, desc):
+                return True
+        return False
+
     def init_assets(self, context, reset_index=True):
         """Initialise assets based on current active directory.
 
@@ -177,7 +199,7 @@ class MT_OT_AM_Asset_Bar(Operator):
         current_path = self.current_path = context.scene.mt_am_props.current_path
         current_assets = []
         type_filter = props.type_filter
-
+        search_str = props.text_filter
         libs = []
         for lib in bpy.data.libraries:
             try:
@@ -195,22 +217,33 @@ class MT_OT_AM_Asset_Bar(Operator):
                 lib_filepaths.remove(lib.filepath)
                 bpy.data.libraries.remove(lib)
             else:
-                #TODO Abstract this out so we can choose what to filter onand clean it up.
-                for id in [id for id in lib.users_id if type(id) in [Collection, Object, Material] and id.asset_data]:
-                    if props.text_filter:
-                        if not search(props.text_filter.lower(), id.name.lower()) and not search(props.text_filter.lower(), id.asset_data.description.lower()):
+                blocks = [
+                    block for block in lib.users_id
+                    if type(block) in [Collection, Object, Material]
+                    and block.asset_data]
+
+                for block in blocks:
+                    # Filter by search string
+                    if search_str:
+                        if not self.asset_str_filter(
+                            props,
+                            search_str,
+                            block.name,
+                            block.asset_data.description):
                             continue
+
+                    # Filter by type
                     if type_filter == 'MATERIAL':
-                        if type(id) == Material:
-                            current_assets.append(id)
+                        if type(block) == Material:
+                            current_assets.append(block)
                     elif type_filter == 'OBJECT':
-                        if type(id) == Object:
-                            current_assets.append(id)
+                        if type(block) == Object:
+                            current_assets.append(block)
                     elif type_filter == 'COLLECTION':
-                        if type(id) == Collection:
-                            current_assets.append(id)
+                        if type(block) == Collection:
+                            current_assets.append(block)
                     else:
-                        current_assets.append(id)
+                        current_assets.append(block)
 
         # list of files in current directory
         files = [file for file in absolute_file_paths(current_path) if file.endswith(".blend")]
@@ -221,6 +254,7 @@ class MT_OT_AM_Asset_Bar(Operator):
         # load new files
         for file in new_files:
             with bpy.data.libraries.load(file, assets_only=True, link=True) as (data_from, data_to):
+                # Filter by type
                 if type_filter == 'NONE':
                     data_to.objects = data_from.objects
                     data_to.collections = data_from.collections
@@ -233,13 +267,20 @@ class MT_OT_AM_Asset_Bar(Operator):
                     data_to.objects = data_from.objects
 
             all_assets = data_to.objects + data_to.materials + data_to.collections
-            for i in all_assets:
-                if props.text_filter:
-                    if not search(props.text_filter.lower(), id.name.lower()) and not search(props.text_filter.lower(), id.asset_data.description.lower()):
+            for asset in all_assets:
+                # Filter by search string
+                if search_str:
+                    if not self.asset_str_filter(
+                        props,
+                        search_str,
+                        block.name,
+                        block.asset_data.description):
                         continue
-                current_assets.append(i)
+                current_assets.append(asset)
 
         # TODO Filter by tag
+        # TODO Full search
+
         # sort assets
         sort_by = props.asset_sort_by
         reverse = props.asset_reverse_sort
