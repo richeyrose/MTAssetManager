@@ -1,0 +1,13 @@
+{
+    "python.linting.pylintEnabled": true,
+    "python.linting.pydocstyleEnabled": false,
+    "python.linting.pycodestyleEnabled": false,
+    "python.linting.pylintPath": "C:/Users/riche/AppData/Local/Programs/Python/Python37/Scripts/pylint",
+    "python.autoComplete.extraPaths": [
+        "E:/blender_autocomplete-master/2.93"
+    ],
+    "python.analysis.extraPaths": [
+        "E:/blender_autocomplete-master/2.93"
+    ],
+    "python.linting.enabled": true,
+}
