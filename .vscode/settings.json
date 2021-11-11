@@ -1,13 +1,16 @@
-{
+{   
     "python.linting.pylintEnabled": true,
-    "python.linting.pydocstyleEnabled": false,
+    "python.linting.pylintArgs": ["--disable= relative-beyond-top-level, invalid-name, missing-module-docstring"],
+    "python.linting.pydocstyleEnabled": true,
     "python.linting.pycodestyleEnabled": false,
     "python.linting.pylintPath": "C:/Users/riche/AppData/Local/Programs/Python/Python37/Scripts/pylint",
+    "python.linting.pydocstylePath": "C:/Users/riche/AppData/Local/Programs/Python/Python37/Scripts/pydocstyle",
+    
     "python.autoComplete.extraPaths": [
         "E:/blender_autocomplete-master/2.93"
     ],
     "python.analysis.extraPaths": [
         "E:/blender_autocomplete-master/2.93"
     ],
-    "python.linting.enabled": true,
+    "python.linting.enabled": true
 }
