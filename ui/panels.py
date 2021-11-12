@@ -44,21 +44,6 @@ class MT_PT_AM_Bar_Panel(MT_PT_AM_Main_Panel, Panel):
         else:
             layout.operator("view3d.mt_hide_asset_bar")
 
-        # filter by
-        layout.label(text="Filter By Type")
-        row = layout.row()
-        row.prop(props, 'type_filter', text="")
-
-        layout.label(text="Filter by Name and Description")
-        layout.prop(props, "text_filter", text="",translate=False, icon='VIEWZOOM')
-
-        # sort by
-        layout.label(text="Sort By")
-        row = layout.row()
-        row.prop(props, 'asset_sort_by', text="")
-        row.prop(props, 'asset_reverse_sort')
-
-
 
         # display return to parent button if we're not in the library root
         if props.current_path and props.library_path and not os.path.samefile(props.current_path, props.library_path):
@@ -92,6 +77,21 @@ class MT_PT_AM_Bar_Panel(MT_PT_AM_Main_Panel, Panel):
             # show delete subfolder link
             del_op = row.operator("scene.mt_am_delete_subfolder", text="", icon="REMOVE")
             del_op.folder_name = subfolder
+        if props.asset_bar:
+            # filter by
+            layout.label(text="Filter By Type")
+            row = layout.row()
+            row.prop(props, 'type_filter', text="")
+
+            layout.label(text="Filter by Name and Description")
+            layout.prop(props, "text_filter", text="",translate=False, icon='VIEWZOOM')
+
+            # sort by
+            layout.label(text="Sort By")
+            row = layout.row()
+            row.prop(props, 'asset_sort_by', text="")
+            row.prop(props, 'asset_reverse_sort')
+
 
 class MT_PT_AM_Asset_Info_Panel(MT_PT_AM_Main_Panel, Panel):
     """Asset Info Panel in Sidebar"""
