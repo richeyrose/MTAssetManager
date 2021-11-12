@@ -12,7 +12,6 @@ from .ui.ui_bar import MT_UI_AM_Asset_Bar
 from .ui.ui_asset import MT_AM_UI_Asset
 from .utils import absolute_file_paths
 
-
 class MT_OT_AM_Hide_Asset_Bar(Operator):
     """Operator for hiding the MakeTile Asset bar"""
     bl_idname = "view3d.mt_hide_asset_bar"
@@ -288,6 +287,7 @@ class MT_OT_AM_Asset_Bar(Operator):
             current_assets.sort(key=attrgetter('name'), reverse=reverse)
         elif sort_by == "MODIFIED":
             current_assets.sort(key=lambda asset: os.path.getmtime(asset.library.filepath), reverse=reverse)
+
 
         # instantiate a thumbnail for each asset in current assets
         prefs = get_prefs()
