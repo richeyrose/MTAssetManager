@@ -1,20 +1,27 @@
 import bpy
 from bpy.types import Operator
+from ..preferences import get_prefs
 
 def draw_object_context_menu_items(self, context):
     """Add save options to object right click context menu."""
+    prefs = get_prefs()
     layout = self.layout
     layout.operator_context = 'INVOKE_DEFAULT'
     layout.separator()
     # save assets
-    layout.operator(
+    op = layout.operator(
         "object.add_selected_objects_to_library",
         text="Save selected objects to MakeTile Library")
-    layout.operator(
+    op.author = prefs.default_author
+
+    op = layout.operator(
         "material.mt_ot_am_add_material_to_library",
         text="Save active material to MakeTile Library")
+    op.author = prefs.default_author    
+
     op = layout.operator("collection.add_collection_to_library")
     op.name = context.collection.name
+    op.author = prefs.default_author
 
     layout.separator()
     layout.operator("object.delete_selected_assets_from_library")

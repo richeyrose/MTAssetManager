@@ -228,6 +228,7 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
     def draw(self, context):
         props = context.scene.mt_am_props
         layout = self.layout
+        layout.prop(self, 'default_author')
         layout.prop(self, 'user_assets_path')
 
         box = layout.box()
