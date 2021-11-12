@@ -1,14 +1,16 @@
 import os
 import shutil
-import bpy
 import json
-from bpy.props import StringProperty, BoolProperty, PointerProperty
+import bpy
+from bpy.props import StringProperty
 from ..enums import default_licenses
 from ..preferences import get_prefs
-from ..system import makedir, abspath
-from ..save_asset.add_to_library import MT_Save_To_Library
+from ..save_asset.save_asset import MT_Save_To_Library
+
 
 class MT_OT_Asset_Converter(bpy.types.Operator, MT_Save_To_Library):
+    """Convert old MakeTile assets to the new asset system."""
+    
     bl_idname = "file.mt_asset_converter"
     bl_label = "Convert Old Assets"
     bl_description = "Converts old MakeTile assets to the new asset system."
