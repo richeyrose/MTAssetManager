@@ -9,17 +9,16 @@ from ..preferences import create_license_enums, get_prefs
 from .preview_rendering import render_collection_preview, render_material_preview, render_object_preview
 from ..collections import get_all_descendent_collections, get_object_owning_collections, activate_collection
 
-# TODO Refactor
+
 class MT_Save_To_Library:
     """Mixin for save operators."""
-
     preview_img: StringProperty(
         name="Preview Image Name"
     )
 
     name: StringProperty(
         name="Name",
-        default=""
+        default=''
     )
 
     desc: StringProperty(
@@ -419,17 +418,9 @@ class MT_OT_Set_Object_Bool_Type(Operator, MT_Save_To_Library):
     )
 
     license: EnumProperty(
-        items=[
-            ("ARR", "All Rights Reserved", ""),
-            ("CCBY", "Attribution (CC BY)", ""),
-            ("CCBYSA", "Attribution-ShareAlike (CC BY-SA)", ""),
-            ("CCBYND", "Attribution-NoDerivs (CC BY-ND)", ""),
-            ("CCBYNC", "Attribution-NonCommercial (CC BY-NC)", ""),
-            ("CCBYNCSA", "Attribution-NonCommercial-ShareAlike (CC BY-NC-SA)", ""),
-            ("CCBYNCND", "Attribution-NonCommercial-NoDerivs (CC BY-NC-ND)", "")],
+        items=create_license_enums,
         name="License",
-        description="License for asset use",
-        default="ARR")
+        description="License for asset use")
 
     tags: StringProperty(
         name="tags",
@@ -612,7 +603,6 @@ class MT_OT_Add_Collection_To_Library(Operator, MT_Save_To_Library):
         layout.prop(self, 'owning_collection')
         layout.prop(self, 'collection_type')
         self.draw_save_props_menu(context)
-
 
 def add_collection_to_library(self, context):
     """Add the passed in collection to the MakeTile Library.
