@@ -238,8 +238,8 @@ def append_asset(context, asset, asset_type='object', link=False):
         if asset_type == 'material':
             return append_material(context, filepath, name)
 
-        # used to ensure we only add unique materials
-        existing_mats = bpy.data.materials.keys()
+        # used to ensure we only append unique materials
+        existing_mats = [m.name for m in bpy.data.materials if not m.library]
 
         # used to ensure we set add a fake user on secondary objects, like those referred
         # to in modifiers, if they are added to the scene. If we don't do this then when
@@ -269,12 +269,12 @@ def append_asset(context, asset, asset_type='object', link=False):
             ob.use_fake_user = True
 
         # get a set of new materials that were added on import
-        updated_mats = bpy.data.materials.keys()
+        updated_mats = [m.name for m in bpy.data.materials if not m.library]
         new_mats = (set(existing_mats) | set(updated_mats)) - (set(existing_mats) & set(updated_mats))
 
         # check if newly added materials are unique
         for mat in new_mats:
-            materials = [material for material in bpy.data.materials if mat != material]
+            materials = [m for m in bpy.data.materials if mat != m.name and not m.library]
             unique, matched_material = material_is_unique(bpy.data.materials[mat], materials)
             if not unique:
                 for ob_name in new_obs:
