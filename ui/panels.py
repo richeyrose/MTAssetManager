@@ -96,12 +96,28 @@ class MT_PT_AM_Bar_Panel(MT_PT_AM_Main_Panel, Panel):
         except FileNotFoundError as err:
             pass
 
+class MT_PT_AM_Asset_Spawn_Options_Panel(MT_PT_AM_Main_Panel, Panel):
+    """Spawn Options"""
+    bl_idname = "MT_PT_AM_Asset_Spawn_Options_Panel"
+    bl_label = "Spwan Options"
+    bl_order = 1
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene.mt_am_props.asset_bar
+
+    def draw(self, context):
+        spawn_props = context.scene.mt_am_spawn_props
+        layout =self.layout
+        layout.prop(spawn_props, "snap_to_face")
+        layout.prop(spawn_props, "randomize_rotation")
+        layout.prop(spawn_props, "randomize_rotation_amount")
 
 class MT_PT_AM_Asset_Info_Panel(MT_PT_AM_Main_Panel, Panel):
     """Asset Info Panel in Sidebar"""
     bl_idname = "MT_PT_AM_Asset_Info_Panel"
     bl_label = "Asset Info"
-    bl_order = 1
+    bl_order = 2
 
     @classmethod
     def poll(cls, context):
@@ -136,7 +152,7 @@ class MT_PT_AM_Library_Select_Panel(MT_PT_AM_Main_Panel, Panel):
     bl_idname = "MT_PT_AM_Library_Select_Panel"
     bl_label = "Libraries"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_order = 2
+    bl_order = 3
 
     def draw(self, context):
         layout = self.layout

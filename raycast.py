@@ -41,11 +41,16 @@ def mouse_raycast(context, coord):
         snapped_rotation = snapped_normal.to_track_quat('Z', 'Y').to_euler()
         up = Vector((0, 0, 1))
         props = bpy.context.scene.mt_am_spawn_props
-        if props.randomize_rotation and snapped_normal.angle(up) < math.radians(10.0):
+        if props.snap_to_face:
+            # if props.randomize_rotation and snapped_normal.angle(up) < math.radians(10.0):
             randoffset = props.offset_rotation_amount + math.pi + (
                 random.random() - 0.5) * props.randomize_rotation_amount
+            # else:
+            #     randoffset = props.offset_rotation_amount  # we don't rotate this way on walls and ceilings. + math.pi
         else:
-            randoffset = props.offset_rotation_amount  # we don't rotate this way on walls and ceilings. + math.pi
+            snapped_rotation = Quaternion((0, 0, 0, 0)).to_euler()
+            randoffset = props.offset_rotation_amount + math.pi + (
+                random.random() - 0.5) * props.randomize_rotation_amount
         # snapped_rotation.z += math.pi + (random.random() - 0.5) * .2
 
     else:

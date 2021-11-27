@@ -215,6 +215,12 @@ class MT_PT_AM_Bar_Props(PropertyGroup):
 
 
 class MT_PT_AM_Object_Spawn_Props(PropertyGroup):
+    snap_to_face:BoolProperty(
+        name="Snap Rotation To Face",
+        description="Snap rotation to face",
+        default=False
+    )
+
     randomize_rotation: bpy.props.BoolProperty(
         name='Randomize Rotation',
         description="randomize rotation at placement",
@@ -226,6 +232,7 @@ class MT_PT_AM_Object_Spawn_Props(PropertyGroup):
         default=math.pi / 36,
         min=0,
         max=2 * math.pi,
+        step=5,
         subtype='ANGLE')
 
     offset_rotation_amount: bpy.props.FloatProperty(
