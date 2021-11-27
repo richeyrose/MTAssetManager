@@ -46,51 +46,55 @@ class MT_PT_AM_Bar_Panel(MT_PT_AM_Main_Panel, Panel):
 
 
         # display return to parent button if we're not in the library root
-        if props.current_path and props.library_path and not os.path.samefile(props.current_path, props.library_path):
-            op = layout.operator(
-                'view3d.mt_ret_to_parent',
-                text=os.path.basename(props.parent_path),
-                icon='FILE_PARENT')
-
-        # get list of subfolders
         try:
-            subfolder = [f.path for f in os.scandir(props.current_path) if f.is_dir()]
-        except FileNotFoundError:
-            subfolder = [f.path for f in os.scandir(props.library_path) if f.is_dir()]
+            if props.current_path and props.library_path and not os.path.samefile(props.current_path, props.library_path):
+                op = layout.operator(
+                    'view3d.mt_ret_to_parent',
+                    text=os.path.basename(props.parent_path),
+                    icon='FILE_PARENT')
 
-        # subfolder row
-        row = layout.row()
-        row.label(text='Subfolders')
+            # get list of subfolders
+            try:
+                subfolder = [f.path for f in os.scandir(props.current_path) if f.is_dir()]
+            except FileNotFoundError:
+                subfolder = [f.path for f in os.scandir(props.library_path) if f.is_dir()]
 
-        # add subfolder link
-        row.operator('scene.mt_am_add_subfolder', text="", icon='ADD')
-
-        # display subfolder name
-        for subfolder in subfolder:
+            # subfolder row
             row = layout.row()
-            op = row.operator(
-                "view3d.mt_asset_bar",
-                text=os.path.basename(subfolder),
-                icon="FILE_FOLDER")
-            op.current_path = subfolder
+            row.label(text='Subfolders')
 
-            # show delete subfolder link
-            del_op = row.operator("scene.mt_am_delete_subfolder", text="", icon="REMOVE")
-            del_op.folder_name = subfolder
-        if props.asset_bar:
-            # filter by
-            layout.label(text="Filter By Type")
-            row = layout.row()
-            row.prop(props, 'type_filter', text="")
+            # add subfolder link
+            row.operator('scene.mt_am_add_subfolder', text="", icon='ADD')
 
-            layout.label(text="Filter by Name and Description")
-            layout.prop(props, "text_filter", text="",translate=False, icon='VIEWZOOM')
+            # display subfolder name
+            for subfolder in subfolder:
+                row = layout.row()
+                op = row.operator(
+                    "view3d.mt_asset_bar",
+                    text=os.path.basename(subfolder),
+                    icon="FILE_FOLDER")
+                op.current_path = subfolder
 
-            # sort by
-            layout.label(text="Sort By")
-            row = layout.row()
-            row.prop(props, 'asset_sort_by', text="")
-            row.prop(props, 'asset_reverse_sort')
+                # show delete subfolder link
+                del_op = row.operator("scene.mt_am_delete_subfolder", text="", icon="REMOVE")
+                del_op.folder_name = subfolder
+            if props.asset_bar:
+                # filter by
+                layout.label(text="Filter By Type")
+                row = layout.row()
+                row.prop(props, 'type_filter', text="")
+
+                layout.label(text="Filter by Name and Description")
+                layout.prop(props, "text_filter", text="",translate=False, icon='VIEWZOOM')
+
+                # sort by
+                layout.label(text="Sort By")
+                row = layout.row()
+                row.prop(props, 'asset_sort_by', text="")
+                row.prop(props, 'asset_reverse_sort')
+        
+        except FileNotFoundError as err:
+            pass
 
 
 class MT_PT_AM_Asset_Info_Panel(MT_PT_AM_Main_Panel, Panel):
