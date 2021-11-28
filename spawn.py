@@ -141,6 +141,11 @@ def spawn_material(context, asset, x, y):
     if not mat:
         return None
 
+    # fuck knows why this works while make_local on the original doesn't.
+    if mat.library:
+        mat = mat.copy()
+        mat = mat.make_local()
+    
     # check if there is an object under the mouse.
     hit, location, normal, rotation, face_index, hit_obj, matrix = mouse_raycast(context, coords)
 
@@ -209,7 +214,7 @@ def append_material(context, filepath, asset_name):
         bpy.data.materials.remove(imported_mat)
         context.scene.mt_am_props.assets_updated = True
         return matched_material
-
+    
     context.scene.mt_am_props.assets_updated = True
     return imported_mat
 
