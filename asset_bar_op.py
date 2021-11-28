@@ -4,6 +4,7 @@ import re
 import ntpath
 import pathlib
 import bpy
+import addon_utils
 from bpy.app.handlers import persistent
 from bpy.types import Operator, Object, Collection, Material
 from bpy.props import StringProperty
@@ -194,12 +195,18 @@ class MT_OT_AM_Asset_Bar(Operator):
             context (bpy.context): context
             reset_index (bool, optional): Whether to reset the asset bar index to 0. Defaults to True.
         """
+        prefs = get_prefs()
         props = context.scene.mt_am_props
         current_path = self.current_path = context.scene.mt_am_props.current_path
         current_assets = []
         type_filter = props.type_filter
         search_str = props.text_filter
         libs = []
+
+        # Unload libraries that are not being used.
+        self.unload_libs(context, current_path)
+
+        # create list of libs in current directory
         for lib in bpy.data.libraries:
             try:
                 if os.path.samefile(pathlib.Path(lib.filepath).parent, current_path):
@@ -320,6 +327,40 @@ class MT_OT_AM_Asset_Bar(Operator):
         for asset in assets:
             asset.init(context)
 
+    def unload_libs(self, context, current_path):
+        # gather up all objects, materials and collections in file scene
+        scenes = bpy.data.scenes
+        cols = []
+        obs = []
+        mats = []
+
+        for scene in scenes:
+            cols.append(scene.collection)
+            cols.extend(scene.collection.children)
+            obs.extend(scene.collection.all_objects)
+
+        for ob in obs:
+            materials = [slot.material for slot in ob.material_slots]
+            mats.extend(materials)
+
+        # create a set of linked libraries that contain assets that are being used in this file
+        exception_libs = set()
+        for asset in obs + cols + mats:
+            if asset.library:
+                exception_libs.add(asset.library)
+        exception_libs.add(bpy.data.libraries['icons.blend'])
+        
+        # create a set of filepaths of default materials used by MakeTile
+        if 'MakeTile' in context.preferences.addons:
+            exception_filepaths = set([mat['filepath'] for mat in context.preferences.addons['MakeTile'].preferences['default_materials']])
+
+        # remove any libraries not in current directory or meeting above conditions
+        for lib in bpy.data.libraries:
+            if not os.path.samefile(pathlib.Path(lib.filepath).parent, current_path) \
+                and lib not in exception_libs:
+                if lib.filepath not in exception_filepaths:
+                    bpy.data.libraries.remove(lib)
+
     def init_asset_bar(self, context):
         context.scene.mt_am_props.asset_bar = MT_OT_AM_Asset_Bar.asset_bar = MT_UI_AM_Asset_Bar(50, 50, 300, 200, self)
         self.asset_bar.init(context)
@@ -369,6 +410,7 @@ class MT_OT_AM_Asset_Bar(Operator):
         Returns:
             operator return value {'FINISHED'}: Operator return
         """
+        self.unload_libs(context, self.current_path)
         self.unregister_handlers(context)
         return {"FINISHED"}
 
