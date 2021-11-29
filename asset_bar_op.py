@@ -8,6 +8,7 @@ import addon_utils
 from bpy.app.handlers import persistent
 from bpy.types import Operator, Object, Collection, Material
 from bpy.props import StringProperty
+import collections
 from .preferences import get_prefs
 from .ui.ui_bar import MT_UI_AM_Asset_Bar
 from .ui.ui_asset import MT_AM_UI_Asset
@@ -198,107 +199,22 @@ class MT_OT_AM_Asset_Bar(Operator):
         prefs = get_prefs()
         props = context.scene.mt_am_props
         current_path = self.current_path = context.scene.mt_am_props.current_path
-        current_assets = []
         type_filter = props.type_filter
         search_str = props.text_filter
-        libs = []
-
+   
         # Unload libraries that are not being used.
         self.unload_libs(context, current_path)
 
-        # create list of libs in current directory
-        for lib in bpy.data.libraries:
-            try:
-                if os.path.samefile(pathlib.Path(lib.filepath).parent, current_path):
-                    libs.append(lib)
-            except FileNotFoundError as err:
-                bpy.data.libraries.remove(lib)
-                self.report({'INFO'}, str(err) + ' Library removed.')
-
-        lib_filepaths = [lib.filepath for lib in libs]
-
-        for lib in libs:
-            # check if we need to reload library because we have appended something:
-            if len(lib.users_id) == 0:
-                lib_filepaths.remove(lib.filepath)
-                bpy.data.libraries.remove(lib)
-            else:
-                blocks = [
-                    block for block in lib.users_id
-                    if type(block) in [Collection, Object, Material]
-                    and block.asset_data]
-
-                for block in blocks:
-                    # Filter by search string
-                    if search_str:
-                        if not self.asset_str_filter(
-                            props,
-                            search_str,
-                            block.name,
-                            block.asset_data.description):
-                            continue
-
-                    # Filter by type
-                    if type_filter == 'MATERIAL':
-                        if type(block) == Material:
-                            current_assets.append(block)
-                    elif type_filter == 'OBJECT':
-                        if type(block) == Object:
-                            current_assets.append(block)
-                    elif type_filter == 'COLLECTION':
-                        if type(block) == Collection:
-                            current_assets.append(block)
-                    else:
-                        current_assets.append(block)
-
-        # list of files in current directory
-        files = [file for file in absolute_file_paths(current_path) if file.endswith(".blend")]
-
-        # set of new files and files to reload
-        new_files = set(lib_filepaths) ^ set(files)
-
-        # load new files
-        for file in new_files:
-            with bpy.data.libraries.load(file, assets_only=True, link=True) as (data_from, data_to):
-                # Filter by type
-                if type_filter == 'NONE':
-                    data_to.objects = data_from.objects
-                    data_to.collections = data_from.collections
-                    data_to.materials = data_from.materials
-                elif type_filter == 'MATERIAL':
-                    data_to.materials = data_from.materials
-                elif type_filter == 'COLLECTION':
-                    data_to.collections = data_from.collections
-                elif type_filter == 'OBJECT':
-                    data_to.objects = data_from.objects
-
-            all_assets = data_to.objects + data_to.materials + data_to.collections
-            for asset in all_assets:
-                # Filter by search string
-                if search_str:
-                    if not self.asset_str_filter(
-                        props,
-                        search_str,
-                        block.name,
-                        block.asset_data.description):
-                        continue
-                current_assets.append(asset)
-
-        # TODO Filter by tag
-        # TODO Full search
+        # load assets in current directory
+        current_assets = self.load_assets_from_dir(props, current_path, type_filter, search_str)
 
         # sort assets
-        sort_by = props.asset_sort_by
-        reverse = props.asset_reverse_sort
-        if sort_by == "ALPHABETICAL":
-            current_assets.sort(key=attrgetter('name'), reverse=reverse)
-        elif sort_by == "MODIFIED":
-            current_assets.sort(key=lambda asset: os.path.getmtime(asset.library.filepath), reverse=reverse)
-
+        self.sort_assets(props, current_assets)
 
         # instantiate a thumbnail for each asset in current assets
         prefs = get_prefs()
         assets = []
+
         for asset in current_assets:
             new_asset = MT_AM_UI_Asset(
                 50,
@@ -327,27 +243,106 @@ class MT_OT_AM_Asset_Bar(Operator):
         for asset in assets:
             asset.init(context)
 
+    def load_assets_from_dir(self, props, dir, type_filter, search_str):
+        assets = []
+
+        # list of files in current directory
+        files = [file for file in absolute_file_paths(dir) if file.endswith(".blend")]
+
+        # load new files
+        for file in files:
+            with bpy.data.libraries.load(file, assets_only=True, link=True) as (data_from, data_to):
+                # Filter by type
+                if type_filter == 'NONE':
+                    data_to.objects = data_from.objects
+                    data_to.collections = data_from.collections
+                    data_to.materials = data_from.materials
+                elif type_filter == 'MATERIAL':
+                    data_to.materials = data_from.materials
+                elif type_filter == 'COLLECTION':
+                    data_to.collections = data_from.collections
+                elif type_filter == 'OBJECT':
+                    data_to.objects = data_from.objects
+
+            all_assets = data_to.objects + data_to.materials + data_to.collections
+
+            for asset in all_assets:
+                # Filter by search string
+                if search_str:
+                    if not self.asset_str_filter(
+                        props,
+                        search_str,
+                        asset.name,
+                        asset.asset_data.description):
+                        continue
+                assets.append(asset)
+        return assets
+
+    def sort_assets(self, props, current_assets):
+        sort_by = props.asset_sort_by
+        reverse = props.asset_reverse_sort
+        if sort_by == "ALPHABETICAL":
+            current_assets.sort(key=attrgetter('name'), reverse=reverse)
+        elif sort_by == "MODIFIED":
+            current_assets.sort(key=lambda asset: os.path.getmtime(asset.library.filepath), reverse=reverse)
+
+    
     def unload_libs(self, context, current_path):
         # gather up all objects, materials and collections in file scene
-        scenes = bpy.data.scenes
-        cols = []
-        obs = []
-        mats = []
+        
+        blocks = {
+            "scenes": bpy.data.scenes,
+            "collections": [],
+            "objects":[],
+            "materials":[],
+            "actions":[],
+            "armatures":[],
+            "brushes":[],
+            "cache_files":[],
+            "cameras":[],
+            "curves":[],
+            "fonts":[],
+            "grease_pencils":[],
+            "hairs":[],
+            "images":[],
+            "lattices":[],
+            "lightprobes":[],
+            "lights":[],
+            "linestyles":[],
+            "masks":[],
+            "meshes":[],
+            "metaballs":[],
+            "movieclips":[],
+            "node_groups":[],
+            "objects":[],
+            "paint_curves":[],
+            "palettes":[],
+            "particles":[],
+            "pointclouds":[],
+            "screens":[],
+            "simulations":[],
+            "sounds":[],
+            "speakers":[],
+            "texts":[],
+            "textures":[],
+            "volumes":[],
+            "workspaces":[],
+            "worlds":[]}
 
-        for scene in scenes:
-            cols.append(scene.collection)
-            cols.extend(scene.collection.children)
-            obs.extend(scene.collection.all_objects)
+        for scene in blocks['scenes']:
+            blocks['collections'].append(scene.collection)
+            blocks['collections'].extend(scene.collection.children)
+            blocks['objects'].extend(scene.collection.all_objects)
 
-        for ob in obs:
-            materials = [slot.material for slot in ob.material_slots]
-            mats.extend(materials)
+        for ob in blocks['objects']:
+            mats = [slot.material for slot in ob.material_slots]
+            blocks['materials'].extend(mats)
 
         # create a set of linked libraries that contain assets that are being used in this file
         exception_libs = set()
-        for asset in obs + cols + mats:
-            if asset.library:
-                exception_libs.add(asset.library)
+        for block_type in blocks.values():
+            for block in block_type:
+                exception_libs.add(block.library)
         exception_libs.add(bpy.data.libraries['icons.blend'])
         
         # create a set of filepaths of default materials used by MakeTile
@@ -356,10 +351,8 @@ class MT_OT_AM_Asset_Bar(Operator):
 
         # remove any libraries not in current directory or meeting above conditions
         for lib in bpy.data.libraries:
-            if not os.path.samefile(pathlib.Path(lib.filepath).parent, current_path) \
-                and lib not in exception_libs:
-                if lib.filepath not in exception_filepaths:
-                    bpy.data.libraries.remove(lib)
+            if lib not in exception_libs and lib.filepath not in exception_filepaths:
+                bpy.data.libraries.remove(lib)
 
     def init_asset_bar(self, context):
         context.scene.mt_am_props.asset_bar = MT_OT_AM_Asset_Bar.asset_bar = MT_UI_AM_Asset_Bar(50, 50, 300, 200, self)
