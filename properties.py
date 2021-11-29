@@ -292,7 +292,14 @@ def register():
         description="Preview Image to use in MT Asset Browser."
     )
 
+    bpy.types.Library.mt_library = BoolProperty(
+        name="MakeTile Library",
+        default=False,
+        description="Linked to file by asset browser"
+    )
+
 def unregister():
+    del bpy.types.Library.mt_library
     del bpy.types.Material.mt_preview_img
     del bpy.types.Collection.mt_preview_img
     del bpy.types.Object.mt_preview_img

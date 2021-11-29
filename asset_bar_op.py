@@ -12,7 +12,7 @@ import collections
 from .preferences import get_prefs
 from .ui.ui_bar import MT_UI_AM_Asset_Bar
 from .ui.ui_asset import MT_AM_UI_Asset
-from .utils import absolute_file_paths
+from .utils import absolute_file_paths, path_leaf
 
 class MT_OT_AM_Hide_Asset_Bar(Operator):
     """Operator for hiding the MakeTile Asset bar"""
@@ -203,7 +203,7 @@ class MT_OT_AM_Asset_Bar(Operator):
         search_str = props.text_filter
    
         # Unload libraries that are not being used.
-        self.unload_libs(context, current_path)
+        self.unload_libs(context)
 
         # load assets in current directory
         current_assets = self.load_assets_from_dir(props, current_path, type_filter, search_str)
@@ -251,6 +251,7 @@ class MT_OT_AM_Asset_Bar(Operator):
 
         # load new files
         for file in files:
+            libname = path_leaf(file)
             with bpy.data.libraries.load(file, assets_only=True, link=True) as (data_from, data_to):
                 # Filter by type
                 if type_filter == 'NONE':
@@ -276,6 +277,11 @@ class MT_OT_AM_Asset_Bar(Operator):
                         asset.asset_data.description):
                         continue
                 assets.append(asset)
+            
+            # mark library as being one added by MT asset manager
+            if bpy.data.libraries[libname]:
+                bpy.data.libraries[libname].mt_library = True
+
         return assets
 
     def sort_assets(self, props, current_assets):
@@ -285,49 +291,22 @@ class MT_OT_AM_Asset_Bar(Operator):
             current_assets.sort(key=attrgetter('name'), reverse=reverse)
         elif sort_by == "MODIFIED":
             current_assets.sort(key=lambda asset: os.path.getmtime(asset.library.filepath), reverse=reverse)
-
     
-    def unload_libs(self, context, current_path):
-        # gather up all objects, materials and collections in file scene
-        
+    def unload_libs(self, context):
+        """Unlink any library where lib.mt_library is true and where no material, objects, scenes, or collections are being used in current file.
+
+        Args:
+            context (bpy.types.Context): context
+        """
+        # create list of libraries that have been linked in by MT Asset manager
+        am_libs = [lib for lib in bpy.data.libraries if lib.mt_library]
+       
+        # gather up all scenes, objects, materials and collections in local files       
         blocks = {
             "scenes": bpy.data.scenes,
             "collections": [],
             "objects":[],
-            "materials":[],
-            "actions":[],
-            "armatures":[],
-            "brushes":[],
-            "cache_files":[],
-            "cameras":[],
-            "curves":[],
-            "fonts":[],
-            "grease_pencils":[],
-            "hairs":[],
-            "images":[],
-            "lattices":[],
-            "lightprobes":[],
-            "lights":[],
-            "linestyles":[],
-            "masks":[],
-            "meshes":[],
-            "metaballs":[],
-            "movieclips":[],
-            "node_groups":[],
-            "objects":[],
-            "paint_curves":[],
-            "palettes":[],
-            "particles":[],
-            "pointclouds":[],
-            "screens":[],
-            "simulations":[],
-            "sounds":[],
-            "speakers":[],
-            "texts":[],
-            "textures":[],
-            "volumes":[],
-            "workspaces":[],
-            "worlds":[]}
+            "materials":[]}
 
         for scene in blocks['scenes']:
             blocks['collections'].append(scene.collection)
@@ -343,14 +322,16 @@ class MT_OT_AM_Asset_Bar(Operator):
         for block_type in blocks.values():
             for block in block_type:
                 exception_libs.add(block.library)
+        
+        # add icons file to exception list
         exception_libs.add(bpy.data.libraries['icons.blend'])
         
         # create a set of filepaths of default materials used by MakeTile
         if 'MakeTile' in context.preferences.addons:
             exception_filepaths = set([mat['filepath'] for mat in context.preferences.addons['MakeTile'].preferences['default_materials']])
 
-        # remove any libraries not in current directory or meeting above conditions
-        for lib in bpy.data.libraries:
+        # remove any Asset Manager Libraries not in current directory or meeting above conditions
+        for lib in am_libs:
             if lib not in exception_libs and lib.filepath not in exception_filepaths:
                 bpy.data.libraries.remove(lib)
 
@@ -403,7 +384,7 @@ class MT_OT_AM_Asset_Bar(Operator):
         Returns:
             operator return value {'FINISHED'}: Operator return
         """
-        self.unload_libs(context, self.current_path)
+        self.unload_libs(context)
         self.unregister_handlers(context)
         return {"FINISHED"}
 
