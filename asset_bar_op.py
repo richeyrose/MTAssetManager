@@ -323,7 +323,10 @@ class MT_OT_AM_Asset_Bar(Operator):
         exception_libs = set()
         for block_type in blocks.values():
             for block in block_type:
-                exception_libs.add(block.library)
+                try:
+                    exception_libs.add(block.library)
+                except AttributeError:
+                    pass
         
         # add icons file to exception list
         exception_libs.add(bpy.data.libraries['icons.blend'])
