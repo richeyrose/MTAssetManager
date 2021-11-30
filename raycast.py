@@ -35,23 +35,21 @@ def mouse_raycast(context, coord):
     has_hit, snapped_location, snapped_normal, face_index, obj, matrix = bpy.context.scene.ray_cast(
         depsgraph, ray_origin, vec)
 
-    # rote = mathutils.Euler((0, 0, math.pi))
     randoffset = math.pi
     if has_hit:
         snapped_rotation = snapped_normal.to_track_quat('Z', 'Y').to_euler()
-        up = Vector((0, 0, 1))
         props = bpy.context.scene.mt_am_spawn_props
+        # face snapping. Up is along face normal
         if props.snap_to_face:
-            # if props.randomize_rotation and snapped_normal.angle(up) < math.radians(10.0):
-            randoffset = props.offset_rotation_amount + math.pi + (
-                random.random() - 0.5) * props.randomize_rotation_amount
-            # else:
-            #     randoffset = props.offset_rotation_amount  # we don't rotate this way on walls and ceilings. + math.pi
+            if props.randomize_rotation:
+                randoffset = props.offset_rotation_amount + math.pi + (
+                    random.random() - 0.5) * props.randomize_rotation_amount
         else:
             snapped_rotation = Quaternion((0, 0, 0, 0)).to_euler()
-            randoffset = props.offset_rotation_amount + math.pi + (
-                random.random() - 0.5) * props.randomize_rotation_amount
-        # snapped_rotation.z += math.pi + (random.random() - 0.5) * .2
+            snapped_rotation.y = math.radians(180)
+            if props.randomize_rotation:
+                randoffset = props.offset_rotation_amount + math.pi + (
+                    random.random() - 0.5) * props.randomize_rotation_amount
 
     else:
         snapped_rotation = Quaternion((0, 0, 0, 0)).to_euler()

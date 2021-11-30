@@ -140,9 +140,14 @@ class MT_PT_AM_Asset_Info_Panel(MT_PT_AM_Main_Panel, Panel):
             row = layout.row()
             row.template_list("ASSETBROWSER_UL_metadata_tags", "asset_tags", asset_data, "tags",
                           asset_data, "active_tag", rows=4)
+            
             op = layout.operator("asset.mt_open_containing_blend_file")
-            op.filepath = asset.library.filepath
-            op.name = asset.name
+            try:
+                op.filepath = asset.library.filepath
+                op.name = asset.name
+            except AttributeError:
+                pass
+            
         except ReferenceError:
             pass
 

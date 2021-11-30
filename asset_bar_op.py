@@ -279,8 +279,10 @@ class MT_OT_AM_Asset_Bar(Operator):
                 assets.append(asset)
             
             # mark library as being one added by MT asset manager
-            if bpy.data.libraries[libname]:
+            try:
                 bpy.data.libraries[libname].mt_library = True
+            except KeyError as err:
+                pass
 
         return assets
 

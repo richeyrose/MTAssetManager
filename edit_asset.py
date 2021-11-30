@@ -20,6 +20,13 @@ class MT_OT_open_containing_blend_file(Operator):
         name="Asset Name"
     )
 
+    @classmethod
+    def poll(cls, context):
+        props=context.scene.mt_am_props
+        bar = props.asset_bar
+        asset = bar.last_selected_asset
+        return asset.library
+        
     def execute(self, context):
         self.open_in_new_blender(self.filepath)
 
