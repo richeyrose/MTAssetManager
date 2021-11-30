@@ -44,6 +44,9 @@ class MT_PT_AM_Bar_Panel(MT_PT_AM_Main_Panel, Panel):
         else:
             layout.operator("view3d.mt_hide_asset_bar")
 
+        # Show current directory
+        layout.label(text="Current Directory:")
+        layout.label(text=props.current_path)
 
         # display return to parent button if we're not in the library root
         try:

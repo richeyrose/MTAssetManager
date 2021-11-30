@@ -599,9 +599,9 @@ class MT_OT_Add_Collection_To_Library(Operator, MT_Save_To_Library):
     def draw(self, context):
         layout = self.layout
         layout.prop(self, 'name')
-        layout.prop(self, 'root_object')
         layout.prop(self, 'owning_collection')
         layout.prop(self, 'collection_type')
+        layout.prop(self, 'root_object')
         self.draw_save_props_menu(context)
 
 def add_collection_to_library(self, context):
