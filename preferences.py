@@ -224,12 +224,30 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
         name="Licenses",
         items=create_license_enums
     )
-
+    # TODO - Currently this sets any asset without a license to the first added custom license which isn;t what we want so disabling.
     def draw(self, context):
         props = context.scene.mt_am_props
         layout = self.layout
-        layout.prop(self, 'default_author')
-        layout.prop(self, 'user_assets_path')
+
+        box = layout.box()
+        box.prop(self, 'default_author')
+        # box.label(text="User Licenses:")
+        # # Draw list of user licenses
+        # box.prop(self, 'user_licenses')
+        # for li in self.user_licenses:
+        #     row = box.row()
+        #     row.prop(li, 'name')
+        #     row.prop(li, 'description')
+        #     op = row.operator('addons.mt_remove_user_license', text="", icon='REMOVE')
+        #     op.name = li.name
+
+        # box.label(text="Add New License:")
+
+        # box.prop(props, 'new_license_name')
+        # box.prop(props, 'new_license_desc')
+        # op = box.operator('addons.mt_add_user_license')
+        # op.name=props.new_license_name
+        # op.description=props.new_license_desc
 
         box = layout.box()
         box.label(text="Asset Converter")
@@ -240,25 +258,6 @@ class MT_AM_Prefs(bpy.types.AddonPreferences):
         op.data_path = props.data_path
         op.target_path = props.target_path
         op.archive_path = props.archive_path
-
-        layout.label(text="User Licenses:")
-
-        # Draw list of user licenses
-        layout.prop(self, 'user_licenses')
-        for li in self.user_licenses:
-            row = layout.row()
-            row.prop(li, 'name')
-            row.prop(li, 'description')
-            op = row.operator('addons.mt_remove_user_license', text="", icon='REMOVE')
-            op.name = li.name
-
-        layout.label(text="Add New License:")
-
-        layout.prop(props, 'new_license_name')
-        layout.prop(props, 'new_license_desc')
-        op = layout.operator('addons.mt_add_user_license')
-        op.name=props.new_license_name
-        op.description=props.new_license_desc
 
 class MT_AM_OT_Remove_User_License(Operator):
     bl_idname="addons.mt_remove_user_license"
